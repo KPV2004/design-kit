@@ -1,0 +1,10 @@
+{
+  "name": "ux-ui-designer",
+  "description": "Design UX/UI as an AI-readable project: design.md, wireframes of every screen (zoom, device filter, pinned comments), dev diagrams, a clickable Tailwind mockup, UX spec and design tokens — kept in sync on every change.",
+  "version": "1.0.0",
+  "author": { "name": "YOUR_NAME" },
+  "homepage": "https://github.com/YOUR_GITHUB_USER/ux-ui-designer",
+  "repository": "https://github.com/YOUR_GITHUB_USER/ux-ui-designer",
+  "license": "MIT",
+  "keywords": ["ux", "ui", "wireframe", "mockup", "design-system", "tailwind", "mermaid", "thai"]
+}

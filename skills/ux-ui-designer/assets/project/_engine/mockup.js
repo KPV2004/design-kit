@@ -1,0 +1,183 @@
+/* ============================================================
+   Mockup engine — do not edit per project.
+   Reads from mockup.html:
+     const tokens = {...}   color scales (same names/hex as design.md)
+     const icons  = {...}   icon map (same as design.md §6)
+     <main id="screens"> <section class="screen" id data-title data-module data-device data-notes data-hint> ...
+   The same file runs in two modes:
+     shell  (default)   toolbar + device frame (iframe) + notes sidebar
+     frame  (?frame=1)  the screens themselves, loaded inside the shell's iframe
+   Global API used by screen markup: showScreen('id')
+   ============================================================ */
+(function () {
+  'use strict';
+  const FRAME = new URLSearchParams(location.search).has('frame');
+  window.FRAME = FRAME;
+  document.documentElement.classList.add(FRAME ? 'is-frame' : 'is-shell');   // set before first paint
+
+  const SHELL = `<div id="shell">
+  <div id="tb" class="sticky top-0 z-50">
+    <div class="flex flex-wrap items-center gap-2 px-3 py-2">
+      <button id="tb-toggle" aria-expanded="true" title="ย่อ/ขยายแถบ">▾</button>
+      <span class="font-semibold mr-1" id="app-title">[App] mockup</span>
+      <div class="tb-body flex flex-wrap items-center gap-2">
+        <button onclick="step(-1)" aria-label="หน้าก่อนหน้า">◀</button>
+        <select id="screen-select" aria-label="เลือกหน้าจอ"></select>
+        <button onclick="step(1)" aria-label="หน้าถัดไป">▶</button>
+        <span class="ml-2 text-zinc-400">จอ:</span>
+        <button data-vp="desktop" aria-pressed="true">Desktop</button>
+        <button data-vp="tablet" aria-pressed="false">Tablet</button>
+        <button data-vp="mobile" aria-pressed="false">Mobile</button>
+        <span class="ml-2 text-zinc-400">สถานะ:</span>
+        <select id="state-select" aria-label="สถานะหน้าจอ">
+          <option value="default">ปกติ</option><option value="empty">ว่าง</option>
+          <option value="loading">กำลังโหลด</option><option value="error">ผิดพลาด</option>
+        </select>
+        <label class="ml-2 flex items-center gap-1 cursor-pointer"><input type="checkbox" id="anno-toggle" checked> หมุด</label>
+        <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="notes-toggle" checked> หมายเหตุ</label>
+      </div>
+    </div>
+  </div>
+  <div id="stage" class="vp-desktop">
+    <div id="device"><iframe id="frame" title="หน้าจอ mockup"></iframe></div>
+    <aside id="notes">
+      <h2 id="n-title" class="font-semibold text-base"></h2>
+      <p id="n-meta" class="text-zinc-500 text-xs mb-3"></p>
+      <div id="n-list" class="space-y-2"></div>
+      <div id="n-hint" class="mt-4 hidden"><p class="font-medium text-xs text-zinc-500 mb-1">วิธีทดลอง</p><p class="text-xs bg-zinc-100 rounded p-2"></p></div>
+    </aside>
+  </div>
+</div>`;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!FRAME) document.body.insertAdjacentHTML('afterbegin', SHELL);
+    document.body.classList.add('font-sans');
+
+  const screens = [...document.querySelectorAll('#screens > .screen')];
+  const ids = screens.map(s => s.id);
+  const byId = id => screens.find(s => s.id === id);
+  const firstId = () => ids.includes(location.hash.slice(1)) ? location.hash.slice(1) : ids[0];
+
+  if (FRAME) {
+    /* ---------- Frame mode: the actual screens ---------- */
+    let curState = 'default';
+    function applyState(st) {
+      curState = st;
+      const scr = document.querySelector('.screen.active'); if (!scr) return;
+      const variants = scr.querySelectorAll('[data-state]'); if (!variants.length) return;
+      const has = [...variants].some(v => v.dataset.state === st);
+      variants.forEach(v => v.classList.toggle('show', v.dataset.state === (has ? st : 'default')));
+    }
+    window.showScreen = function (id) {
+      if (!byId(id)) return;
+      screens.forEach(s => s.classList.toggle('active', s.id === id));
+      applyState(curState);
+      window.scrollTo(0, 0);
+      if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+      parent.postMessage({ type: 'screen', id }, '*');
+    };
+    window.addEventListener('message', e => {
+      const d = e.data || {};
+      if (d.type === 'go') showScreen(d.id);
+      if (d.type === 'state') applyState(d.value);
+      if (d.type === 'anno') document.body.classList.toggle('hide-anno', !d.value);
+    });
+    window.addEventListener('hashchange', () => showScreen(location.hash.slice(1)));
+
+    // Design-system swatches with contrast vs white / dark text
+    (function renderSwatches() {
+      const wrap = document.getElementById('swatches'); if (!wrap) return;
+      const lum = h => { const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(x=>x<=0.03928?x/12.92:((x+0.055)/1.055)**2.4); return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2]; };
+      const ratio = (a,b) => { const [x,y]=[lum(a),lum(b)].sort((m,n)=>n-m); return (x+0.05)/(y+0.05); };
+      Object.entries(tokens).forEach(([name, scale]) => {
+        const row = document.createElement('div');
+        row.innerHTML = `<p class="font-medium mb-2">${name}</p><div class="flex flex-wrap gap-2"></div>`;
+        Object.entries(scale).forEach(([k, hex]) => {
+          const w = ratio(hex,'#ffffff'), d = ratio(hex,'#0f172a');
+          const c = document.createElement('div');
+          c.className = 'w-28 rounded-md p-2 text-xs';
+          c.style.background = hex; c.style.color = w >= d ? '#ffffff' : '#0f172a';
+          c.innerHTML = `<div class="font-semibold">${name}-${k}</div><div>${hex}</div><div>ขาว ${w.toFixed(1)} · ดำ ${d.toFixed(1)}</div>`;
+          row.querySelector('div').appendChild(c);
+        });
+        wrap.appendChild(row);
+      });
+    })();
+    // Icon map preview
+    (function renderIcons() {
+      const grid = document.getElementById('icon-grid'); if (!grid) return;
+      const prefixes = [...new Set(Object.values(icons).map(n => n.split(':')[0]))];
+      document.getElementById('icon-set').textContent = '· ' + prefixes.join(', ') + (prefixes.length > 1 ? ' ⚠ ใช้หลายชุดปนกัน' : '');
+      grid.innerHTML = Object.entries(icons).map(([k, n]) =>
+        `<div class="border border-neutral-200 rounded-md p-3 text-center"><iconify-icon icon="${n}" width="24" class="text-neutral-700"></iconify-icon>
+         <div class="text-xs mt-1 font-medium">${k}</div><div class="text-[11px] text-neutral-500 break-all">${n}</div></div>`).join('');
+    })();
+    showScreen(firstId());
+  } else {
+    /* ---------- Shell mode: toolbar, device frame, notes ---------- */
+    const $ = id => document.getElementById(id);
+    const shell = $('shell'), stage = $('stage'), frame = $('frame'), sel = $('screen-select'), tb = $('tb');
+    let current = null, vp = 'desktop';
+
+    // Grouped dropdown by module
+    const groups = {};
+    screens.forEach(s => (groups[s.dataset.module || 'อื่น ๆ'] ||= []).push(s));
+    Object.entries(groups).forEach(([g, list]) => {
+      const og = document.createElement('optgroup'); og.label = g;
+      list.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = `${ids.indexOf(s.id)+1}. ${s.dataset.title || s.id}`; og.appendChild(o); });
+      sel.appendChild(og);
+    });
+
+    const setTbh = () => document.documentElement.style.setProperty('--tbh', tb.offsetHeight + 'px');
+    new ResizeObserver(setTbh).observe(tb);
+
+    function setViewport(v, fromUser) {
+      const locked = byId(current)?.dataset.device === 'mobile';
+      if (locked) v = 'mobile'; else if (fromUser) vp = v; else v = vp;
+      stage.className = 'vp-' + v;
+      document.querySelectorAll('[data-vp]').forEach(b => {
+        b.setAttribute('aria-pressed', String(b.dataset.vp === v));
+        b.disabled = locked && b.dataset.vp !== 'mobile';
+      });
+    }
+    function renderNotes(id) {
+      const s = byId(id);
+      $('n-title').textContent = s.dataset.title || id;
+      $('n-meta').textContent = `#${id} · ${s.dataset.module || ''} · ${s.dataset.device === 'mobile' ? 'native mobile' : 'responsive'}`;
+      const notes = (s.dataset.notes || '').split('|').map(x => x.trim()).filter(Boolean);
+      $('n-list').innerHTML = notes.length
+        ? notes.map((n, i) => `<p><span class="anno">${i+1}</span> ${n}</p>`).join('')
+        : '<p class="text-zinc-400">ไม่มีหมายเหตุ</p>';
+      const hint = s.dataset.hint || '';
+      $('n-hint').classList.toggle('hidden', !hint);
+      $('n-hint').querySelector('p:last-child').textContent = hint;
+    }
+    function sync(id) {
+      current = id; sel.value = id; renderNotes(id); setViewport(null, false);
+      if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+    }
+    window.showScreen = function (id) { if (!byId(id)) return; sync(id); frame.contentWindow?.postMessage({ type: 'go', id }, '*'); };
+    window.step = d => showScreen(ids[(ids.indexOf(current) + d + ids.length) % ids.length]);
+
+    window.addEventListener('message', e => { const d = e.data || {}; if (d.type === 'screen' && d.id !== current && byId(d.id)) sync(d.id); });
+    frame.addEventListener('load', () => {
+      frame.contentWindow.postMessage({ type: 'state', value: $('state-select').value }, '*');
+      frame.contentWindow.postMessage({ type: 'anno', value: $('anno-toggle').checked }, '*');
+      frame.contentWindow.postMessage({ type: 'go', id: current }, '*');
+    });
+    sel.onchange = () => showScreen(sel.value);
+    document.querySelectorAll('[data-vp]').forEach(b => b.onclick = () => setViewport(b.dataset.vp, true));
+    $('state-select').onchange = e => frame.contentWindow.postMessage({ type: 'state', value: e.target.value }, '*');
+    $('anno-toggle').onchange = e => frame.contentWindow.postMessage({ type: 'anno', value: e.target.checked }, '*');
+    $('notes-toggle').onchange = e => shell.classList.toggle('no-notes', !e.target.checked);
+    $('tb-toggle').onclick = () => { const c = tb.classList.toggle('collapsed'); $('tb-toggle').textContent = c ? '▸' : '▾'; $('tb-toggle').setAttribute('aria-expanded', String(!c)); };
+    document.addEventListener('keydown', e => { if (e.target.closest('select,input')) return; if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); });
+
+    const start = firstId();
+    sync(start);
+    frame.src = location.pathname.split('/').pop() + '?frame=1#' + start;
+    setTbh();
+  }
+
+  });
+})();

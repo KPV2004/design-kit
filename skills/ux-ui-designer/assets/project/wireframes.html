@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+  WIREFRAMES — content only. See AGENTS.md before editing.
+  Engine (toolbar, zoom, comments, diagrams): _engine/wireframe.js + .css — never edit per project.
+  Diagrams: generated from ux-spec.md by `python _tools/sync_diagrams.py` — never edit here.
+
+  SCREENS (in order): login · list · detail
+-->
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[App] — Wireframes</title>
+<!-- Wireframe only: CDN scripts are not for production use -->
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"IBM Plex Sans Thai"', 'Tahoma', 'system-ui', 'sans-serif'] } } } };
+  /* ===== CONFIG ===== version must equal design.md version */
+  const WF = { app: '[App]', version: '1.0' };
+</script>
+<link rel="stylesheet" href="_engine/wireframe.css">
+<script src="_engine/wireframe.js"></script>
+</head>
+<body>
+
+<!-- DIAGRAMS:START -->
+<script type="text/plain" class="diagram" data-title="User flow">
+flowchart LR
+  login[เข้าสู่ระบบ] -->|สำเร็จ| list[รายการเอกสาร]
+  list -->|สร้างใหม่| detail[รายละเอียด / ฟอร์ม]
+  detail -->|บันทึก| list
+</script>
+<!-- DIAGRAMS:END -->
+
+<!--
+  SCREEN FORMAT — one block per screen, in inventory order:
+  <!== SCREEN: id ==> ... <template id data-title data-module data-device data-notes> ... </template> <!== /SCREEN: id ==>
+    data-device: desktop | mobile | responsive
+    frames: .frame-desktop (1280) · .frame-tablet (768) · .frame-mobile (390) — responsive screens put all frames
+            they need in the SAME template; the toolbar filter shows ทั้งหมด / Desktop / Tablet / Mobile
+    data-notes:  one entry per .anno marker, separated by |
+  Building blocks: .wf-box .wf-fill .wf-line .wf-img .wf-btn(.primary) .wf-input .wf-label .anno
+  Navigation: onclick="showScreen('id')"
+-->
+
+<!-- ════════ SCREEN: login ════════ -->
+<template id="login" data-title="เข้าสู่ระบบ" data-module="Auth" data-device="responsive"
+          data-notes="จำผู้ใช้ล่าสุดไว้ในช่องชื่อผู้ใช้|ลืมรหัสผ่านเปิดหน้ารีเซ็ต">
+  <div class="frame-desktop wf-box flex items-center justify-center" data-label="Desktop 1280">
+    <div class="wf-box p-8 w-96 space-y-4">
+      <div class="wf-img h-12 w-32 mx-auto"></div>
+      <div><div class="wf-label">ชื่อผู้ใช้ <span class="anno">1</span></div><div class="wf-input"></div></div>
+      <div><div class="wf-label">รหัสผ่าน</div><div class="wf-input"></div></div>
+      <button class="wf-btn primary w-full" onclick="showScreen('list')">เข้าสู่ระบบ</button>
+      <p class="text-xs text-center underline">ลืมรหัสผ่าน <span class="anno">2</span></p>
+    </div>
+  </div>
+  <div class="frame-tablet bg-white flex items-center justify-center" data-label="Tablet 768">
+    <div class="wf-box p-8 w-96 space-y-4">
+      <div class="wf-img h-12 w-32 mx-auto"></div>
+      <div><div class="wf-label">ชื่อผู้ใช้ <span class="anno">1</span></div><div class="wf-input"></div></div>
+      <div><div class="wf-label">รหัสผ่าน</div><div class="wf-input"></div></div>
+      <button class="wf-btn primary w-full" onclick="showScreen('list')">เข้าสู่ระบบ</button>
+      <p class="text-xs text-center underline">ลืมรหัสผ่าน <span class="anno">2</span></p>
+    </div>
+  </div>
+  <div class="frame-mobile bg-white p-5 space-y-4" data-label="Mobile 390">
+    <div class="wf-img h-10 w-28"></div>
+    <div><div class="wf-label">ชื่อผู้ใช้ <span class="anno">1</span></div><div class="wf-input"></div></div>
+    <div><div class="wf-label">รหัสผ่าน</div><div class="wf-input"></div></div>
+    <button class="wf-btn primary w-full" onclick="showScreen('list')">เข้าสู่ระบบ</button>
+    <p class="text-xs text-center underline">ลืมรหัสผ่าน <span class="anno">2</span></p>
+  </div>
+</template>
+<!-- ════════ /SCREEN: login ════════ -->
+
+<!-- ════════ SCREEN: list ════════ -->
+<template id="list" data-title="รายการเอกสาร" data-module="เอกสาร" data-device="desktop"
+          data-notes="ตัวกรองหลัก 4 ตัว ที่เหลืออยู่ใน 'ตัวกรองเพิ่มเติม'|แบ่งหน้าฝั่ง server">
+  <div class="frame-desktop wf-box flex" data-label="Desktop 1280">
+    <div class="w-56 border-r-2 border-slate-300 p-4 space-y-3">
+      <div class="wf-img h-8"></div><div class="wf-line w-3/4"></div><div class="wf-line w-2/3"></div><div class="wf-line w-3/4"></div>
+    </div>
+    <div class="flex-1 p-6 space-y-4">
+      <div class="flex justify-between"><div class="font-semibold">รายการเอกสาร</div><button class="wf-btn primary" onclick="showScreen('detail')">+ สร้างใหม่</button></div>
+      <div class="flex gap-2"><div class="wf-input w-40"></div><div class="wf-input w-40"></div><div class="wf-input w-40"></div><div class="wf-input w-40"></div><span class="anno">1</span></div>
+      <div class="wf-box"><div class="wf-fill h-8 rounded-none"></div>
+        <div class="p-3 space-y-3"><div class="wf-line"></div><div class="wf-line"></div><div class="wf-line"></div><div class="wf-line w-5/6"></div></div></div>
+      <div class="flex justify-end gap-1 text-xs">1–50 จาก 12,431 <span class="anno">2</span></div>
+    </div>
+  </div>
+</template>
+<!-- ════════ /SCREEN: list ════════ -->
+
+<!-- ════════ SCREEN: detail ════════ -->
+<template id="detail" data-title="รายละเอียด / ฟอร์ม" data-module="เอกสาร" data-device="desktop" data-notes="">
+  <div class="frame-desktop wf-box p-6 space-y-4" data-label="Desktop 1280">
+    <div class="font-semibold">สร้างเอกสาร</div>
+    <div class="grid grid-cols-3 gap-4">
+      <div><div class="wf-label">ฟิลด์ 1</div><div class="wf-input"></div></div>
+      <div><div class="wf-label">ฟิลด์ 2</div><div class="wf-input"></div></div>
+      <div><div class="wf-label">ฟิลด์ 3</div><div class="wf-input"></div></div>
+    </div>
+    <div class="flex justify-end gap-2"><button class="wf-btn" onclick="showScreen('list')">ยกเลิก</button><button class="wf-btn primary" onclick="showScreen('list')">บันทึก</button></div>
+  </div>
+</template>
+<!-- ════════ /SCREEN: detail ════════ -->
+
+</body>
+</html>

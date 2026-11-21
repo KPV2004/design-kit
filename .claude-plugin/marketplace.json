@@ -1,0 +1,12 @@
+{
+  "name": "ux-ui-designer",
+  "description": "UX/UI design skill for Claude — wireframes, mockups, design system and dev diagrams",
+  "owner": { "name": "YOUR_NAME" },
+  "plugins": [
+    {
+      "name": "ux-ui-designer",
+      "source": "./",
+      "description": "Wireframes, mockup, design.md, dev diagrams and UX spec for any app — ERP, web or mobile"
+    }
+  ]
+}
