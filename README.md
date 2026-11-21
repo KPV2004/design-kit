@@ -2,7 +2,7 @@
   <img src=".claude-plugin/icon.png" width="96" alt="">
 </p>
 
-<h1 align="center">Design Kit — a skill for Claude</h1>
+<h1 align="center">Design Kit — a skill</h1>
 
 <p align="center">
   Describe an app. Get a complete, reviewable design project: wireframes of every screen, a clickable mockup,
@@ -12,6 +12,7 @@
 <p align="center">
   <a href="README.th.md">ภาษาไทย</a> ·
   <a href="#install">Install</a> ·
+  <a href="#other-ai-agents">Other agents</a> ·
   <a href="#usage">Usage</a> ·
   <a href="#what-you-get">What you get</a> ·
   <a href="#review-workflow">Review workflow</a>
@@ -21,7 +22,7 @@
 
 ## Why
 
-Asking an AI to "design a screen" usually gives you one pretty page that doesn't match the next one, emoji for icons, no empty or error states, and nothing a developer can build from. This skill makes Claude work like a designer handing off to a dev team:
+Asking an AI to "design a screen" usually gives you one pretty page that doesn't match the next one, emoji for icons, no empty or error states, and nothing a developer can build from. This skill makes the AI work like a designer handing off to a dev team:
 
 - **Every screen**, not just the happy path — including login, 403/404, empty states, session expired.
 - **One source of truth** (`design.md`) for colors, typography and icons, checked for WCAG AA contrast.
@@ -76,6 +77,39 @@ Use `<your-project>/.claude/skills/` instead of `~/.claude/skills/` to install i
 3. Go to **Customize → Skills**, click **+** → **Create skill** → **Upload a skill**, and choose the zip.
 
 Skills you enable on claude.ai also sync to Claude Code when you sign in with the same account. See Anthropic's guide: [Use skills in Claude](https://support.claude.com/en/articles/12512180).
+
+### Other AI agents
+
+The skill follows the open [Agent Skills](https://agentskills.io) format (a folder with a `SKILL.md`), so any agent that supports skills can use it.
+
+**Easiest: the `skills` CLI.** It detects which agents you have installed and copies the skill to the right folder for each:
+
+```bash
+npx skills add KPV2004/design-kit
+```
+
+Pick agents explicitly with `-a`, for example `npx skills add KPV2004/design-kit -a codex -a cursor`.
+
+**Manual copy.** Clone once, then copy `skills/design-kit` into your agent's skills folder:
+
+```bash
+git clone https://github.com/KPV2004/design-kit.git
+cp -r design-kit/skills/design-kit ~/.agents/skills/design-kit
+```
+
+| Agent | Global (all projects) | One project only |
+|---|---|---|
+| OpenAI Codex CLI | `~/.agents/skills/` | `.agents/skills/` |
+| Gemini CLI | `~/.gemini/skills/` | `.gemini/skills/` |
+| Cursor | `~/.cursor/skills/` | `.cursor/skills/` |
+| GitHub Copilot (VS Code / CLI) | `~/.copilot/skills/` | `.github/skills/` |
+| Other agents | see the agent's docs | `.agents/skills/` works for many |
+
+Folder names change between agent versions, so check your agent's docs if the skill doesn't show up. Restart the agent after copying.
+
+**Chat apps without skill support** (ChatGPT, Gemini web, etc.): download `design-kit.zip` from the [latest release](https://github.com/KPV2004/design-kit/releases/latest), upload it to the chat (or a project/custom GPT), and say *"Follow SKILL.md in this zip to design …"*. The wireframes and mockup need a tool that can create files, and `verify.py` needs one that can run Python — without them you get the design text only.
+
+The instructions were written and tested with Claude. Other models can follow them, but results vary — always open the generated `wireframes.html` and `mockup.html` to check.
 
 ### Requirements
 
