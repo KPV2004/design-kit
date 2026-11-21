@@ -285,6 +285,8 @@ def main(folder):
             warn(f'design.md §2.9 theme "{name}" is missing from the mock theme picker')
     if files['mk'].name not in ('mock.html',) and not files['mk'].name.endswith(':mock.html'):
         warn(f"{files['mk'].name}: rename the mock file to mock.html (v1.2 convention)")
+    if not re.search(r':root\s*\{[^}]*--c-', mk, re.S):
+        warn('mock has no static :root --c-* defaults — realtime theming and live design-tool edits need them')
 
     # --- icons
     icon_map = icon_map_from_design(design)

@@ -23,6 +23,9 @@
      set of variable overrides. Dark keeps brand-700 (white text stays AA). ---------- */
   const hexCh = h => { const n = parseInt(h.slice(1), 16); return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`; };
   const THEMES = (typeof themes === 'object' && themes) || { Default: null };
+  const TOKEN_KEYS = [];
+  if (typeof tokens === 'object') for (const [n, sc] of Object.entries(tokens)) for (const k of Object.keys(sc)) TOKEN_KEYS.push(`${n}-${k}`);
+  if (typeof usageTokens === 'object') TOKEN_KEYS.push(...Object.keys(usageTokens));
   function applyTokenMap(map) {
     for (const [t, v] of Object.entries(map || {})) {
       if (typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)) document.documentElement.style.setProperty('--c-' + t, hexCh(v));
@@ -31,10 +34,12 @@
   }
   function applyTheme(name) {
     if (!(name in THEMES)) name = 'Default';
-    const reset = {};
-    if (typeof tokens === 'object') for (const [n, sc] of Object.entries(tokens)) for (const [k, hex] of Object.entries(sc)) reset[`${n}-${k}`] = hex;
-    if (typeof usageTokens === 'object') Object.assign(reset, usageTokens);
-    applyTokenMap(reset);
+    // Defaults live in mock.html's static :root block (so design tools can edit them live);
+    // a theme only writes its own overrides as inline variables. Default = clear all overrides.
+    const clear = {};
+    if (typeof tokens === 'object') for (const [n, sc] of Object.entries(tokens)) for (const k of Object.keys(sc)) clear[`${n}-${k}`] = null;
+    if (typeof usageTokens === 'object') for (const t of Object.keys(usageTokens)) clear[t] = null;
+    applyTokenMap(clear);
     if (THEMES[name]) applyTokenMap(THEMES[name]);
     try { localStorage.setItem('mk-theme', name); } catch {}
     return name;
@@ -51,16 +56,16 @@
         <button onclick="step(-1)" aria-label="Previous screen">◀</button>
         <select id="screen-select" aria-label="Select screen"></select>
         <button onclick="step(1)" aria-label="Next screen">▶</button>
-        <span class="ml-2 text-zinc-400">Viewport:</span>
+        <span class="ml-2 text-muted">Viewport:</span>
         <button data-vp="desktop" aria-pressed="true">Desktop</button>
         <button data-vp="tablet" aria-pressed="false">Tablet</button>
         <button data-vp="mobile" aria-pressed="false">Mobile</button>
-        <span class="ml-2 text-zinc-400">State:</span>
+        <span class="ml-2 text-muted">State:</span>
         <select id="state-select" aria-label="Screen state">
           <option value="default">Default</option><option value="empty">Empty</option>
           <option value="loading">Loading</option><option value="Error">Error</option>
         </select>
-        <span class="ml-2 text-zinc-400">Theme:</span>
+        <span class="ml-2 text-muted">Theme:</span>
         <select id="theme-select" aria-label="Mockup theme"></select>
         <label class="ml-2 flex items-center gap-1 cursor-pointer"><input type="checkbox" id="anno-toggle" checked> Pins</label>
         <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="notes-toggle" checked> Notes</label>
@@ -73,7 +78,7 @@
       <h2 id="n-title" class="font-semibold text-base"></h2>
       <p id="n-meta" class="text-zinc-500 text-xs mb-3"></p>
       <div id="n-list" class="space-y-2"></div>
-      <div id="n-hint" class="mt-4 hidden"><p class="font-medium text-xs text-zinc-500 mb-1">How to try this screen</p><p class="text-xs bg-zinc-100 rounded p-2"></p></div>
+      <div id="n-hint" class="mt-4 hidden"><p class="font-medium text-xs text-muted mb-1">How to try this screen</p><p class="text-xs bg-page rounded p-2"></p></div>
     </aside>
   </div>
 </div>`;
@@ -111,6 +116,8 @@
       if (d.type === 'state') applyState(d.value);
       if (d.type === 'anno') document.body.classList.toggle('hide-anno', !d.value);
       if (d.type === 'theme') applyTheme(d.value);
+      // live --c-* values (channels string) mirrored from the shell — realtime theme/design edits
+      if (d.type === 'theme-vars' && d.map) for (const [t, v] of Object.entries(d.map)) document.documentElement.style.setProperty('--c-' + t, v);
     });
     window.addEventListener('hashchange', () => showScreen(location.hash.slice(1)));
 
@@ -177,7 +184,7 @@
       const notes = (s.dataset.notes || '').split('|').map(x => x.trim()).filter(Boolean);
       $('n-list').innerHTML = notes.length
         ? notes.map((n, i) => `<p><span class="anno">${i+1}</span> ${n}</p>`).join('')
-        : '<p class="text-zinc-400">No notes</p>';
+        : '<p class="text-muted">No notes</p>';
       const hint = s.dataset.hint || '';
       $('n-hint').classList.toggle('hidden', !hint);
       $('n-hint').querySelector('p:last-child').textContent = hint;
@@ -203,6 +210,23 @@
     Object.keys(THEMES).forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; themeSel.appendChild(o); });
     themeSel.value = storedTheme();
     themeSel.onchange = () => { applyTheme(themeSel.value); frame.contentWindow?.postMessage({ type: 'theme', value: themeSel.value }, '*'); };
+    // Realtime bridge: any --c-* change on the shell document (theme picker, live design-tool
+    // edits on :root) is mirrored into the frame — CSS does not cross the iframe boundary.
+    let varRaf = 0;
+    const postVars = () => {
+      cancelAnimationFrame(varRaf);
+      varRaf = requestAnimationFrame(() => {
+        if (!frame.contentWindow) return;
+        const cs = getComputedStyle(document.documentElement);
+        const map = {};
+        for (const t of TOKEN_KEYS) { const v = cs.getPropertyValue('--c-' + t).trim(); if (v) map[t] = v; }
+        frame.contentWindow?.postMessage({ type: 'theme-vars', map }, '*');
+      });
+    };
+    new MutationObserver(postVars).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+    const defaultsEl = document.getElementById('theme-defaults');
+    if (defaultsEl) new MutationObserver(postVars).observe(defaultsEl, { characterData: true, childList: true, subtree: true });
+    postVars();
     $('state-select').onchange = e => frame.contentWindow.postMessage({ type: 'state', value: e.target.value }, '*');
     $('anno-toggle').onchange = e => frame.contentWindow.postMessage({ type: 'anno', value: e.target.checked }, '*');
     $('notes-toggle').onchange = e => shell.classList.toggle('no-notes', !e.target.checked);

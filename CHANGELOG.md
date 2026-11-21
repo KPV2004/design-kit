@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1 — 2026-11-21
+- **Realtime theming**: mock.html ships a static `:root { --c-* }` defaults block; the theme picker only writes its overrides, so switching themes (and live design-tool edits of `:root` variables) restyle the whole app — screens and shell chrome — instantly, no reload.
+- Shell chrome (toolbar, notes sidebar, focus rings) is themed through the same variables instead of hardcoded zinc colors.
+- A realtime bridge mirrors `--c-*` changes from the shell document into the screen iframe (CSS does not cross the boundary).
+- verify.py warns when a mock lacks the `:root` defaults block.
+
 ## 1.2.0 — 2026-11-21
 - **Wireframes + mock in one pass**: the workflow builds `mock.html` alongside `wireframes.html`, screen by screen, so lo-fi and hi-fi are delivered together.
 - **`:mock` screen pairing**: every mock screen id ends with `:mock` (`stock-list:mock` pairs with wireframe `stock-list`); verify.py enforces the 1:1 pairing against the inventory.
