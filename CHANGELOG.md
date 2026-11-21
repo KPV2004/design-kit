@@ -13,11 +13,15 @@
 - `mockup.html` is now `mock.html` (legacy names still found by verify.py, with a rename warning).
 
 ## 1.1.0 — 2026-11-21
-- **English by default**: design.md, ux-spec.md, wireframe/mockup copy, sample data and the review-tool chrome are English unless the app's UI language says otherwise; localized apps record every locale's exact strings in the spec's **copy deck**. Feedback markers are now Fix / Add / Remove / Question (older Thai exports still parse).
+- **English by default**: design.md, ux-spec.md, wireframe/mock copy, sample data and the review-tool chrome are English unless the app's UI language says otherwise; localized apps record every locale's exact strings in the spec's **copy deck**. Feedback markers are now Fix / Add / Remove / Question (older Thai exports still parse).
 - **The spec must stand alone**: ux-spec.md carries a per-screen state matrix, a behavior list (autofocus, keyboard type, save success/failure navigation, optimistic updates, auto-save), an interactions table, the copy deck, and fields & validation with exact error text — never details that live only in a wireframe annotation.
-- **Dark mode**: design.md §2.4 usage tokens gain a Dark column (plus dark contrast checks); `tokens/` exports dark values (`[data-theme="dark"]` in tokens.css, `dark` object in tokens.json).
-- **Non-web stacks**: design.md §2.8 platform mapping (token → the app's actual constant → hex, e.g. `brand-600 → AppColors.greenDark → 0xFF263B34` for Flutter), exported into tokens.json.
-- **verify.py** warns on empty spec tables, a missing Dark column when dark mode is declared, and a missing platform mapping when the stack is Flutter/native.
+- **Wireframes + mock in one pass**: the workflow builds `mock.html` alongside `wireframes.html`, screen by screen, so lo-fi and hi-fi are delivered together.
+- **`:mock` screen pairing**: every mock screen id ends with `:mock` and pairs 1:1 with the wireframe screen; verify.py enforces the pairing against the inventory.
+- **Realtime theme picker in the mock**: toolbar dropdown with Default / Dark / palette presets (Corporate Blue, Industrial Teal, Neutral Mono) from design.md §2.9 — token overrides applied as CSS variables, choice remembered per browser; static `:root` defaults make theme switches and live design-tool edits restyle the whole app (screens + shell chrome) instantly, and a realtime bridge mirrors `--c-*` changes into the screen iframe.
+- **Dark mode**: design.md §2.4 usage tokens gain a Dark column (plus dark contrast checks); `tokens/` exports dark values.
+- **Non-web stacks**: design.md §2.8 platform mapping (token → the app's actual constant → hex, e.g. Flutter `AppColors`), exported into tokens.json.
+- `mockup.html` is now `mock.html` (legacy names still found by verify.py, with a rename warning).
+- **verify.py** warns on empty spec tables, a missing Dark column, missing platform mapping, `:mock` pairing, usage-token/theme drift, and missing `:root` defaults.
 
 ## 1.0.0 — 2026-11-20
 First public release.

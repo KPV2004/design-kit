@@ -1,7 +1,7 @@
 {
   "name": "design-kit",
   "description": "Design UX/UI as an AI-readable project: design.md, wireframes of every screen (zoom, device filter, pinned comments), dev diagrams, a clickable Tailwind mockup, UX spec and design tokens \u2014 kept in sync on every change.",
-  "version": "1.2.1",
+  "version": "1.1.0",
   "author": {
     "name": "Pannet Vanicharkorl"
   },
