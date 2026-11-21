@@ -59,7 +59,7 @@ body.commenting #sg-inner .frame-desktop, body.commenting #sg-inner .frame-table
 #dg-graph .node.wf-link:hover rect, #dg-graph .node.wf-link:hover polygon { stroke-width: 3px; }
 :focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
 
-/* ---- Device filter (toolbar: ทั้งหมด / Desktop / Tablet / Mobile) ---- */
+/* ---- Device filter (toolbar: All / Desktop / Tablet / Mobile) ---- */
 body.dev-desktop .frame-tablet, body.dev-desktop .frame-mobile,
 body.dev-tablet  .frame-desktop, body.dev-tablet  .frame-mobile,
 body.dev-mobile  .frame-desktop, body.dev-mobile  .frame-tablet { display: none; }

@@ -12,6 +12,7 @@
 <p align="center">
   <a href="README.md">English</a> ·
   <a href="#ติดตั้ง">ติดตั้ง</a> ·
+  <a href="#อัปเดต-skill">อัปเดต</a> ·
   <a href="#ai-agent-อื่น">AI agent อื่น</a> ·
   <a href="#วิธีใช้">วิธีใช้</a> ·
   <a href="#สิ่งที่ได้">สิ่งที่ได้</a> ·
@@ -31,7 +32,7 @@
 - **แก้จุดเดียว อัปเดตทุกที่** เช่น "เพิ่มช่องเบอร์โทร" จะแก้ wireframe, mockup, spec, ER และตาราง API พร้อมกัน
 - **ตรวจก่อนส่งงาน** มีสคริปต์เช็กว่าทุกไฟล์ตรงกันก่อนส่งมอบ
 
-ใช้ได้กับระบบภายในแบบ ERP / back-office, เว็บแอปสำหรับลูกค้า และแอปมือถือ ค่าเริ่มต้นเหมาะกับภาษาไทย (ฟอนต์ IBM Plex Sans Thai, ระยะบรรทัดสำหรับวรรณยุกต์, ข้อมูลตัวอย่างเป็นบาทและ วว/ดด/ปปปป) ใช้ภาษาอังกฤษก็ได้เหมือนกัน
+ใช้ได้กับระบบภายในแบบ ERP / back-office, เว็บแอปสำหรับลูกค้า และแอปมือถือ ผลงานเริ่มต้นเป็นภาษาอังกฤษ แอปที่ localize เอง (เช่นภาษาไทย) จะใช้ภาษาจริงของ UI และเก็บสตริงทุกภาษาไว้ใน copy deck ของ spec — รวมกฎตัวอักษรไทย, รูปแบบบาท และ วว/ดด/ปปปป
 
 ## ติดตั้ง
 
@@ -117,6 +118,62 @@ cp -r design-kit/skills/design-kit ~/.agents/skills/design-kit
 - ไม่บังคับ: `pip install playwright && playwright install chromium` เพื่อให้ `verify.py` ตรวจในเบราว์เซอร์ได้ (JS error, ชื่อ icon, syntax ของ Mermaid, หมุดที่มองไม่เห็น) บน claude.ai มีให้อยู่แล้ว
 - อินเทอร์เน็ตตอนเปิดไฟล์ HTML (Tailwind, ฟอนต์, icon และ Mermaid โหลดจาก CDN)
 
+## อัปเดต skill
+
+เลือกวิธีตามที่ติดตั้งไว้
+
+### Claude Code — ผ่าน plugin marketplace
+
+ตัว marketplace ดึงจาก GitHub repo นี้ ให้ push โค้ดก่อน แล้วรีเฟรชใน session:
+
+```bash
+claude plugin marketplace update design-kit
+claude plugin update design-kit@design-kit
+```
+
+### Claude.ai (skill ที่อัปโหลด)
+
+สร้าง zip ใหม่ แล้วเปลี่ยนไฟล์ที่อัปโหลดไว้:
+
+```bash
+./tools/build-skill.sh          # → dist/design-kit.zip
+```
+
+บน claude.ai: **Customize → Skills → design-kit → Delete** แล้ว **Create skill → Upload a skill** ด้วย zip ตัวใหม่
+
+### Copy เอง (Claude Code, Codex, Cursor, agent อื่น)
+
+Copy ทับด้วย `rsync` เพื่อให้ไฟล์ที่ถูกลบหรือเปลี่ยนชื่อใน repo ถูกลบตามด้วย แล้วรีสตาร์ท agent เพราะ skill โหลดตอนเริ่มทำงาน:
+
+```bash
+rsync -a --delete --exclude '__pycache__' skills/design-kit/ ~/.claude/skills/design-kit/   # Claude Code แบบ copy เอง
+rsync -a --delete --exclude '__pycache__' skills/design-kit/ ~/.agents/skills/design-kit/   # Codex CLI และ agent ส่วนใหญ่
+```
+
+ใช้ `cp -r skills/design-kit <ปลายทาง>` ก็ได้ แต่ไฟล์เก่าที่ถูกลบออกจาก repo จะค้างอยู่ ปลายทางให้ชี้ไปที่โฟลเดอร์ skill ของ agent ตัวนั้น (ดูตารางติดตั้งด้านบน เช่น `~/.zcode/skills/` สำหรับ ZCode, `~/.cursor/skills/` สำหรับ Cursor)
+
+### CLI `skills`
+
+```bash
+npx skills add KPV2004/design-kit
+```
+
+รันซ้ำจะอัปเดตตัวที่มันเคยติดตั้งไว้
+
+### โปรเจกต์ดีไซน์ที่สร้างไว้แล้ว
+
+โปรเจกต์มีสำเนาเครื่องมือของตัวเองใน `<app>-design/_tools/` — ไม่อัปเดตตามอัตโนมัติ ให้ copy สคริปต์ใหม่ทับ:
+
+```bash
+cp skills/design-kit/scripts/*.py <app>-design/_tools/
+```
+
+`_engine/` ก็เหมือนกัน แต่ละโปรเจกต์ถือสำเนาของตัวเอง ถ้า engine เปลี่ยนให้ copy `skills/design-kit/assets/project/_engine/` ทับ
+
+### ปล่อยเวอร์ชันใหม่
+
+แก้เลข `version` ใน `.claude-plugin/plugin.json` เพิ่มแถวใน `CHANGELOG.md` แล้ว tag `vX.Y.Z` และ push — workflow จะแนบ zip ไปที่ GitHub Release (รายละเอียดใน [ร่วมพัฒนา](#ร่วมพัฒนา))
+
 ## วิธีใช้
 
 skill จะทำงานเองเมื่อขอให้ช่วยออกแบบ ตัวอย่าง:
@@ -147,13 +204,13 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 ```
 <app>-design/
 ├── AGENTS.md          ให้ AI อ่านก่อน — หน้าที่ของแต่ละไฟล์ กฎการแก้ คำสั่ง (CLAUDE.md โหลดไฟล์นี้)
-├── design.md          สี ตัวอักษร icon component รายการหน้าจอ changelog
-├── ux-spec.md         พฤติกรรม validation ข้อความ error จริง diagram (Mermaid) API contract ความเสี่ยง
+├── design.md          สี (สว่าง + มืด) ตัวอักษร icon component รายการหน้าจอ changelog
+├── ux-spec.md         พฤติกรรม ตาราง state ของทุกหน้า validation + ข้อความ error จริง copy deck diagram (Mermaid) API contract ความเสี่ยง
 ├── wireframes.html    ทุกหน้าแบบ low-fi — เปิดในเบราว์เซอร์
 ├── mockup.html        mockup แบบ hi-fi ที่คลิกได้ — เปิดในเบราว์เซอร์
 ├── _engine/           โค้ดตัวแสดงผลที่ใช้ร่วมกัน (toolbar, zoom, ความเห็น, กรอบอุปกรณ์)
 ├── _tools/            verify.py · sync_diagrams.py · export_tokens.py
-├── tokens/            tokens.css · tailwind.config.js · tokens.json สำหรับ dev
+├── tokens/            tokens.css (รวม dark) · tailwind.config.js · tokens.json (รวม platform mapping เช่นค่าคงที่ Flutter)
 └── feedback/          ความเห็นที่ส่งออกจาก wireframe
 ```
 
@@ -188,8 +245,8 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 
 ## ขั้นตอนรีวิว
 
-1. เปิด `wireframes.html` กด **💬** (หรือปุ่ม `C`) แล้วคลิกจุดที่ต้องการปักหมุดความเห็น เลือกประเภทได้ว่า แก้ไข / เพิ่ม / ลบออก / คำถาม
-2. กด **ส่งออก** แล้วคัดลอกหรือดาวน์โหลดเป็น markdown
+1. เปิด `wireframes.html` กด **💬** (หรือปุ่ม `C`) แล้วคลิกจุดที่ต้องการปักหมุดความเห็น เลือกประเภทได้ว่า Fix / Add / Remove / Question
+2. กด **Export** แล้วคัดลอกหรือดาวน์โหลดเป็น markdown
 3. วางในแชตกับ Claude (หรือใส่ไว้ในโฟลเดอร์ `feedback/` แล้วสั่ง Claude Code ให้แก้ตาม)
 
 Claude จะหาจุดที่ปักหมุดไว้ แก้ทุกไฟล์ที่เกี่ยวข้อง ตอบคำถาม และรายงานผลเป็นรายข้อ ความเห็นถูกเก็บไว้ในเบราว์เซอร์แยกตามไฟล์ ควรส่งออกก่อนย้ายหรือเปลี่ยนชื่อโฟลเดอร์

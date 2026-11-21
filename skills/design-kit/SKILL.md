@@ -1,6 +1,6 @@
 ---
 name: design-kit
-description: Design UX/UI for a whole app or feature and deliver an AI-readable design project folder — design.md (colors, typography, icons, components), wireframes of every screen with zoom, pinned review comments and a Diagrams page, dev diagrams (user flow, ER, state, sequence, API contract), a clickable HTML + Tailwind mockup with device preview, a UX spec, design tokens, and an AGENTS.md guide — kept in sync when the design changes. Use whenever the user asks to design, mock up, wireframe, plan screens, choose colors, icons or a theme, write design.md, lay out a page, form, report, dashboard, or mobile app — ERP/back-office, web, or mobile — even if they only say "ออกแบบหน้าจอ", "ทำ wireframe", "ทำ mockup", "เลือกสี", "ทำ design.md", "วาง layout", "UX/UI", ask to change an existing design ("แก้หน้า...", "เปลี่ยนสี...", "เพิ่มหน้า..."), or paste wireframe feedback ("Wireframe feedback — ...").
+description: Design UX/UI for a whole app or feature and deliver an AI-readable design project folder — design.md (colors light + dark, typography, icons, components), wireframes of every screen with zoom, pinned review comments and a Diagrams page, dev diagrams (user flow, ER, state, sequence, API contract), a clickable HTML + Tailwind mockup with device preview, a UX spec (state matrix, validation with exact error text, interactions, copy deck, API contract), design tokens with platform mapping, and an AGENTS.md guide — English by default, kept in sync when the design changes. Use whenever the user asks to design, mock up, wireframe, plan screens, choose colors, icons or a theme, write design.md, lay out a page, form, report, dashboard, or mobile app — ERP/back-office, web, or mobile — even if they only say "ออกแบบหน้าจอ", "ทำ wireframe", "ทำ mockup", "เลือกสี", "ทำ design.md", "วาง layout", "UX/UI", ask to change an existing design ("แก้หน้า...", "เปลี่ยนสี...", "เพิ่มหน้า..."), or paste wireframe feedback ("Wireframe feedback — ...").
 ---
 
 # Design Kit
@@ -41,6 +41,14 @@ Why this shape: content files hold only what changes per project, so an AI editi
 
 The **screen ID** (kebab-case, e.g. `po-list`) is the shared key: design.md §7 row → `<template id>` → `<section id>` → spec heading `### [po-list]`. None of this is production code.
 
+## Language
+
+Deliverables default to **English**: design.md, ux-spec.md, wireframe/mockup copy, error text, diagrams, sample data, review-tool chrome. Match the app's real UI language instead when the app is already localized (e.g. a Thai-only app keeps Thai screen copy) — and when it ships several locales, record every locale's exact strings in the spec's **copy deck**. The user can override the default; their explicit choice wins.
+
+## The spec must stand alone
+
+The test for ux-spec.md: **a developer implements from it without reopening app code**. Anything they must know — validation rules and exact error text, endpoints and payloads, per-screen states, focus/keyboard behavior, what Save does on success and failure, dark theme values, breakpoint rules — goes in the spec's tables. A wireframe annotation is a pointer to a spec row, never the only place a requirement lives. When designing against an existing codebase, mine the code first (validators, theme, API client, l10n files) and paste the facts verbatim into the spec.
+
 ## First: is there existing work?
 
 Check the conversation, the uploads / working directory for an existing design.md, wireframes, mockup, spec, or a project zip.
@@ -53,7 +61,7 @@ Check the conversation, the uploads / working directory for an existing design.m
 
 ### 1. Understand before drawing
 
-Extract: **who** (role, frequency, device), **job to be done**, **data** (fields, volume), **context** (internal / public web / native mobile; existing system), **constraints** (permissions, approvals, language), **brand** (logo, colors, product name, or a mood).
+Extract: **who** (role, frequency, device), **job to be done**, **data** (fields, volume), **context** (internal / public web / native mobile; existing system), **constraints** (permissions, approvals, language), **brand** (logo, colors, product name, or a mood), **stack** (Tailwind web / Flutter / React Native — decides whether design.md needs the §2.8 platform mapping), and whether the app has or plans a **dark theme**. For an existing app, also note where the code keeps error strings, validators, endpoints and locales — the spec will quote them.
 
 Ask only what would change the design — at most 3 questions in one message. Otherwise record assumptions in design.md §0.
 
@@ -98,14 +106,14 @@ cp -r <skill>/assets/project <out>/<app>-design
 mkdir -p <out>/<app>-design/_tools && cp <skill>/scripts/*.py <out>/<app>-design/_tools/
 ```
 
-Fill design.md: full color scales per `color-system.md` with **computed contrast ratios** (fix failing pairs before moving on); typography, spacing, components with states; **§6 icon set + icon map** per `iconography.md` (one set chosen for the users — e.g. Fluent for people who live in Office/Dynamics AX, Phosphor or Tabler elsewhere, not Lucide by default); §7 inventory; changelog 1.0. Fill AGENTS.md header (app, version, device model, icon set).
+Fill design.md: full color scales per `color-system.md` with **computed contrast ratios** (fix failing pairs before moving on); **§2.4 usage tokens with a Dark column whenever the app has or will ship dark mode** — for an existing app, copy the real dark values from its theme code rather than inventing them; **§2.8 platform mapping whenever the stack isn't web** (token → the app's actual constant → hex, e.g. `brand-600 → AppColors.greenDark → 0xFF263B34`, so a Flutter dev never converts hex by hand); typography, spacing, components with states; **§6 icon set + icon map** per `iconography.md` (one set chosen for the users — e.g. Fluent for people who live in Office/Dynamics AX, Phosphor or Tabler elsewhere, not Lucide by default); §7 inventory; changelog 1.0. Fill AGENTS.md header (app, version, device model, icon set, language).
 
 ### 7. Wireframe every screen (`wireframes.html`)
 
 - Replace the example screens with one marked `<template>` block per inventory screen — all of them — in inventory order; update the `SCREENS (in order)` line.
 - Set `WF = { app, version }`. Grayscale `wf-*` classes only. Attributes: `data-title`, `data-module`, `data-device`, `data-notes` (one per `.anno`, `|`-separated). Frames get `data-label` ("Desktop 1280", "Mobile 390").
 - Wire primary buttons with `showScreen('id')`. Don't touch the DIAGRAMS block — it's generated.
-- The engine already provides: **device filter** (ทั้งหมด / Desktop / Tablet / Mobile, key `D`, remembered per browser; screens without that device show a notice), overview grid, **zoom** (−/+, พอดีจอ, 100%, Ctrl/⌘+scroll or pinch at the cursor, keys `+ - 0 1`), **Space+drag pan**, 💬 pinned comments, Diagrams page with zoom, feedback export.
+- The engine already provides: **device filter** (All / Desktop / Tablet / Mobile, key `D`, remembered per browser; screens without that device show a notice), overview grid, **zoom** (−/+, Fit, 100%, Ctrl/⌘+scroll or pinch at the cursor, keys `+ - 0 1`), **Space+drag pan**, 💬 pinned comments, Diagrams page with zoom, feedback export.
 
 ### 8. Build the mockup (`mockup.html`)
 
@@ -113,12 +121,12 @@ Fill design.md: full color scales per `color-system.md` with **computed contrast
 - One marked `<section class="screen">` per screen on the primary flow plus one example of each pattern; keep `design-system` last; update the `SCREENS` line and the inventory Mockup column.
 - Token classes only (`bg-brand-600`); icons only as `<iconify-icon icon="…">` from the map; **no emoji**; icon + label for important actions.
 - `data-notes` explains each `.anno` marker (shown in the sidebar); reviewer instructions go in `data-hint`, never inside the screen. Markers must be visible at desktop width.
-- `data-state` variants (empty / loading / error) on data screens. Realistic Thai data (names, codes, THB with separators, dd/MM/yyyy); hard cases visible (long names, many rows, a validation error).
+- `data-state` variants (empty / loading / error) on data screens. Realistic sample data in the deliverable language (English by default; for localized apps show the app's real locales — names, codes, THB with separators, dd/MM/yyyy); hard cases visible (long names, many rows, a validation error).
 - Check responsive screens with the Mobile toggle.
 
 ### 9. Write the UX spec (`ux-spec.md`)
 
-Fill the skeleton: Summary · Assumptions · User flow · Screens (`### [id]`, several IDs may share a heading) · States · Fields & validation (exact error text — developers copy it verbatim) · Interactions · **Dev diagrams** (ER, one state diagram per status-bearing entity, one sequence per main action, integration if other systems) · **API contract** · Accessibility · Risks. Every diagram is a ```mermaid block so it renders inline in GitHub/Obsidian/VS Code. Names of statuses, endpoints and fields must match across diagrams, fields table, and API contract.
+Fill the skeleton — it is the file a front-end dev lives in, so it must stand alone (see *The spec must stand alone* above): Summary · Assumptions · User flow · Screens (`### [id]`, several IDs may share a heading — each with **Layout incl. every breakpoint rule** and a **Behavior** list: autofocus, keyboard type, what Save success/failure does — pop vs navigate — optimistic updates, auto-save) · **States matrix** (every data screen gets a row; empty/loading/error/success/permission; "n/a" beats silence) · **Fields & validation** (exact error text, copied from the app's code when it exists — developers paste it verbatim) · **Interactions & behavior** table (triggers → outcomes, incl. quirks like auto-save or read-only modes) · **Copy deck** (every UI string per locale — EN/TH columns for localized apps) · **Dev diagrams** (ER, one state diagram per status-bearing entity, one sequence per main action, integration if other systems) · **API contract** (method, path, used-by screen, request body, response, errors — from the real API client, never invented) · Accessibility · Risks. Every diagram is a ```mermaid block so it renders inline in GitHub/Obsidian/VS Code. Names of statuses, endpoints and fields must match across diagrams, fields table, copy deck, and API contract.
 
 ### 10. Sync, export, verify
 
@@ -129,7 +137,7 @@ python _tools/export_tokens.py design.md tokens/
 python _tools/verify.py .
 ```
 
-`verify.py` checks structure (engine present, SCREENS lines, screen markers), inventory ↔ wireframes ↔ spec ↔ mockup coverage, `m-*` duplicates, broken `showScreen` links, notes vs markers, tokens and icon map in sync, raw hex classes, emoji, unknown/mixed/non-existent icons, diagram sync + Mermaid syntax + required diagram types, versions, JS errors, annotation visibility. **Fix every ERROR**; fix warnings or state why not.
+`verify.py` checks structure (engine present, SCREENS lines, screen markers), inventory ↔ wireframes ↔ spec ↔ mockup coverage, `m-*` duplicates, broken `showScreen` links, notes vs markers, tokens and icon map in sync, raw hex classes, emoji, unknown/mixed/non-existent icons, diagram sync + Mermaid syntax + required diagram types, versions, empty spec tables (states, fields, interactions, copy deck, API contract), dark-mode/platform-mapping presence when the header promises them, JS errors, annotation visibility. **Fix every ERROR**; fix warnings or state why not.
 
 ### 11. Deliver
 
@@ -141,19 +149,22 @@ The export looks like:
 
 ```
 # Wireframe feedback — Auth — v1.0
-## [login] เข้าสู่ระบบ
-1. **แก้ไข** · desktop · ใกล้ "เข้าสู่ระบบ" · ตำแหน่ง (50%, 61%) — ปุ่มควรอยู่ชิดขวา
-2. **คำถาม** — ทำไมไม่มี LINE login
+> Exported 21/11/2026 09:14 · 2 open items · file wireframes.html
+## [login] Sign in
+1. **Fix** · desktop · near "Sign in" · position (50%, 61%) — the button should sit flush right
+2. **Question** — why is there no LINE login?
 ## Diagram: Data model (ER)
-1. **เพิ่ม** — USER ต้องมี phone
+1. **Add** — USER needs a phone field
 ```
 
+Exports made by older, Thai-language engines use the same shape with `**แก้ไข**` (Fix), `**เพิ่ม**` (Add), `**ลบออก**` (Remove), `**คำถาม**` (Question) — treat them identically.
+
 1. **Load** the project (conversation or uploaded zip/files). Without it, ask for it.
-2. **Locate** each item: screen marker `SCREEN: id` + device + `ใกล้ "…"` text + position %. Skip ✅ items.
+2. **Locate** each item: screen marker `SCREEN: id` + device + `near "…"` text + position %. Skip ✅ items.
 3. **Triage** in one short list: planned change per item, conflicts (with each other or design principles — propose an alternative), questions. Ambiguous items → ask. If all clear, proceed.
 4. **Apply** each through **Updating an existing design** — a wireframe comment usually changes the mockup and spec too.
-5. **Answer** every **คำถาม** item. Save the export into `feedback/done/`.
-6. **Report** a table: item → done / changed differently (why) / needs answer; list files changed; remind the user to click "ลบรายการที่เสร็จแล้ว" in the wireframe (comments live in their browser).
+5. **Answer** every **Question** item. Save the export into `feedback/done/`.
+6. **Report** a table: item → done / changed differently (why) / needs answer; list files changed; remind the user to click "Clear done items" in the wireframe (comments live in their browser).
 
 ## Updating an existing design
 
@@ -162,19 +173,24 @@ Every change updates **all affected files in place**:
 | Change | design.md | wireframes | mockup | ux-spec | generated |
 |---|---|---|---|---|---|
 | Color / font token | ✏️ + contrast | — | ✏️ `tokens` | if status colors | re-export tokens |
+| Dark-mode value | ✏️ §2.4 Dark + §2.7 | — | ✏️ `tokens` | — | re-export tokens |
 | Icon set / icon | ✏️ §6 map | if shown | ✏️ `icons` + usages | — | — |
-| New screen | ✏️ §7 | ✏️ block + SCREENS line | ✏️ if main flow | ✏️ section + flow | re-sync diagrams |
-| Remove screen | ✏️ §7 | ✏️ block, line, links | ✏️ block, line, links | ✏️ section + flow | re-sync diagrams |
-| Layout change | — | ✏️ | ✏️ | ✏️ layout/notes | — |
-| Field / validation | — | if visible | if visible | ✏️ fields + ER + API | re-sync diagrams |
+| New screen | ✏️ §7 | ✏️ block + SCREENS line | ✏️ if main flow | ✏️ section + flow + states row | re-sync diagrams |
+| Remove screen | ✏️ §7 | ✏️ block, line, links | ✏️ block, line, links | ✏️ section + flow + states row | re-sync diagrams |
+| Layout change | — | ✏️ | ✏️ | ✏️ layout/notes (breakpoints into the spec, not annotations) | — |
+| Field / validation | — | if visible | if visible | ✏️ fields + copy deck + ER + API | re-sync diagrams |
+| Behavior / interaction | — | if visible | if visible | ✏️ interactions table + state matrix | — |
+| UI string | — | if visible | if visible | ✏️ copy deck | — |
 | Status / transition | ✏️ status mapping | badges | badges | ✏️ state diagram | re-sync diagrams |
 | New component | ✏️ components | where used | where used | if behavior | — |
 
+When the change is to an **existing app's design**, open the code that owns the facts before editing the spec: validators and error strings, the API client (endpoints, payloads), theme files (light/dark), l10n files (real EN/TH strings). Quote them verbatim in the spec — paraphrasing sends the dev back to the code anyway.
+
 1. **Load** current files; on claude.ai copy uploads into `<out>` first (uploads are read-only).
 2. **Edit inside screen markers** with targeted str_replace; never regenerate approved screens; keep IDs stable; fix links to removed screens.
-3. **Version**: bump design.md (minor for tweaks, major for palette/restructure), add a changelog row naming changed screens, and update the version in ux-spec.md, `WF.version`, and AGENTS.md. Prefix changed screens' `data-notes` with "(แก้ไข vX.Y)" for one round.
+3. **Version**: bump design.md (minor for tweaks, major for palette/restructure), add a changelog row naming changed screens, and update the version in ux-spec.md, `WF.version`, and AGENTS.md. Prefix changed screens' `data-notes` with "(changed vX.Y)" for one round.
 4. **Run** sync / export as needed, then `verify.py`; fix all errors.
-5. **Report** changes per file and knock-on changes the user didn't ask for (e.g. "เปลี่ยน brand เป็นสีส้ม ปุ่ม primary ต้องใช้ brand-700 เพราะ 600 ตัดกับตัวอักษรขาวไม่ผ่าน AA"). On claude.ai, re-zip and present.
+5. **Report** changes per file and knock-on changes the user didn't ask for (e.g. "brand switched to orange, so primary buttons use brand-700 — brand-600 with white text fails AA"). On claude.ai, re-zip and present.
 
 Alternatives go in as extra screens (`po-list-opt-b`), not new files; remove the losing option once chosen.
 
@@ -188,3 +204,4 @@ When options conflict, the earlier one wins.
 4. **Irreversible actions need friction** — confirmation naming the object and consequence.
 5. **Consistency with what users already know** — match the existing system when fitting into it.
 6. **Hierarchy through layout and weight, not color** — color is for status and the one primary action per view.
+7. **Spec over annotation** — if a developer must know it, it's in ux-spec.md's tables; annotations only point there.

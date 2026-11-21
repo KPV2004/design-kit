@@ -1,6 +1,6 @@
 # [App name] — Design System
 
-> Version: 1.0 · Updated: [dd/MM/yyyy] · Product type: [Enterprise / Web app / Native mobile / Mixed] · Device model: [Responsive web / Native mobile / Desktop-only]
+> Version: 1.0 · Updated: [yyyy-MM-dd] · Product type: [Enterprise / Web app / Native mobile / Mixed] · Device model: [Responsive web / Native mobile / Desktop-only] · Stack: [Tailwind web / Flutter / React Native / …] · Dark mode: [no / yes — light + dark]
 > Source of truth for colors, typography, spacing, and components. The wireframes, mockup, and UX spec must use the names defined here.
 
 ## 0. Assumptions
@@ -12,7 +12,7 @@ List anything not confirmed by the user (brand, product name, login method...). 
 | 1.0 | [date] | Initial design system |
 
 ## 1. Design principles
-3–5 principles specific to this app (e.g. "ลดการพิมพ์ — ใช้ dropdown/scan ทุกครั้งที่ทำได้").
+3–5 principles specific to this app (e.g. "Prefer picking over typing — use dropdowns/scan wherever possible").
 
 ## 2. Colors
 
@@ -42,14 +42,16 @@ List anything not confirmed by the user (brand, product name, login method...). 
 | info | | | | Informational, posted |
 
 ### 2.4 Usage tokens
-| Token | Value | Where |
-|---|---|---|
-| bg-page | neutral-50 | App background |
-| bg-surface | white | Cards, tables, modals |
-| text-body | neutral-800 | Main text |
-| text-muted | neutral-500 | Helper text, captions |
-| border-default | neutral-200 | Dividers, input borders |
-| focus-ring | brand-500 | Keyboard focus |
+If design.md says **Dark mode: yes** (or the existing app has a dark theme — mine it from its theme code), every usage token needs a dark value; re-check dark pairs in §2.7. Don't ship a light-only spec for an app that ships dark.
+
+| Token | Light | Dark | Where |
+|---|---|---|---|
+| bg-page | neutral-50 | neutral-950 | App background |
+| bg-surface | white | neutral-900 | Cards, tables, modals |
+| text-body | neutral-800 | neutral-100 | Main text |
+| text-muted | neutral-500 | neutral-400 | Helper text, captions |
+| border-default | neutral-200 | neutral-800 | Dividers, input borders |
+| focus-ring | brand-500 | brand-400 | Keyboard focus |
 
 ### 2.5 Status mapping
 | Status | Badge | Label |
@@ -64,6 +66,17 @@ chart-1 … chart-8 with hex.
 | text-body on bg-page | | AA |
 | white on brand-600 | | AA |
 | text-muted on bg-surface | | AA |
+| text-body dark on bg-page dark (dark mode only) | | AA |
+| white on brand-400 (dark-mode primary) | | AA |
+
+### 2.8 Platform mapping (non-web stacks)
+Required when the stack isn't web (Flutter, React Native…): map each token to the constant the app already uses — `tokens/` alone can't be pasted into Flutter, and a dev shouldn't have to convert hex by hand. Keep the names the app actually uses.
+
+| Token | Web class | Platform name | Hex |
+|---|---|---|---|
+| brand-600 | bg-brand-600 | AppColors.greenDark | 0xFF263B34 |
+| brand-400 | bg-brand-400 | AppColors.greenPrimary | 0xFF… |
+| bg-page (dark) | dark:bg-neutral-950 | AppColors.dark.background | 0xFF… |
 
 ## 3. Typography
 | Token | Size / line-height | Weight | Usage |
@@ -75,7 +88,7 @@ chart-1 … chart-8 with hex.
 | small | 12 / 1.6 | 400 | Captions, table meta |
 | mono | 13 | 400 | Codes, amounts (tabular-nums) |
 
-Font: IBM Plex Sans Thai, fallback Tahoma, system-ui. Thai needs line-height ≥ 1.6.
+Font: [choose per app — e.g. IBM Plex Sans Thai for Thai UIs, Inter elsewhere]; fallback Tahoma, system-ui. Thai needs line-height ≥ 1.6.
 
 ## 4. Spacing, radius, elevation
 - Spacing scale (px): 4, 8, 12, 16, 24, 32, 48
@@ -95,7 +108,7 @@ For each: anatomy, variants, sizes, states (default/hover/focus/disabled/loading
 
 ## 6. Iconography
 Set: [Phosphor / Tabler / Fluent / Material Symbols] · Iconify prefix `[ph:]` · Style: [Regular] (active: [Fill]) · Sizes: 16 / 20 / 24 · Color: currentColor
-Why this set: [one line — e.g. "Fluent ให้ผู้ใช้ที่คุ้นกับ Office/AX จำปุ่มได้ทันที"]
+Why this set: [one line — e.g. "Fluent reads instantly to users who live in Office/AX"]
 Dev package: [e.g. @phosphor-icons/web (webfont, PHP/Yii) · @phosphor-icons/react]
 Rules: no emoji in UI · icon + label for primary/destructive actions · icon-only buttons need aria-label + tooltip
 
@@ -112,4 +125,4 @@ Imagery: [illustration style, or "none — text and icons only"]
 Every screen in the app. IDs match the wireframe and mockup.
 | ID | Screen | Module | Wireframe | Mockup | Notes |
 |---|---|---|---|---|---|
-| login | เข้าสู่ระบบ | Auth | ✅ | ✅ | |
+| login | Sign in | Auth | ✅ | ✅ | |

@@ -12,6 +12,7 @@
 <p align="center">
   <a href="README.th.md">ภาษาไทย</a> ·
   <a href="#install">Install</a> ·
+  <a href="#update-the-skill">Update</a> ·
   <a href="#other-ai-agents">Other agents</a> ·
   <a href="#usage">Usage</a> ·
   <a href="#what-you-get">What you get</a> ·
@@ -25,13 +26,14 @@
 Asking an AI to "design a screen" usually gives you one pretty page that doesn't match the next one, emoji for icons, no empty or error states, and nothing a developer can build from. This skill makes the AI work like a designer handing off to a dev team:
 
 - **Every screen**, not just the happy path — including login, 403/404, empty states, session expired.
-- **One source of truth** (`design.md`) for colors, typography and icons, checked for WCAG AA contrast.
+- **One source of truth** (`design.md`) for colors, typography and icons, checked for WCAG AA contrast — light **and dark** when the app ships dark mode.
+- **A spec devs implement from** (`ux-spec.md`) — state matrix per screen, exact error text, interactions, copy deck, API payloads — so nobody has to reopen app code.
 - **Low-fi wireframes first**, then a hi-fi mockup, so structure is agreed before colors.
 - **Dev diagrams** — ER, state, sequence, API contract — that match the screens.
 - **Changes propagate**: "add a phone field" updates the wireframe, mockup, spec, ER diagram and API table together.
 - **Verified**: a script checks that every file agrees before anything is handed over.
 
-Works for internal ERP/back-office tools, customer-facing web apps and mobile apps. Thai-first defaults (IBM Plex Sans Thai, Thai line-height rules, THB and dd/MM/yyyy sample data), English works the same.
+Works for internal ERP/back-office tools, customer-facing web apps and mobile apps. Deliverables default to English; localized apps (e.g. Thai) keep their real UI language, with every locale's exact strings recorded in the spec's copy deck — Thai typography rules, THB and dd/MM/yyyy formats included.
 
 ## Install
 
@@ -117,6 +119,62 @@ The instructions were written and tested with Claude. Other models can follow th
 - Optional: `pip install playwright && playwright install chromium` — enables browser checks in `verify.py` (JS errors, icon names, Mermaid syntax, annotation visibility). Already available on claude.ai.
 - An internet connection when opening the HTML files (Tailwind, fonts, icons and Mermaid load from CDNs).
 
+## Update the skill
+
+Pick the update path that matches how the skill was installed.
+
+### Claude Code — plugin marketplace
+
+Updates come from this GitHub repo, so push your changes first, then refresh in a session:
+
+```bash
+claude plugin marketplace update design-kit
+claude plugin update design-kit@design-kit
+```
+
+### Claude.ai (uploaded skill)
+
+Rebuild the zip, then replace the upload:
+
+```bash
+./tools/build-skill.sh          # → dist/design-kit.zip
+```
+
+On claude.ai: **Customize → Skills → design-kit → Delete**, then **Create skill → Upload a skill** with the new zip.
+
+### Manual copy (Claude Code, Codex, Cursor, other agents)
+
+Re-copy the folder with `rsync`, so files that were removed or renamed in the repo are also removed locally — then restart the agent, since skills load at startup:
+
+```bash
+rsync -a --delete --exclude '__pycache__' skills/design-kit/ ~/.claude/skills/design-kit/   # Claude Code manual install
+rsync -a --delete --exclude '__pycache__' skills/design-kit/ ~/.agents/skills/design-kit/   # Codex CLI and most agents
+```
+
+Plain `cp -r skills/design-kit <dest>` works too, but leaves stale files behind when the skill removes or renames one. Point the destination wherever your agent reads skills from (see the install table above; e.g. `~/.zcode/skills/` for ZCode, `~/.cursor/skills/` for Cursor).
+
+### The `skills` CLI
+
+```bash
+npx skills add KPV2004/design-kit
+```
+
+Re-running it refreshes the copies it installed.
+
+### Existing design projects
+
+A design project carries its own copy of the tools in `<app>-design/_tools/` — it does not update itself. To give an existing project the latest checks and exporters:
+
+```bash
+cp skills/design-kit/scripts/*.py <app>-design/_tools/
+```
+
+`_engine/` behaves the same way: each project holds its own copy, so re-create the folder (or copy `skills/design-kit/assets/project/_engine/` over it) when the engine changes.
+
+### Releasing a new version
+
+Bump `version` in `.claude-plugin/plugin.json`, add a `CHANGELOG.md` row, then tag `vX.Y.Z` and push — the release workflow attaches the zip to the GitHub Release. Full checklist in [Contributing](#contributing).
+
 ## Usage
 
 The skill triggers on its own when you ask for design work. Examples:
@@ -147,13 +205,13 @@ Each design is a self-contained folder:
 ```
 <app>-design/
 ├── AGENTS.md          AI entry point — file roles, editing rules, commands (CLAUDE.md imports it)
-├── design.md          colors, typography, icons, components, screen inventory, changelog
-├── ux-spec.md         behavior, validation + exact error text, diagrams (Mermaid), API contract, risks
+├── design.md          colors (light + dark), typography, icons, components, screen inventory, changelog
+├── ux-spec.md         behavior, state matrix, validation + exact error text, copy deck, diagrams (Mermaid), API contract, risks
 ├── wireframes.html    every screen, low-fi — open in a browser
 ├── mockup.html        hi-fi clickable mockup — open in a browser
 ├── _engine/           shared viewer code (toolbar, zoom, comments, device frames)
 ├── _tools/            verify.py · sync_diagrams.py · export_tokens.py
-├── tokens/            tokens.css · tailwind.config.js · tokens.json for developers
+├── tokens/            tokens.css (incl. dark) · tailwind.config.js · tokens.json (incl. platform mapping, e.g. Flutter constants)
 └── feedback/          exported review comments
 ```
 
@@ -188,8 +246,8 @@ Open `wireframes.html` or `mockup.html` from inside the folder — they need `_e
 
 ## Review workflow
 
-1. Open `wireframes.html`, press **💬** (or `C`) and click any spot to pin a comment — choose *edit / add / remove / question*.
-2. Press **ส่งออก (Export)** → copy or download the markdown.
+1. Open `wireframes.html`, press **💬** (or `C`) and click any spot to pin a comment — choose *Fix / Add / Remove / Question*.
+2. Press **Export** → copy or download the markdown.
 3. Paste it to Claude (or drop it in `feedback/` and ask Claude Code to apply it).
 
 Claude locates each pinned element, applies the change to every affected file, answers the questions, and reports item by item. Comments are stored in your browser per file — export before moving or renaming the folder.

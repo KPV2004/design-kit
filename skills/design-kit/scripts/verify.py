@@ -237,8 +237,26 @@ def main(folder):
         warn('spec has no sequence diagram for the main actions')
     if re.search(r'status|สถานะ', spec, re.I) and 'stateDiagram' not in kinds:
         warn('spec mentions statuses but has no stateDiagram-v2')
-    if '## API contract' not in spec:
-        warn('spec has no "## API contract" table')
+
+    # --- spec must stand alone: these sections exist and have rows
+    for heading in ('## States', '## Fields & validation', '## Interactions & behavior',
+                    '## Copy deck', '## API contract'):
+        if heading not in spec:
+            warn(f'spec has no "{heading[3:]}" section — the spec must stand alone from app code')
+            continue
+        block = spec.split(heading, 1)[1].split('\n## ', 1)[0]
+        rows = [l for l in block.splitlines() if l.strip().startswith('|')]
+        if len(rows) < 3:
+            warn(f'spec "{heading}" table has no data rows — every data screen needs one')
+
+    # --- dark mode & platform mapping (design.md header promises)
+    header = design[:600].lower()
+    if re.search(r'dark mode:\s*(yes|true|light \+ dark|light\+dark)', header):
+        sec = design.split('Usage tokens', 1)
+        if len(sec) == 2 and not re.search(r'^\|\s*token\s*\|.*\bdark\b', sec[1].split('\n#', 1)[0], re.M | re.I):
+            warn('design.md says Dark mode: yes but §2.4 usage tokens have no Dark column — devs cannot build the dark theme from the spec')
+    if re.search(r'stack:\s*(flutter|react native|native)', header) and 'Platform mapping' not in design:
+        warn('design.md stack is non-web but §2.8 platform mapping is missing — tokens/ alone cannot be pasted into Flutter/native code')
 
     # --- version
     dv = re.search(r'Version:\s*([\d.]+)', design)

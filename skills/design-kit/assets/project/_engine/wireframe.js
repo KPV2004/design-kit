@@ -17,27 +17,27 @@
 <div id="tb" class="sticky top-0 z-50 bg-slate-800 text-slate-100 text-sm">
   <div class="flex flex-wrap items-center gap-2 px-4 py-2">
     <span id="tb-title" class="font-semibold mr-2"></span>
-    <button data-act="overview">ภาพรวม</button>
+    <button data-act="overview">Overview</button>
     <button data-act="diagrams">Diagrams</button>
-    <select id="screen-select" class="bg-slate-700 rounded px-2 py-1" aria-label="เลือกหน้าจอ"></select>
-    <button data-act="prev" aria-label="หน้าก่อนหน้า">◀</button>
-    <button data-act="next" aria-label="หน้าถัดไป">▶</button>
+    <select id="screen-select" class="bg-slate-700 rounded px-2 py-1" aria-label="Select screen"></select>
+    <button data-act="prev" aria-label="Previous screen">◀</button>
+    <button data-act="next" aria-label="Next screen">▶</button>
     <span class="w-px h-5 bg-slate-600 mx-1"></span>
-    <button id="c-mode" aria-pressed="false" title="ปักหมุดความเห็น: คลิกบน wireframe (C)">💬 ความเห็น</button>
-    <button data-act="export" title="ส่งออกความเห็นเป็น markdown">ส่งออก (<span id="c-count">0</span>)</button>
-    <span id="c-warn" class="text-amber-300 text-xs hidden">บันทึกในเบราว์เซอร์ไม่ได้ — ส่งออกก่อนปิดหน้า</span>
-    <span id="dev-ctl" class="flex items-center ml-2" role="group" aria-label="อุปกรณ์ที่แสดง (D)">
-      <button class="seg" data-dev="all">ทั้งหมด</button><button class="seg" data-dev="desktop">Desktop</button><button class="seg" data-dev="tablet">Tablet</button><button class="seg" data-dev="mobile">Mobile</button>
+    <button id="c-mode" aria-pressed="false" title="Pin comments: click on the wireframe (C)">💬 Comments</button>
+    <button data-act="export" title="Export comments as markdown">Export (<span id="c-count">0</span>)</button>
+    <span id="c-warn" class="text-amber-300 text-xs hidden">Can't save in this browser — export before closing the page</span>
+    <span id="dev-ctl" class="flex items-center ml-2" role="group" aria-label="Device filter (D)">
+      <button class="seg" data-dev="all">All</button><button class="seg" data-dev="desktop">Desktop</button><button class="seg" data-dev="tablet">Tablet</button><button class="seg" data-dev="mobile">Mobile</button>
     </span>
     <div class="ml-auto flex items-center gap-2">
-      <span id="zoom-ctl" class="flex items-center gap-1" title="Ctrl/⌘ + scroll หรือ pinch เพื่อซูม · กด Space ค้างแล้วลากเพื่อเลื่อน">
-        <button data-act="zoom-out" aria-label="ซูมออก (-)">−</button>
-        <button data-act="zoom-fit" id="zoom-label" class="min-w-[64px]" aria-label="พอดีจอ (0)">พอดีจอ</button>
-        <button data-act="zoom-in" aria-label="ซูมเข้า (+)">+</button>
-        <button data-act="zoom-100" aria-label="ขนาดจริง (1)">100%</button>
+      <span id="zoom-ctl" class="flex items-center gap-1" title="Ctrl/⌘ + scroll or pinch to zoom · hold Space and drag to pan">
+        <button data-act="zoom-out" aria-label="Zoom out (-)">−</button>
+        <button data-act="zoom-fit" id="zoom-label" class="min-w-[64px]" aria-label="Fit to screen (0)">Fit</button>
+        <button data-act="zoom-in" aria-label="Zoom in (+)">+</button>
+        <button data-act="zoom-100" aria-label="Actual size (1)">100%</button>
       </span>
-      <label id="thumb-ctl" class="flex items-center gap-1">ภาพย่อ <input type="range" id="thumb-zoom" min="0.15" max="0.6" step="0.05" aria-label="ขนาดภาพย่อ"></label>
-      <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="anno-toggle" checked> หมายเหตุ</label>
+      <label id="thumb-ctl" class="flex items-center gap-1">Thumbnails <input type="range" id="thumb-zoom" min="0.15" max="0.6" step="0.05" aria-label="Thumbnail size"></label>
+      <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="anno-toggle" checked> Notes</label>
     </div>
   </div>
 </div>
@@ -49,12 +49,12 @@
     <nav id="dg-list" class="w-56 shrink-0 space-y-1 text-sm"></nav>
     <div class="flex-1 min-w-0">
       <h2 id="dg-title" class="font-semibold text-lg"></h2>
-      <p class="text-xs text-slate-500 mb-2">กล่องที่ตรงกับ screen ID คลิกเพื่อเปิด wireframe ได้</p>
+      <p class="text-xs text-slate-500 mb-2">Boxes matching a screen ID are clickable — click to open that wireframe</p>
       <div id="dg-wrap" class="zoom-wrap"><div id="dg-outer"><div id="dg-inner" class="zoom-inner"><div id="dg-graph"></div></div></div></div>
     </div>
     <aside class="w-80 shrink-0 bg-white rounded-lg p-4 text-sm">
-      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold">ความเห็นต่อ diagram นี้</h3>
-        <button class="text-xs underline" data-act="add-general">+ เพิ่มความเห็น</button></div>
+      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold">Comments on this diagram</h3>
+        <button class="text-xs underline" data-act="add-general">+ Add comment</button></div>
       <div id="dg-comments" class="space-y-2"></div>
     </aside>
   </div>
@@ -68,9 +68,9 @@
       <p id="s-meta" class="text-slate-500 text-xs mb-3"></p>
       <div id="s-notes" class="space-y-1"></div>
       <hr class="my-4">
-      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold">ความเห็น / สิ่งที่ต้องแก้</h3>
-        <button class="text-xs underline" data-act="add-general">+ ความเห็นทั้งหน้า</button></div>
-      <p class="text-xs text-slate-500 mb-2">กด 💬 แล้วคลิกตรงจุดบน wireframe เพื่อปักหมุด</p>
+      <div class="flex items-center justify-between mb-2"><h3 class="font-semibold">Comments / change requests</h3>
+        <button class="text-xs underline" data-act="add-general">+ Comment on whole page</button></div>
+      <p class="text-xs text-slate-500 mb-2">Press 💬, then click a spot on the wireframe to pin a comment</p>
       <div id="s-comments" class="space-y-2"></div>
     </aside>
   </div>
@@ -78,14 +78,14 @@
 
 <dialog id="export" class="rounded-lg p-0 w-[min(720px,95vw)] backdrop:bg-black/40">
   <div class="p-5 space-y-3">
-    <h2 class="font-semibold text-lg">ส่งออกความเห็น</h2>
-    <p class="text-sm text-slate-500">คัดลอกไปวางในแชตกับ Claude หรือดาวน์โหลดไฟล์ .md แล้วแนบ — Claude จะแก้ทุกไฟล์ตามรายการนี้</p>
+    <h2 class="font-semibold text-lg">Export comments</h2>
+    <p class="text-sm text-slate-500">Paste this into a chat with Claude, or download the .md and attach it — Claude applies every item to all affected files</p>
     <textarea id="export-text" class="w-full h-80 border rounded p-2 font-mono text-xs" readonly></textarea>
     <div class="flex flex-wrap gap-2 justify-end">
-      <button class="border rounded px-3 py-1.5" data-act="clear-done">ลบรายการที่เสร็จแล้ว</button>
-      <button class="border rounded px-3 py-1.5" data-act="download">ดาวน์โหลด .md</button>
-      <button class="bg-slate-800 text-white rounded px-3 py-1.5" data-act="copy" id="copy-btn">คัดลอก</button>
-      <button class="border rounded px-3 py-1.5" data-act="close-export">ปิด</button>
+      <button class="border rounded px-3 py-1.5" data-act="clear-done">Clear done items</button>
+      <button class="border rounded px-3 py-1.5" data-act="download">Download .md</button>
+      <button class="bg-slate-800 text-white rounded px-3 py-1.5" data-act="copy" id="copy-btn">Copy</button>
+      <button class="border rounded px-3 py-1.5" data-act="close-export">Close</button>
     </div>
   </div>
 </dialog>`;
@@ -120,7 +120,7 @@
     const hasDevice = root => devFilter === 'all' || [...root.querySelectorAll(FRAMES)].some(f => deviceOf(f) === devFilter);
     const emptyNote = (big) => {
       const d = document.createElement('div'); d.className = 'dev-empty';
-      d.innerHTML = big ? '—' : `หน้านี้ไม่มีแบบ ${DEV_NAME[devFilter]}<br><button class="underline mt-2" data-dev="all">แสดงทั้งหมด</button>`;
+      d.innerHTML = big ? '—' : `No ${DEV_NAME[devFilter]} frame on this screen<br><button class="underline mt-2" data-dev="all">Show all</button>`;
       return d;
     };
     function setDevice(dev) {
@@ -148,7 +148,7 @@
         inner.style.transform = `scale(${z})`;
         inner.style.setProperty('--ps', (1 / z).toFixed(3));
         outer.style.width = n.w * z + 'px'; outer.style.height = n.h * z + 'px';
-        $('zoom-label').textContent = mode === 'fit' ? `พอดีจอ ${Math.round(z * 100)}%` : `${Math.round(z * 100)}%`;
+        $('zoom-label').textContent = mode === 'fit' ? `Fit ${Math.round(z * 100)}%` : `${Math.round(z * 100)}%`;
       }
       function set(next, anchor) {
         const r = wrap.getBoundingClientRect();
@@ -191,12 +191,12 @@
     }
     const keyOf = () => current ? 'screen:' + current : currentDiagram != null ? 'diagram:' + diagrams[currentDiagram].title : null;
     const listFor = key => comments.filter(c => c.key === key);
-    const TYPES = ['แก้ไข', 'เพิ่ม', 'ลบออก', 'คำถาม'];
+    const TYPES = ['Fix', 'Add', 'Remove', 'Question'];
     const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
     function newComment(extra) {
       const key = keyOf(); if (!key) return;
-      const c = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), key, type: 'แก้ไข', text: '', done: false, at: new Date().toISOString(), ...extra };
+      const c = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), key, type: 'Fix', text: '', done: false, at: new Date().toISOString(), ...extra };
       comments.push(c); selCid = c.id; save(); refreshComments();
       setTimeout(() => document.querySelector(`[data-cid="${c.id}"] textarea`)?.focus(), 0);
     }
@@ -206,15 +206,15 @@
       return s.replace(/\s*\d+$/, '').slice(0, 40);
     }
     function commentHTML(c, n) {
-      const where = c.frame ? `${c.frame} · ใกล้ "${c.near || '-'}"` : 'ทั้งหน้า';
+      const where = c.frame ? `${c.frame} · near "${c.near || '-'}"` : 'Whole page';
       return `<div class="c-item border rounded p-2 space-y-1 ${c.id === selCid ? 'sel' : ''}" data-cid="${c.id}">
         <div class="flex items-center gap-2 text-xs"><span class="pin-tag ${c.done ? 'done' : ''}">${n}</span>
           <span class="text-slate-500 truncate" title="${esc(where)}">${esc(where)}</span>
-          <button class="ml-auto text-slate-400 hover:text-red-600" data-c="del" aria-label="ลบความเห็น">✕</button></div>
+          <button class="ml-auto text-slate-400 hover:text-red-600" data-c="del" aria-label="Delete comment">✕</button></div>
         <div class="flex items-center gap-2 text-xs">
           <select data-c="type" class="border rounded px-1 py-0.5">${TYPES.map(t => `<option ${t === c.type ? 'selected' : ''}>${t}</option>`).join('')}</select>
-          <label class="flex items-center gap-1"><input type="checkbox" data-c="done" ${c.done ? 'checked' : ''}> เสร็จแล้ว</label></div>
-        <textarea data-c="text" rows="3" class="w-full border rounded p-1.5 text-sm" placeholder="ต้องการแก้อะไร อย่างไร เช่น ย้ายปุ่มไปขวาบน, เพิ่มช่องเบอร์โทร">${esc(c.text)}</textarea>
+          <label class="flex items-center gap-1"><input type="checkbox" data-c="done" ${c.done ? 'checked' : ''}> Done</label></div>
+        <textarea data-c="text" rows="3" class="w-full border rounded p-1.5 text-sm" placeholder="What should change and how, e.g. move the button to the top right, add a phone field">${esc(c.text)}</textarea>
       </div>`;
     }
     function highlight() {
@@ -224,7 +224,7 @@
     function refreshComments() {
       const key = keyOf(); if (!key) return;
       const list = listFor(key), wrap = current ? $('s-comments') : $('dg-comments');
-      wrap.innerHTML = list.length ? list.map((c, i) => commentHTML(c, i + 1)).join('') : '<p class="text-slate-400 text-xs">ยังไม่มีความเห็น</p>';
+      wrap.innerHTML = list.length ? list.map((c, i) => commentHTML(c, i + 1)).join('') : '<p class="text-slate-400 text-xs">No comments yet</p>';
       wrap.querySelectorAll('[data-cid]').forEach(el => {
         const c = comments.find(x => x.id === el.dataset.cid);
         el.addEventListener('focusin', () => { if (selCid !== c.id) { selCid = c.id; highlight(); } });
@@ -276,23 +276,23 @@
       const now = new Date(), pad = n => String(n).padStart(2, '0');
       const d = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
       const open = comments.filter(c => !c.done);
-      let md = `# Wireframe feedback — ${cfg.app} — v${cfg.version}\n> ส่งออก ${d} · ${open.length} รายการที่ต้องทำ · ไฟล์ ${decodeURIComponent(location.pathname.split('/').pop())}\n`;
+      let md = `# Wireframe feedback — ${cfg.app} — v${cfg.version}\n> Exported ${d} · ${open.length} open items · file ${decodeURIComponent(location.pathname.split('/').pop())}\n`;
       const order = k => k.startsWith('screen:') ? ids.indexOf(k.slice(7)) : 1000 + diagrams.findIndex(x => 'diagram:' + x.title === k);
       [...new Set(comments.map(c => c.key))].sort((a, b) => order(a) - order(b)).forEach(k => {
-        if (k.startsWith('screen:')) { const id = k.slice(7); md += `\n## [${id}] ${tplById(id)?.dataset.title || '(หน้าที่ถูกลบแล้ว)'}\n`; }
+        if (k.startsWith('screen:')) { const id = k.slice(7); md += `\n## [${id}] ${tplById(id)?.dataset.title || '(screen removed)'}\n`; }
         else md += `\n## Diagram: ${k.slice(8)}\n`;
         listFor(k).forEach((c, i) => {
-          const where = c.frame ? ` · ${c.frame} · ใกล้ "${c.near || '-'}" · ตำแหน่ง (${c.x}%, ${c.y}%)` : '';
-          md += `${i + 1}. ${c.done ? '✅ ' : ''}**${c.type}**${where} — ${c.text.trim().replace(/\n+/g, ' ') || '(ไม่มีรายละเอียด)'}\n`;
+          const where = c.frame ? ` · ${c.frame} · near "${c.near || '-'}" · position (${c.x}%, ${c.y}%)` : '';
+          md += `${i + 1}. ${c.done ? '✅ ' : ''}**${c.type}**${where} — ${c.text.trim().replace(/\n+/g, ' ') || '(no details)'}\n`;
         });
       });
-      if (!comments.length) md += '\n(ยังไม่มีความเห็น)\n';
+      if (!comments.length) md += '\n(no comments yet)\n';
       return md;
     }
     async function copyExport() {
       const t = $('export-text');
       try { await navigator.clipboard.writeText(t.value); } catch { t.select(); document.execCommand('copy'); }
-      $('copy-btn').textContent = 'คัดลอกแล้ว ✓'; setTimeout(() => $('copy-btn').textContent = 'คัดลอก', 1500);
+      $('copy-btn').textContent = 'Copied ✓'; setTimeout(() => $('copy-btn').textContent = 'Copy', 1500);
     }
     function downloadExport() {
       const a = document.createElement('a');
@@ -303,7 +303,7 @@
 
     /* ---------- 6. Navigation & views ---------- */
     const sel = $('screen-select'), groups = {};
-    tpls.forEach(t => (groups[t.dataset.module || 'อื่น ๆ'] ||= []).push(t));
+    tpls.forEach(t => (groups[t.dataset.module || 'Other'] ||= []).push(t));
     Object.entries(groups).forEach(([g, list]) => {
       const og = document.createElement('optgroup'); og.label = g;
       list.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = `${ids.indexOf(t.id) + 1}. ${t.dataset.title}`; og.appendChild(o); });
@@ -321,7 +321,7 @@
       const modWrap = $('modules'); modWrap.innerHTML = '';
       Object.entries(groups).forEach(([name, list]) => {
         const sec = document.createElement('section');
-        sec.innerHTML = `<h2 class="font-semibold mb-3">${esc(name)} <span class="text-slate-400 text-sm">(${list.length} หน้า)</span></h2><div class="flex flex-wrap gap-6"></div>`;
+        sec.innerHTML = `<h2 class="font-semibold mb-3">${esc(name)} <span class="text-slate-400 text-sm">(${list.length} screens)</span></h2><div class="flex flex-wrap gap-6"></div>`;
         list.forEach(t => {
           const n = listFor('screen:' + t.id).filter(c => !c.done).length;
           const card = document.createElement('button');
@@ -344,7 +344,7 @@
       $('s-title').textContent = t.dataset.title;
       $('s-meta').textContent = `#${t.id} · ${t.dataset.module || ''} · ${t.dataset.device || 'desktop'}`;
       const notes = (t.dataset.notes || '').split('|').filter(Boolean);
-      $('s-notes').innerHTML = notes.length ? notes.map((n, i) => `<p><span class="anno">${i + 1}</span> ${esc(n)}</p>`).join('') : '<p class="text-slate-400">ไม่มีหมายเหตุ</p>';
+      $('s-notes').innerHTML = notes.length ? notes.map((n, i) => `<p><span class="anno">${i + 1}</span> ${esc(n)}</p>`).join('') : '<p class="text-slate-400">No notes</p>';
       setView('single'); history.replaceState(null, '', '#' + id);
       requestAnimationFrame(() => changed ? zSingle.fit() : zSingle.apply());
       refreshComments();
@@ -355,7 +355,7 @@
     let mermaidReady = false;
     function showDiagrams(i = currentDiagram ?? 0) {
       current = null; setView('diagrams'); history.replaceState(null, '', '#diagrams');
-      if (!diagrams.length) { $('dg-title').textContent = 'ยังไม่มี diagram'; return; }
+      if (!diagrams.length) { $('dg-title').textContent = 'No diagrams yet'; return; }
       $('dg-list').innerHTML = diagrams.map((d, k) => {
         const n = listFor('diagram:' + d.title).filter(c => !c.done).length;
         return `<button class="w-full text-left px-3 py-2 rounded ${k === i ? 'bg-slate-800 text-white' : 'bg-white hover:bg-slate-200'}" data-dg="${k}">${esc(d.title)}${n ? ` <span class="pin-tag">${n}</span>` : ''}</button>`;
@@ -368,7 +368,7 @@
       const d = diagrams[i], g = $('dg-graph');
       $('dg-title').textContent = d.title;
       refreshComments();
-      if (!window.mermaid) { g.textContent = 'โหลด Mermaid ไม่ได้ (ต้องต่ออินเทอร์เน็ต)'; return; }
+      if (!window.mermaid) { g.textContent = "Couldn't load Mermaid (internet connection required)"; return; }
       if (!mermaidReady) { mermaid.initialize({ startOnLoad: false, theme: 'neutral', fontFamily: '"IBM Plex Sans Thai", Tahoma, sans-serif' }); mermaidReady = true; }
       try {
         const { svg } = await mermaid.render('dg-svg-' + i + '-' + Date.now(), d.def);

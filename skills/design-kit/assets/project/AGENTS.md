@@ -1,14 +1,14 @@
 # [App] — Design project · AI guide
 
 > Read this first. It tells you what each file is, which parts you may edit, and how to check your work.
-> Version: 1.0 (must equal design.md) · Device model: [Responsive web / Native mobile / Desktop-only] · Icon set: [Phosphor `ph:`]
+> Version: 1.0 (must equal design.md) · Device model: [Responsive web / Native mobile / Desktop-only] · Icon set: [Phosphor `ph:`] · Language: English by default (UI copy follows the app's locales — see the spec's copy deck)
 
 ## Files
 
 | File | Role | Edit? |
 |---|---|---|
-| `design.md` | **Source of truth** — colors, typography, components, icon map (§6), screen inventory (§7), changelog | Yes |
-| `ux-spec.md` | Behavior per screen, validation + exact error text, **all diagrams** (Mermaid), API contract, risks | Yes |
+| `design.md` | **Source of truth** — colors (light + dark), typography, components, icon map (§6), screen inventory (§7), changelog | Yes |
+| `ux-spec.md` | **Source of truth for behavior** — per-screen behavior, state matrix, fields + exact error text, interactions, copy deck, **all diagrams** (Mermaid), API contract. Must stand alone: a dev implements from it without reopening app code. Never leave a detail only in an annotation. | Yes |
 | `wireframes.html` | Low-fi screens as `<template>` blocks + diagrams copied from the spec | Screens only |
 | `mockup.html` | Hi-fi screens as `<section>` blocks + `tokens` / `icons` config | Config + screens only |
 | `_engine/` | Toolbar, zoom, comments, device frames — shared code | **Never** |
@@ -36,8 +36,10 @@
    | Icon | design.md §6 + mockup `icons` + every usage |
    | New / removed screen | design.md §7, wireframes, ux-spec (screens + user flow), mockup if on main flow, both `SCREENS` lines, every `showScreen()` link |
    | Layout | wireframe + mockup + spec layout/notes |
-   | Field / validation | spec fields table + ER + API contract + screens |
+   | Field / validation | spec fields table + copy deck + ER + API contract + screens |
    | Status / transition | design.md status mapping + state diagram + badges in screens |
+   | Behavior / interaction | spec interactions table + state matrix (+ screens if a state variant is visible) |
+   | Dark-mode token | design.md §2.4 Dark column + contrast checks + mockup `tokens` + re-export `tokens/` |
 3. Edit inside the screen markers with targeted replacements; don't reformat untouched screens.
 4. Mockup: token classes only (`bg-brand-600`), icons only from `icons`, no emoji, `data-notes` count = `.anno` markers, reviewer hints in `data-hint`.
 5. Responsive web: one screen ID whose template holds `.frame-desktop` / `.frame-tablet` (only if the layout differs) / `.frame-mobile` — never `m-*` copies.
@@ -53,4 +55,4 @@ python _tools/verify.py .                                   # always, before fin
 
 ## Applying review feedback
 
-Files in `feedback/` (or pasted text starting with `# Wireframe feedback —`) list comments by `## [screen-id]` with device, nearby text and position. Locate each element, apply the change across all affected files, answer every **คำถาม** item, skip items marked ✅, then move the file to `feedback/done/`.
+Files in `feedback/` (or pasted text starting with `# Wireframe feedback —`) list comments by `## [screen-id]` with device, nearby text and position. Locate each element, apply the change across all affected files, answer every **Question** item (older Thai exports label them **คำถาม**), skip items marked ✅, then move the file to `feedback/done/`.

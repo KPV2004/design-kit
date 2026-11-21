@@ -18,33 +18,33 @@
   const SHELL = `<div id="shell">
   <div id="tb" class="sticky top-0 z-50">
     <div class="flex flex-wrap items-center gap-2 px-3 py-2">
-      <button id="tb-toggle" aria-expanded="true" title="ย่อ/ขยายแถบ">▾</button>
+      <button id="tb-toggle" aria-expanded="true" title="Collapse/expand toolbar">▾</button>
       <span class="font-semibold mr-1" id="app-title">[App] mockup</span>
       <div class="tb-body flex flex-wrap items-center gap-2">
-        <button onclick="step(-1)" aria-label="หน้าก่อนหน้า">◀</button>
-        <select id="screen-select" aria-label="เลือกหน้าจอ"></select>
-        <button onclick="step(1)" aria-label="หน้าถัดไป">▶</button>
-        <span class="ml-2 text-zinc-400">จอ:</span>
+        <button onclick="step(-1)" aria-label="Previous screen">◀</button>
+        <select id="screen-select" aria-label="Select screen"></select>
+        <button onclick="step(1)" aria-label="Next screen">▶</button>
+        <span class="ml-2 text-zinc-400">Viewport:</span>
         <button data-vp="desktop" aria-pressed="true">Desktop</button>
         <button data-vp="tablet" aria-pressed="false">Tablet</button>
         <button data-vp="mobile" aria-pressed="false">Mobile</button>
-        <span class="ml-2 text-zinc-400">สถานะ:</span>
-        <select id="state-select" aria-label="สถานะหน้าจอ">
-          <option value="default">ปกติ</option><option value="empty">ว่าง</option>
-          <option value="loading">กำลังโหลด</option><option value="error">ผิดพลาด</option>
+        <span class="ml-2 text-zinc-400">State:</span>
+        <select id="state-select" aria-label="Screen state">
+          <option value="default">Default</option><option value="empty">Empty</option>
+          <option value="loading">Loading</option><option value="Error">Error</option>
         </select>
-        <label class="ml-2 flex items-center gap-1 cursor-pointer"><input type="checkbox" id="anno-toggle" checked> หมุด</label>
-        <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="notes-toggle" checked> หมายเหตุ</label>
+        <label class="ml-2 flex items-center gap-1 cursor-pointer"><input type="checkbox" id="anno-toggle" checked> Pins</label>
+        <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="notes-toggle" checked> Notes</label>
       </div>
     </div>
   </div>
   <div id="stage" class="vp-desktop">
-    <div id="device"><iframe id="frame" title="หน้าจอ mockup"></iframe></div>
+    <div id="device"><iframe id="frame" title="Mockup screen"></iframe></div>
     <aside id="notes">
       <h2 id="n-title" class="font-semibold text-base"></h2>
       <p id="n-meta" class="text-zinc-500 text-xs mb-3"></p>
       <div id="n-list" class="space-y-2"></div>
-      <div id="n-hint" class="mt-4 hidden"><p class="font-medium text-xs text-zinc-500 mb-1">วิธีทดลอง</p><p class="text-xs bg-zinc-100 rounded p-2"></p></div>
+      <div id="n-hint" class="mt-4 hidden"><p class="font-medium text-xs text-zinc-500 mb-1">How to try this screen</p><p class="text-xs bg-zinc-100 rounded p-2"></p></div>
     </aside>
   </div>
 </div>`;
@@ -97,7 +97,7 @@
           const c = document.createElement('div');
           c.className = 'w-28 rounded-md p-2 text-xs';
           c.style.background = hex; c.style.color = w >= d ? '#ffffff' : '#0f172a';
-          c.innerHTML = `<div class="font-semibold">${name}-${k}</div><div>${hex}</div><div>ขาว ${w.toFixed(1)} · ดำ ${d.toFixed(1)}</div>`;
+          c.innerHTML = `<div class="font-semibold">${name}-${k}</div><div>${hex}</div><div>on white ${w.toFixed(1)} · on dark ${d.toFixed(1)}</div>`;
           row.querySelector('div').appendChild(c);
         });
         wrap.appendChild(row);
@@ -107,7 +107,7 @@
     (function renderIcons() {
       const grid = document.getElementById('icon-grid'); if (!grid) return;
       const prefixes = [...new Set(Object.values(icons).map(n => n.split(':')[0]))];
-      document.getElementById('icon-set').textContent = '· ' + prefixes.join(', ') + (prefixes.length > 1 ? ' ⚠ ใช้หลายชุดปนกัน' : '');
+      document.getElementById('icon-set').textContent = '· ' + prefixes.join(', ') + (prefixes.length > 1 ? ' ⚠ mixed icon sets' : '');
       grid.innerHTML = Object.entries(icons).map(([k, n]) =>
         `<div class="border border-neutral-200 rounded-md p-3 text-center"><iconify-icon icon="${n}" width="24" class="text-neutral-700"></iconify-icon>
          <div class="text-xs mt-1 font-medium">${k}</div><div class="text-[11px] text-neutral-500 break-all">${n}</div></div>`).join('');
@@ -121,7 +121,7 @@
 
     // Grouped dropdown by module
     const groups = {};
-    screens.forEach(s => (groups[s.dataset.module || 'อื่น ๆ'] ||= []).push(s));
+    screens.forEach(s => (groups[s.dataset.module || 'Other'] ||= []).push(s));
     Object.entries(groups).forEach(([g, list]) => {
       const og = document.createElement('optgroup'); og.label = g;
       list.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = `${ids.indexOf(s.id)+1}. ${s.dataset.title || s.id}`; og.appendChild(o); });
@@ -147,7 +147,7 @@
       const notes = (s.dataset.notes || '').split('|').map(x => x.trim()).filter(Boolean);
       $('n-list').innerHTML = notes.length
         ? notes.map((n, i) => `<p><span class="anno">${i+1}</span> ${n}</p>`).join('')
-        : '<p class="text-zinc-400">ไม่มีหมายเหตุ</p>';
+        : '<p class="text-zinc-400">No notes</p>';
       const hint = s.dataset.hint || '';
       $('n-hint').classList.toggle('hidden', !hint);
       $('n-hint').querySelector('p:last-child').textContent = hint;
