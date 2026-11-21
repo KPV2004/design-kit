@@ -111,7 +111,7 @@ Folder names change between agent versions, so check your agent's docs if the sk
 
 **Chat apps without skill support** (ChatGPT, Gemini web, etc.): download `design-kit.zip` from the [latest release](https://github.com/KPV2004/design-kit/releases/latest), upload it to the chat (or a project/custom GPT), and say *"Follow SKILL.md in this zip to design …"*. The wireframes and mockup need a tool that can create files, and `verify.py` needs one that can run Python — without them you get the design text only.
 
-The instructions were written and tested with Claude. Other models can follow them, but results vary — always open the generated `wireframes.html` and `mockup.html` to check.
+The instructions were written and tested with Claude. Other models can follow them, but results vary — always open the generated `wireframes.html` and `mock.html` to check.
 
 ### Requirements
 
@@ -208,7 +208,7 @@ Each design is a self-contained folder:
 ├── design.md          colors (light + dark), typography, icons, components, screen inventory, changelog
 ├── ux-spec.md         behavior, state matrix, validation + exact error text, copy deck, diagrams (Mermaid), API contract, risks
 ├── wireframes.html    every screen, low-fi — open in a browser
-├── mockup.html        hi-fi clickable mockup — open in a browser
+├── mock.html          hi-fi clickable mock with a theme picker — open in a browser
 ├── _engine/           shared viewer code (toolbar, zoom, comments, device frames)
 ├── _tools/            verify.py · sync_diagrams.py · export_tokens.py
 ├── tokens/            tokens.css (incl. dark) · tailwind.config.js · tokens.json (incl. platform mapping, e.g. Flutter constants)
@@ -231,6 +231,7 @@ Open `wireframes.html` or `mockup.html` from inside the folder — they need `_e
 ### Mockup
 
 - Review shell with **Desktop / Tablet / Mobile** preview — the real Tailwind breakpoints respond.
+- **Theme picker** — Default / Dark / palette presets (from design.md §2.9) applied live, remembered per browser.
 - State switcher (normal / empty / loading / error), notes sidebar explaining each numbered marker.
 - **Design system page** — every color with its contrast ratio, type scale, buttons, and the icon set.
 
@@ -279,7 +280,7 @@ claude plugin validate .            # manifest + marketplace
 ./tools/build-skill.sh              # zip builds cleanly
 ```
 
-If you change `_engine/`, open `skills/design-kit/assets/project/wireframes.html` and `mockup.html` in a browser and check there are no console errors. To release, bump `version` in `.claude-plugin/plugin.json`, update `CHANGELOG.md`, and push a tag `vX.Y.Z` — the workflow checks the tag matches and publishes the zip.
+If you change `_engine/`, open `skills/design-kit/assets/project/wireframes.html` and `mock.html` in a browser and check there are no console errors. To release, bump `version` in `.claude-plugin/plugin.json`, update `CHANGELOG.md`, and push a tag `vX.Y.Z` — the workflow checks the tag matches and publishes the zip.
 
 ## License
 

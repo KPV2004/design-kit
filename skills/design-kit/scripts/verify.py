@@ -100,6 +100,8 @@ def parse_inventory(design):
 
 
 def design_tokens(design):
+    # §2.9 theme variants repeat token names with different hexes — parse scales only up to that section
+    design = design.split('Theme variants', 1)[0]
     t = {k: v.lower() for k, v in re.findall(r'\|\s*([a-z]+-\d+)\s*\|\s*(#[0-9a-fA-F]{6})\b', design)}
     for name, a, b, c in re.findall(r'\|\s*([a-z]+)\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})', design):
         t.update({f'{name}-50': a.lower(), f'{name}-600': b.lower(), f'{name}-700': c.lower()})
@@ -117,12 +119,69 @@ def mockup_tokens(html):
     return out
 
 
+def mockup_usage(html):
+    m = re.search(r'const usageTokens\s*=\s*\{(.*?)\n\s*\};', html, re.S)
+    if not m:
+        return None
+    return {k: v.lower() for k, v in re.findall(r"'([a-z][a-z-]+)'\s*:\s*'(#[0-9a-fA-F]{6})'", m.group(1))}
+
+
+def mockup_themes(html):
+    m = re.search(r'const themes\s*=\s*\{(.*?)\n\s*\};', html, re.S)
+    if not m:
+        return None
+    out = {}
+    for name, blk in re.findall(r"'([^']+)'\s*:\s*\{([^{}]*)\}", m.group(1)):
+        out[name] = {k: v.lower() for k, v in re.findall(r"'([a-z][a-z0-9-]*)'\s*:\s*'(#[0-9a-fA-F]{6})'", blk)}
+    if re.search(r"'Default'\s*:\s*null", m.group(1)):
+        out.setdefault('Default', {})
+    return out
+
+
+def design_usage(design):
+    """§2.4 rows → {token: value-ref-or-hex} (first value column, Light or Value)."""
+    sec = design.split('Usage tokens', 1)
+    if len(sec) != 2:
+        return {}
+    out = {}
+    for line in sec[1].split('\n#', 1)[0].splitlines():
+        cells = [c.strip() for c in line.strip().strip('|').split('|')]
+        if not cells or not cells[0] or cells[0].lower() == 'token' or set(cells[0]) <= {'-'}:
+            continue
+        if len(cells) >= 2:
+            out[cells[0]] = cells[1]
+    return out
+
+
+def design_theme_names(design):
+    sec = design.split('Theme variants', 1)
+    if len(sec) != 2:
+        return {}
+    names = {}
+    for line in sec[1].split('\n#', 1)[0].splitlines():
+        cells = [c.strip() for c in line.strip().strip('|').split('|')]
+        if len(cells) >= 3 and cells[0] not in ('Theme',) and not set(cells[0]) <= {'-'} and cells[0]:
+            names.setdefault(cells[0], {})[cells[1]] = cells[2]
+    return names
+
+
+def resolve_ref(val, tokens_map):
+    if val.startswith('#'):
+        return val.lower()
+    if val == 'white':
+        return '#ffffff'
+    m = re.fullmatch(r'([a-z]+)-(\d+)', val)
+    if m:
+        return tokens_map.get(val.lower())
+    return None
+
+
 def main(folder):
     folder = Path(folder)
     files = {
         'design': folder / 'design.md',
         'wf': find(folder, 'wireframes.html', '*-wireframes.html'),
-        'mk': find(folder, 'mockup.html', '*-mockup.html'),
+        'mk': find(folder, 'mock.html', '*:mock.html', 'mockup.html', '*-mockup.html'),
         'spec': find(folder, 'ux-spec.md', '*-ux-spec.md'),
     }
     for k, f in files.items():
@@ -143,7 +202,9 @@ def main(folder):
     ids_inv = set(inv)
     ids_wf = set(re.findall(r'<template id="([^"]+)"', wf))
     mk_sections = dict(re.findall(r'<section class="screen[^"]*" id="([^"]+)"([^>]*)>', mk))
-    ids_mk = set(mk_sections) - {'design-system'}
+    for i in sorted(i for i in mk_sections if not i.endswith(':mock')):
+        err(f'mock screen id "{i}" must end with ":mock" — it pairs with wireframe screen "{i}"')
+    ids_mk = {i[:-5] for i in mk_sections if i.endswith(':mock')} - {'design-system'}
     ids_spec = set()
     for line in spec.splitlines():
         if line.startswith('### '):
@@ -160,11 +221,11 @@ def main(folder):
         err(f'spec screen "{i}" not in inventory')
     for i, row in sorted(inv.items()):
         if row['mockup'] and i not in ids_mk:
-            err(f'inventory says Mockup ✅ for "{i}" but mockup has no such screen')
+            err(f'inventory says Mockup ✅ for "{i}" but mock has no "{i}:mock" screen')
         if not row['mockup'] and i in ids_mk:
-            warn(f'mockup has "{i}" but inventory Mockup column is not ✅')
+            warn(f'mock has "{i}:mock" but inventory Mockup column is not ✅')
     for i in sorted(ids_mk - ids_inv):
-        err(f'mockup screen "{i}" not in inventory')
+        err(f'mock screen "{i}:mock" not in inventory')
 
     # --- responsive duplication
     header = design[:600].lower()
@@ -190,13 +251,40 @@ def main(folder):
     # --- tokens
     dt, mt = design_tokens(design), mockup_tokens(mk)
     if mt is None:
-        err('mockup: no `const tokens = {...}` block')
+        err('mock: no `const tokens = {...}` block')
     else:
         for k, v in sorted(dt.items()):
             if mt.get(k) != v:
-                err(f'token {k}: design.md {v} ≠ mockup {mt.get(k)}')
+                err(f'token {k}: design.md {v} ≠ mock {mt.get(k)}')
     if re.search(r'(?:bg|text|border|ring|fill|stroke)-\[#', mk):
-        err('mockup uses raw hex classes like bg-[#...] — use token classes')
+        err('mock uses raw hex classes like bg-[#...] — use token classes')
+
+    # --- usage tokens (theme-engine defaults) + theme variants
+    mu = mockup_usage(mk)
+    du = design_usage(design)
+    if mu is None:
+        warn('mock has no `const usageTokens` block — the theme picker needs defaults from design.md §2.4')
+    else:
+        for k, ref in sorted(du.items()):
+            expect = resolve_ref(ref, dt)
+            if expect and mu.get(k) != expect:
+                err(f'usage token {k}: design.md {ref} → {expect} ≠ mock {mu.get(k)}')
+    th = mockup_themes(mk)
+    dth = design_theme_names(design)
+    if th is None:
+        warn('mock has no `const themes` block — add theme variants (design.md §2.9) for the theme picker')
+    else:
+        known = set(dt) | set(du)
+        for name, ov in sorted(th.items()):
+            if name != 'Default' and name not in dth:
+                warn(f'theme "{name}" is not documented in design.md §2.9 Theme variants')
+            for k in ov:
+                if k not in known:
+                    warn(f'theme "{name}" overrides unknown token "{k}"')
+        for name in sorted(set(dth) - set(th)):
+            warn(f'design.md §2.9 theme "{name}" is missing from the mock theme picker')
+    if files['mk'].name not in ('mock.html',) and not files['mk'].name.endswith(':mock.html'):
+        warn(f"{files['mk'].name}: rename the mock file to mock.html (v1.2 convention)")
 
     # --- icons
     icon_map = icon_map_from_design(design)
@@ -328,7 +416,7 @@ def browser_checks(files, mk_sections, all_icons=()):
                     continue
                 pg.evaluate(f"showScreen('{sid}')")
                 pg.wait_for_timeout(100)
-                hidden = pg.evaluate(f"""() => [...document.querySelectorAll('#{sid} .anno')]
+                hidden = pg.evaluate(f"""() => [...document.querySelectorAll('[id="{sid}"] .anno')]
                     .filter(a => !a.closest('[data-state]:not(.show)'))
                     .map(a => [a.textContent.trim(), a.getBoundingClientRect().width > 0 && getComputedStyle(a).visibility !== 'hidden'])
                     .filter(x => !x[1]).map(x => x[0])""")

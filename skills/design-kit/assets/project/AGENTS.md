@@ -10,7 +10,7 @@
 | `design.md` | **Source of truth** — colors (light + dark), typography, components, icon map (§6), screen inventory (§7), changelog | Yes |
 | `ux-spec.md` | **Source of truth for behavior** — per-screen behavior, state matrix, fields + exact error text, interactions, copy deck, **all diagrams** (Mermaid), API contract. Must stand alone: a dev implements from it without reopening app code. Never leave a detail only in an annotation. | Yes |
 | `wireframes.html` | Low-fi screens as `<template>` blocks + diagrams copied from the spec | Screens only |
-| `mockup.html` | Hi-fi screens as `<section>` blocks + `tokens` / `icons` config | Config + screens only |
+| `mock.html` | Hi-fi screens as `<section id="<id>:mock">` blocks + `tokens` / `usageTokens` / `themes` / `icons` config | Config + screens only |
 | `_engine/` | Toolbar, zoom, comments, device frames — shared code | **Never** |
 | `_tools/` | `verify.py`, `sync_diagrams.py`, `export_tokens.py` | Never |
 | `tokens/` | Generated from design.md for developers | Never by hand — regenerate |
@@ -18,11 +18,11 @@
 
 ## How the files connect
 
-- **Screen ID** (kebab-case, e.g. `po-list`) is the shared key: design.md §7 row → `<template id>` in wireframes → `<section id>` in mockup → `### [po-list]` in ux-spec.
+- **Screen ID** (kebab-case, e.g. `po-list`) is the shared key: design.md §7 row → `<template id>` in wireframes → `<section id="po-list:mock">` in mock (every mock id ends with `:mock`) → `### [po-list]` in ux-spec.
 - Each screen block is wrapped in markers, so you can find or replace one screen without reading the rest:
   `<!-- ════════ SCREEN: po-list ════════ -->` … `<!-- ════════ /SCREEN: po-list ════════ -->`
 - The `SCREENS (in order): …` line at the top of wireframes.html and mockup.html lists every screen — update it when adding/removing screens.
-- Colors: design.md §2 → `const tokens` in mockup.html → `tokens/`. Icons: design.md §6 → `const icons` in mockup.html.
+- Colors: design.md §2 → `const tokens` + `const usageTokens` in mock.html → `tokens/`. Theme variants: design.md §2.9 → `const themes` (theme picker in the mock toolbar). Icons: design.md §6 → `const icons` in mock.html.
 - Diagrams: written only in ux-spec.md; `sync_diagrams.py` copies them into wireframes.html between `DIAGRAMS:START/END`.
 
 ## Editing rules
@@ -32,16 +32,17 @@
 
    | Change | Also update |
    |---|---|
-   | Color / font token | mockup `tokens`, re-export `tokens/` |
-   | Icon | design.md §6 + mockup `icons` + every usage |
-   | New / removed screen | design.md §7, wireframes, ux-spec (screens + user flow), mockup if on main flow, both `SCREENS` lines, every `showScreen()` link |
-   | Layout | wireframe + mockup + spec layout/notes |
+   | Color / font token | mock `tokens`, theme overrides if §2.9 touches it, re-export `tokens/` |
+   | Icon | design.md §6 + mock `icons` + every usage |
+   | New / removed screen | design.md §7, wireframes, ux-spec (screens + user flow + states row), mock (`<id>:mock`) if on main flow, both `SCREENS` lines, every `showScreen()` link |
+   | Layout | wireframe + mock + spec layout/notes |
+   | Theme variant | design.md §2.9 + mock `themes` (keep brand-700 AA with white text) |
    | Field / validation | spec fields table + copy deck + ER + API contract + screens |
    | Status / transition | design.md status mapping + state diagram + badges in screens |
    | Behavior / interaction | spec interactions table + state matrix (+ screens if a state variant is visible) |
    | Dark-mode token | design.md §2.4 Dark column + contrast checks + mockup `tokens` + re-export `tokens/` |
 3. Edit inside the screen markers with targeted replacements; don't reformat untouched screens.
-4. Mockup: token classes only (`bg-brand-600`), icons only from `icons`, no emoji, `data-notes` count = `.anno` markers, reviewer hints in `data-hint`.
+4. Mock: screen ids end with `:mock`; theme-aware classes (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`) for surfaces that must follow the theme; token classes only (`bg-brand-600`); icons only from `icons`; no emoji; `data-notes` count = `.anno` markers; reviewer hints in `data-hint`.
 5. Responsive web: one screen ID whose template holds `.frame-desktop` / `.frame-tablet` (only if the layout differs) / `.frame-mobile` — never `m-*` copies.
 6. Bump the version in design.md, ux-spec.md, `WF.version` (wireframes.html) and this file; add a changelog row.
 

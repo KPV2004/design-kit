@@ -50,7 +50,8 @@ If design.md says **Dark mode: yes** (or the existing app has a dark theme — m
 | bg-surface | white | neutral-900 | Cards, tables, modals |
 | text-body | neutral-800 | neutral-100 | Main text |
 | text-muted | neutral-500 | neutral-400 | Helper text, captions |
-| border-default | neutral-200 | neutral-800 | Dividers, input borders |
+| border-default | neutral-200 | neutral-800 | Dividers |
+| border-input | neutral-300 | neutral-600 | Input borders |
 | focus-ring | brand-500 | brand-400 | Keyboard focus |
 
 ### 2.5 Status mapping
@@ -77,6 +78,30 @@ Required when the stack isn't web (Flutter, React Native…): map each token to 
 | brand-600 | bg-brand-600 | AppColors.greenDark | 0xFF263B34 |
 | brand-400 | bg-brand-400 | AppColors.greenPrimary | 0xFF… |
 | bg-page (dark) | dark:bg-neutral-950 | AppColors.dark.background | 0xFF… |
+
+### 2.9 Theme variants (mock theme picker)
+Named looks the reviewer can switch between in mock.html. Each row overrides one token. Rules: keep `brand-700` dark enough that white text on it stays AA in every theme; Dark reuses the scale with dark surfaces instead of inventing new hues.
+
+| Theme | Token | Value |
+|---|---|---|
+| Dark | bg-page | neutral-950 |
+| Dark | bg-surface | neutral-900 |
+| Dark | text-body | neutral-100 |
+| Dark | text-muted | neutral-400 |
+| Dark | border-default | neutral-700 |
+| Dark | border-input | neutral-600 |
+| Dark | focus-ring | brand-400 |
+| Dark | brand-600 | brand-400 |
+| Dark | brand-50 | neutral-800 |
+| Corporate Blue | brand-600 | #2563eb |
+| Corporate Blue | brand-700 | #1d4ed8 |
+| Corporate Blue | brand-800 | #1e40af |
+| Industrial Teal | brand-600 | #0d9488 |
+| Industrial Teal | brand-700 | #0f766e |
+| Industrial Teal | brand-800 | #115e59 |
+| Neutral Mono | brand-600 | #52525b |
+| Neutral Mono | brand-700 | #3f3f46 |
+| Neutral Mono | brand-800 | #27272a |
 
 ## 3. Typography
 | Token | Size / line-height | Weight | Usage |

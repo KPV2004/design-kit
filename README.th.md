@@ -207,7 +207,7 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 ├── design.md          สี (สว่าง + มืด) ตัวอักษร icon component รายการหน้าจอ changelog
 ├── ux-spec.md         พฤติกรรม ตาราง state ของทุกหน้า validation + ข้อความ error จริง copy deck diagram (Mermaid) API contract ความเสี่ยง
 ├── wireframes.html    ทุกหน้าแบบ low-fi — เปิดในเบราว์เซอร์
-├── mockup.html        mockup แบบ hi-fi ที่คลิกได้ — เปิดในเบราว์เซอร์
+├── mock.html          mock แบบ hi-fi ที่คลิกได้ พร้อมเลือก theme — เปิดในเบราว์เซอร์
 ├── _engine/           โค้ดตัวแสดงผลที่ใช้ร่วมกัน (toolbar, zoom, ความเห็น, กรอบอุปกรณ์)
 ├── _tools/            verify.py · sync_diagrams.py · export_tokens.py
 ├── tokens/            tokens.css (รวม dark) · tailwind.config.js · tokens.json (รวม platform mapping เช่นค่าคงที่ Flutter)

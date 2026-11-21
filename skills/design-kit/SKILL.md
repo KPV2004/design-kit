@@ -1,6 +1,6 @@
 ---
 name: design-kit
-description: Design UX/UI for an app or feature and deliver an AI-readable design project — design.md (colors light + dark, typography, icons, components), wireframes of every screen (zoom, pinned comments, diagrams page), dev diagrams (user flow, ER, state, sequence, API contract), a clickable HTML + Tailwind mockup, a stand-alone UX spec (states, exact error text, interactions, copy deck), design tokens with platform mapping, and an AGENTS.md guide — English by default, kept in sync on change. Use whenever the user asks to design, mock up, wireframe, plan screens, choose colors, icons or a theme, write design.md, lay out a page, form, report, dashboard, or mobile app — ERP/back-office, web, or mobile — even if they only say "ออกแบบหน้าจอ", "ทำ wireframe", "ทำ mockup", "เลือกสี", "ทำ design.md", "วาง layout", "UX/UI", ask to change an existing design ("แก้หน้า...", "เปลี่ยนสี...", "เพิ่มหน้า..."), or paste wireframe feedback ("Wireframe feedback — ...").
+description: Design UX/UI for an app or feature and deliver an AI-readable design project — design.md (colors light + dark, typography, icons, components), wireframes of every screen (zoom, pinned comments, diagrams page) built together with a clickable HTML + Tailwind mock (theme picker), dev diagrams (user flow, ER, state, sequence, API contract), a stand-alone UX spec (states, exact error text, interactions, copy deck), design tokens with platform mapping, and an AGENTS.md guide — English by default, kept in sync on change. Use whenever the user asks to design, mock up, wireframe, plan screens, choose colors, icons or a theme, write design.md, lay out a page, form, report, dashboard, or mobile app — ERP/back-office, web, or mobile — even if they only say "ออกแบบหน้าจอ", "ทำ wireframe", "ทำ mockup", "เลือกสี", "ทำ design.md", "วาง layout", "UX/UI", ask to change an existing design ("แก้หน้า...", "เปลี่ยนสี...", "เพิ่มหน้า..."), or paste wireframe feedback ("Wireframe feedback — ...").
 ---
 
 # Design Kit
@@ -30,7 +30,7 @@ Every design is delivered as one folder, built from `assets/project/`:
 ├── design.md          source of truth: colors, typography, icons (§6), components, screen inventory (§7), changelog
 ├── ux-spec.md         behavior, validation + exact error text, ALL diagrams (Mermaid), API contract, risks
 ├── wireframes.html    content only: WF config + diagrams (generated) + one <template> per screen
-├── mockup.html        content only: tokens + icons config + one <section> per screen
+├── mock.html          content only: tokens + usageTokens + themes + icons config + one <section id="id:mock"> per screen
 ├── _engine/           shared review UI (toolbar, zoom, comments, device frames) — never edited per project
 ├── _tools/            verify.py · sync_diagrams.py · export_tokens.py (copied from this skill's scripts/)
 ├── tokens/            tokens.css · tailwind.config.js · tokens.json (generated)
@@ -39,11 +39,11 @@ Every design is delivered as one folder, built from `assets/project/`:
 
 Why this shape: content files hold only what changes per project, so an AI editing a screen reads a few hundred lines instead of thousands of lines of engine code; every screen sits between `<!-- ════════ SCREEN: id ════════ -->` / `<!-- ════════ /SCREEN: id ════════ -->` markers and is listed in a `SCREENS (in order): …` header line, so one screen can be found and replaced in isolation; AGENTS.md tells any future AI session (including Claude Code opened on this folder) the rules without re-reading this skill.
 
-The **screen ID** (kebab-case, e.g. `po-list`) is the shared key: design.md §7 row → `<template id>` → `<section id>` → spec heading `### [po-list]`. None of this is production code.
+The **screen ID** (kebab-case, e.g. `po-list`) is the shared key: design.md §7 row → `<template id>` → `<section id="po-list:mock">` in the mock (every mock id ends with `:mock`) → spec heading `### [po-list]`. None of this is production code.
 
 ## Language
 
-Deliverables default to **English**: design.md, ux-spec.md, wireframe/mockup copy, error text, diagrams, sample data, review-tool chrome. Match the app's real UI language instead when the app is already localized (e.g. a Thai-only app keeps Thai screen copy) — and when it ships several locales, record every locale's exact strings in the spec's **copy deck**. The user can override the default; their explicit choice wins.
+Deliverables default to **English**: design.md, ux-spec.md, wireframe/mock copy, error text, diagrams, sample data, review-tool chrome. Match the app's real UI language instead when the app is already localized (e.g. a Thai-only app keeps Thai screen copy) — and when it ships several locales, record every locale's exact strings in the spec's **copy deck**. The user can override the default; their explicit choice wins.
 
 ## The spec must stand alone
 
@@ -51,7 +51,7 @@ The test for ux-spec.md: **a developer implements from it without reopening app 
 
 ## First: is there existing work?
 
-Check the conversation, the uploads / working directory for an existing design.md, wireframes, mockup, spec, or a project zip.
+Check the conversation, the uploads / working directory for an existing design.md, wireframes, mock, spec, or a project zip.
 
 - **Found** → **Updating an existing design**. Reuse tokens, icons, and IDs; never start over.
 - **A "Wireframe feedback — …" export** → **Applying wireframe feedback**.
@@ -79,7 +79,7 @@ Ask only what would change the design — at most 3 questions in one message. Ot
 
 ### 3. Decide the device model
 
-- **Responsive web**: one ID per screen. Wireframe templates hold `.frame-desktop` (1280) and `.frame-mobile` (390), plus `.frame-tablet` (768) whenever the layout changes meaningfully at tablet width (sidebar collapses, table becomes cards, two columns become one) — skip it when tablet is just a wider mobile. The mockup builds one screen with Tailwind breakpoints, checked with the Tablet/Mobile toggles. **Never `m-*` copies** — two copies drift apart.
+- **Responsive web**: one ID per screen. Wireframe templates hold `.frame-desktop` (1280) and `.frame-mobile` (390), plus `.frame-tablet` (768) whenever the layout changes meaningfully at tablet width (sidebar collapses, table becomes cards, two columns become one) — skip it when tablet is just a wider mobile. The mock builds one screen with Tailwind breakpoints, checked with the Tablet/Mobile toggles. **Never `m-*` copies** — two copies drift apart.
 - **Native mobile app**: `data-device="mobile"`; `m-` prefix only if a separate web admin exists.
 - **Desktop-only internal tool**: design for 1366px+, note it in design.md.
 
@@ -108,27 +108,24 @@ mkdir -p <out>/<app>-design/_tools && cp <skill>/scripts/*.py <out>/<app>-design
 
 Fill design.md: full color scales per `color-system.md` with **computed contrast ratios** (fix failing pairs before moving on); **§2.4 usage tokens with a Dark column whenever the app has or will ship dark mode** — for an existing app, copy the real dark values from its theme code rather than inventing them; **§2.8 platform mapping whenever the stack isn't web** (token → the app's actual constant → hex, e.g. `brand-600 → AppColors.greenDark → 0xFF263B34`, so a Flutter dev never converts hex by hand); typography, spacing, components with states; **§6 icon set + icon map** per `iconography.md` (one set chosen for the users — e.g. Fluent for people who live in Office/Dynamics AX, Phosphor or Tabler elsewhere, not Lucide by default); §7 inventory; changelog 1.0. Fill AGENTS.md header (app, version, device model, icon set, language).
 
-### 7. Wireframe every screen (`wireframes.html`)
+### 7. Wireframe AND mock every screen (`wireframes.html` + `mock.html`)
 
-- Replace the example screens with one marked `<template>` block per inventory screen — all of them — in inventory order; update the `SCREENS (in order)` line.
-- Set `WF = { app, version }`. Grayscale `wf-*` classes only. Attributes: `data-title`, `data-module`, `data-device`, `data-notes` (one per `.anno`, `|`-separated). Frames get `data-label` ("Desktop 1280", "Mobile 390").
-- Wire primary buttons with `showScreen('id')`. Don't touch the DIAGRAMS block — it's generated.
-- The engine already provides: **device filter** (All / Desktop / Tablet / Mobile, key `D`, remembered per browser; screens without that device show a notice), overview grid, **zoom** (−/+, Fit, 100%, Ctrl/⌘+scroll or pinch at the cursor, keys `+ - 0 1`), **Space+drag pan**, 💬 pinned comments, Diagrams page with zoom, feedback export.
+Build both files in the same pass — for each inventory screen, write the wireframe template, then immediately its mock section — so the delivery is reviewable lo-fi and hi-fi together.
 
-### 8. Build the mockup (`mockup.html`)
-
-- Paste design.md's scales into `const tokens` and the icon map into `const icons`.
-- One marked `<section class="screen">` per screen on the primary flow plus one example of each pattern; keep `design-system` last; update the `SCREENS` line and the inventory Mockup column.
-- Token classes only (`bg-brand-600`); icons only as `<iconify-icon icon="…">` from the map; **no emoji**; icon + label for important actions.
+- Wireframes: replace the example screens with one marked `<template>` block per inventory screen in inventory order; update the wireframe's `SCREENS (in order)` line. Set `WF = { app, version }`. Grayscale `wf-*` classes only. Attributes: `data-title`, `data-module`, `data-device`, `data-notes` (one per `.anno`, `|`-separated); frames get `data-label` ("Desktop 1280", "Tablet 768", "Mobile 390"). Wire primary buttons with `showScreen('id')`. Don't touch the DIAGRAMS block — it's generated.
+- Mock: one marked `<section class="screen" id="<id>:mock">` per screen on the primary flow plus one example of each pattern; keep `design-system:mock` last; update the mock's `SCREENS` line and the inventory Mockup column. **Every mock id ends with `:mock`**, pairing it with the wireframe screen of the same base id; navigation uses `showScreen('id:mock')`.
+- Mock config: design.md's scales into `const tokens`, §2.4 resolved into `const usageTokens`, §2.9 variants into `const themes` (Default plus Dark and any palette presets — keep `brand-700` dark enough that white text on it stays AA in every theme), and the §6 icon map into `const icons`.
+- Mock classes: theme-aware surfaces (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`, `border-default`) so themes actually restyle the screens; token classes only (`bg-brand-600`); icons only as `<iconify-icon icon="…">` from the map; **no emoji**; icon + label for important actions.
 - `data-notes` explains each `.anno` marker (shown in the sidebar); reviewer instructions go in `data-hint`, never inside the screen. Markers must be visible at desktop width.
 - `data-state` variants (empty / loading / error) on data screens. Realistic sample data in the deliverable language (English by default; for localized apps show the app's real locales — names, codes, THB with separators, dd/MM/yyyy); hard cases visible (long names, many rows, a validation error).
-- Check responsive screens with the Mobile toggle.
+- Check responsive screens with the Mobile toggle; check every theme with the Theme dropdown.
+- The engines already provide: device filter, overview grid, zoom/pan, 💬 pinned comments (wireframes), device preview, state switcher, **theme picker** (mock toolbar — Default / Dark / presets from §2.9, remembered per browser), notes sidebar, feedback export.
 
-### 9. Write the UX spec (`ux-spec.md`)
+### 8. Write the UX spec (`ux-spec.md`)
 
 Fill the skeleton — it is the file a front-end dev lives in, so it must stand alone (see *The spec must stand alone* above): Summary · Assumptions · User flow · Screens (`### [id]`, several IDs may share a heading — each with **Layout incl. every breakpoint rule** and a **Behavior** list: autofocus, keyboard type, what Save success/failure does — pop vs navigate — optimistic updates, auto-save) · **States matrix** (every data screen gets a row; empty/loading/error/success/permission; "n/a" beats silence) · **Fields & validation** (exact error text, copied from the app's code when it exists — developers paste it verbatim) · **Interactions & behavior** table (triggers → outcomes, incl. quirks like auto-save or read-only modes) · **Copy deck** (every UI string per locale — EN/TH columns for localized apps) · **Dev diagrams** (ER, one state diagram per status-bearing entity, one sequence per main action, integration if other systems) · **API contract** (method, path, used-by screen, request body, response, errors — from the real API client, never invented) · Accessibility · Risks. Every diagram is a ```mermaid block so it renders inline in GitHub/Obsidian/VS Code. Names of statuses, endpoints and fields must match across diagrams, fields table, copy deck, and API contract.
 
-### 10. Sync, export, verify
+### 9. Sync, export, verify
 
 ```bash
 cd <out>/<app>-design
@@ -137,11 +134,11 @@ python _tools/export_tokens.py design.md tokens/
 python _tools/verify.py .
 ```
 
-`verify.py` checks structure (engine present, SCREENS lines, screen markers), inventory ↔ wireframes ↔ spec ↔ mockup coverage, `m-*` duplicates, broken `showScreen` links, notes vs markers, tokens and icon map in sync, raw hex classes, emoji, unknown/mixed/non-existent icons, diagram sync + Mermaid syntax + required diagram types, versions, empty spec tables (states, fields, interactions, copy deck, API contract), dark-mode/platform-mapping presence when the header promises them, JS errors, annotation visibility. **Fix every ERROR**; fix warnings or state why not.
+`verify.py` checks structure (engine present, SCREENS lines, screen markers), inventory ↔ wireframes ↔ spec ↔ mock coverage (`:mock` id pairing), `m-*` duplicates, broken `showScreen` links, notes vs markers, tokens, usage tokens and theme variants in sync with design.md, raw hex classes, emoji, unknown/mixed/non-existent icons, diagram sync + Mermaid syntax + required diagram types, versions, empty spec tables (states, fields, interactions, copy deck, API contract), dark-mode/platform-mapping presence when the header promises them, JS errors, annotation visibility. **Fix every ERROR**; fix warnings or state why not.
 
-### 11. Deliver
+### 10. Deliver
 
-claude.ai: zip the folder (`cd <out> && zip -r <app>-design.zip <app>-design`) and present the zip plus `design.md`; tell the user to unzip and open `wireframes.html` / `mockup.html` from the folder — the HTML files need `_engine/` next to them. Claude Code: give the folder path. In chat, keep it short: **implementation risks first**, then key decisions, screen count by module, open questions, one next step.
+claude.ai: zip the folder (`cd <out> && zip -r <app>-design.zip <app>-design`) and present the zip plus `design.md`; tell the user to unzip and open `wireframes.html` / `mock.html` from the folder — the HTML files need `_engine/` next to them. Claude Code: give the folder path. In chat, keep it short: **implementation risks first**, then key decisions, screen count by module, open questions, one next step.
 
 ## Applying wireframe feedback
 
@@ -162,7 +159,7 @@ Exports made by older, Thai-language engines use the same shape with `**แก�
 1. **Load** the project (conversation or uploaded zip/files). Without it, ask for it.
 2. **Locate** each item: screen marker `SCREEN: id` + device + `near "…"` text + position %. Skip ✅ items.
 3. **Triage** in one short list: planned change per item, conflicts (with each other or design principles — propose an alternative), questions. Ambiguous items → ask. If all clear, proceed.
-4. **Apply** each through **Updating an existing design** — a wireframe comment usually changes the mockup and spec too.
+4. **Apply** each through **Updating an existing design** — a wireframe comment usually changes the mock and spec too. Feedback can also target mock screens: item markers `## [<id>:mock]` map to the same screen.
 5. **Answer** every **Question** item. Save the export into `feedback/done/`.
 6. **Report** a table: item → done / changed differently (why) / needs answer; list files changed; remind the user to click "Clear done items" in the wireframe (comments live in their browser).
 
@@ -170,12 +167,13 @@ Exports made by older, Thai-language engines use the same shape with `**แก�
 
 Every change updates **all affected files in place**:
 
-| Change | design.md | wireframes | mockup | ux-spec | generated |
+| Change | design.md | wireframes | mock | ux-spec | generated |
 |---|---|---|---|---|---|
-| Color / font token | ✏️ + contrast | — | ✏️ `tokens` | if status colors | re-export tokens |
+| Color / font token | ✏️ + contrast | — | ✏️ `tokens` (+ §2.9 if it breaks a theme) | if status colors | re-export tokens |
 | Dark-mode value | ✏️ §2.4 Dark + §2.7 | — | ✏️ `tokens` | — | re-export tokens |
+| Theme variant | ✏️ §2.9 | — | ✏️ `themes` | — | — |
 | Icon set / icon | ✏️ §6 map | if shown | ✏️ `icons` + usages | — | — |
-| New screen | ✏️ §7 | ✏️ block + SCREENS line | ✏️ if main flow | ✏️ section + flow + states row | re-sync diagrams |
+| New screen | ✏️ §7 | ✏️ block + SCREENS line | ✏️ `<id>:mock` if main flow | ✏️ section + flow + states row | re-sync diagrams |
 | Remove screen | ✏️ §7 | ✏️ block, line, links | ✏️ block, line, links | ✏️ section + flow + states row | re-sync diagrams |
 | Layout change | — | ✏️ | ✏️ | ✏️ layout/notes (breakpoints into the spec, not annotations) | — |
 | Field / validation | — | if visible | if visible | ✏️ fields + copy deck + ER + API | re-sync diagrams |

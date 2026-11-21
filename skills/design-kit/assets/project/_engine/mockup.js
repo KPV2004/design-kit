@@ -1,19 +1,46 @@
 /* ============================================================
    Mockup engine — do not edit per project.
-   Reads from mockup.html:
-     const tokens = {...}   color scales (same names/hex as design.md)
-     const icons  = {...}   icon map (same as design.md §6)
-     <main id="screens"> <section class="screen" id data-title data-module data-device data-notes data-hint> ...
+   Reads from mock.html:
+     const tokens = {...}       color scales (same names/hex as design.md)
+     const usageTokens = {...}  usage-token defaults (design.md §2.4, resolved hex)
+     const themes  = {...}      theme variants (design.md §2.9): name → {token: hex} overrides
+     const icons  = {...}       icon map (same as design.md §6)
+     <main id="screens"> <section class="screen" id="<screen-id>:mock" data-title data-module data-device data-notes data-hint> ...
+   Screen IDs end with ":mock" and pair with the wireframe screen of the same base id.
    The same file runs in two modes:
      shell  (default)   toolbar + device frame (iframe) + notes sidebar
      frame  (?frame=1)  the screens themselves, loaded inside the shell's iframe
-   Global API used by screen markup: showScreen('id')
+   Global API used by screen markup: showScreen('id:mock')
    ============================================================ */
 (function () {
   'use strict';
   const FRAME = new URLSearchParams(location.search).has('frame');
   window.FRAME = FRAME;
   document.documentElement.classList.add(FRAME ? 'is-frame' : 'is-shell');   // set before first paint
+
+  /* ---------- Theme engine — runs before paint in both modes.
+     Colors are CSS variables (--c-<token> = "R G B"), so a theme is just a
+     set of variable overrides. Dark keeps brand-700 (white text stays AA). ---------- */
+  const hexCh = h => { const n = parseInt(h.slice(1), 16); return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`; };
+  const THEMES = (typeof themes === 'object' && themes) || { Default: null };
+  function applyTokenMap(map) {
+    for (const [t, v] of Object.entries(map || {})) {
+      if (typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)) document.documentElement.style.setProperty('--c-' + t, hexCh(v));
+      else document.documentElement.style.removeProperty('--c-' + t);
+    }
+  }
+  function applyTheme(name) {
+    if (!(name in THEMES)) name = 'Default';
+    const reset = {};
+    if (typeof tokens === 'object') for (const [n, sc] of Object.entries(tokens)) for (const [k, hex] of Object.entries(sc)) reset[`${n}-${k}`] = hex;
+    if (typeof usageTokens === 'object') Object.assign(reset, usageTokens);
+    applyTokenMap(reset);
+    if (THEMES[name]) applyTokenMap(THEMES[name]);
+    try { localStorage.setItem('mk-theme', name); } catch {}
+    return name;
+  }
+  function storedTheme() { try { const s = localStorage.getItem('mk-theme'); return s && s in THEMES ? s : 'Default'; } catch { return 'Default'; } }
+  applyTheme(storedTheme());
 
   const SHELL = `<div id="shell">
   <div id="tb" class="sticky top-0 z-50">
@@ -33,6 +60,8 @@
           <option value="default">Default</option><option value="empty">Empty</option>
           <option value="loading">Loading</option><option value="Error">Error</option>
         </select>
+        <span class="ml-2 text-zinc-400">Theme:</span>
+        <select id="theme-select" aria-label="Mockup theme"></select>
         <label class="ml-2 flex items-center gap-1 cursor-pointer"><input type="checkbox" id="anno-toggle" checked> Pins</label>
         <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="notes-toggle" checked> Notes</label>
       </div>
@@ -81,6 +110,7 @@
       if (d.type === 'go') showScreen(d.id);
       if (d.type === 'state') applyState(d.value);
       if (d.type === 'anno') document.body.classList.toggle('hide-anno', !d.value);
+      if (d.type === 'theme') applyTheme(d.value);
     });
     window.addEventListener('hashchange', () => showScreen(location.hash.slice(1)));
 
@@ -163,10 +193,16 @@
     frame.addEventListener('load', () => {
       frame.contentWindow.postMessage({ type: 'state', value: $('state-select').value }, '*');
       frame.contentWindow.postMessage({ type: 'anno', value: $('anno-toggle').checked }, '*');
+      frame.contentWindow.postMessage({ type: 'theme', value: themeSel.value }, '*');
       frame.contentWindow.postMessage({ type: 'go', id: current }, '*');
     });
     sel.onchange = () => showScreen(sel.value);
     document.querySelectorAll('[data-vp]').forEach(b => b.onclick = () => setViewport(b.dataset.vp, true));
+    // Theme picker — apply locally (persists) and inside the frame
+    const themeSel = $('theme-select');
+    Object.keys(THEMES).forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; themeSel.appendChild(o); });
+    themeSel.value = storedTheme();
+    themeSel.onchange = () => { applyTheme(themeSel.value); frame.contentWindow?.postMessage({ type: 'theme', value: themeSel.value }, '*'); };
     $('state-select').onchange = e => frame.contentWindow.postMessage({ type: 'state', value: e.target.value }, '*');
     $('anno-toggle').onchange = e => frame.contentWindow.postMessage({ type: 'anno', value: e.target.checked }, '*');
     $('notes-toggle').onchange = e => shell.classList.toggle('no-notes', !e.target.checked);
