@@ -2,7 +2,7 @@
   <img src=".claude-plugin/icon.png" width="96" alt="">
 </p>
 
-<h1 align="center">UX/UI Designer — a skill for Claude</h1>
+<h1 align="center">Design Kit — a skill for Claude</h1>
 
 <p align="center">
   Describe an app. Get a complete, reviewable design project: wireframes of every screen, a clickable mockup,
@@ -39,39 +39,39 @@ Works for internal ERP/back-office tools, customer-facing web apps and mobile ap
 Inside a Claude Code session:
 
 ```
-/plugin marketplace add YOUR_GITHUB_USER/ux-ui-designer
-/plugin install ux-ui-designer@ux-ui-designer
+/plugin marketplace add KPV2004/design-kit
+/plugin install design-kit@design-kit
 ```
 
 Or from your shell:
 
 ```bash
-claude plugin marketplace add YOUR_GITHUB_USER/ux-ui-designer
-claude plugin install ux-ui-designer@ux-ui-designer
+claude plugin marketplace add KPV2004/design-kit
+claude plugin install design-kit@design-kit
 ```
 
 Update later with:
 
 ```bash
-claude plugin marketplace update ux-ui-designer
-claude plugin update ux-ui-designer@ux-ui-designer
+claude plugin marketplace update design-kit
+claude plugin update design-kit@design-kit
 ```
 
-Remove with `claude plugin uninstall ux-ui-designer@ux-ui-designer`.
+Remove with `claude plugin uninstall design-kit@design-kit`.
 
 ### Claude Code — manual copy
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USER/ux-ui-designer.git
-cp -r ux-ui-designer/skills/ux-ui-designer ~/.claude/skills/ux-ui-designer
+git clone https://github.com/KPV2004/design-kit.git
+cp -r design-kit/skills/design-kit ~/.claude/skills/design-kit
 ```
 
 Use `<your-project>/.claude/skills/` instead of `~/.claude/skills/` to install it for one repository only.
 
 ### Claude.ai (web, desktop, mobile)
 
-1. Download `ux-ui-designer.zip` from the [latest release](https://github.com/YOUR_GITHUB_USER/ux-ui-designer/releases/latest)
-   (or build it yourself: `./tools/build-skill.sh` → `dist/ux-ui-designer.zip`).
+1. Download `design-kit.zip` from the [latest release](https://github.com/KPV2004/design-kit/releases/latest)
+   (or build it yourself: `./tools/build-skill.sh` → `dist/design-kit.zip`).
 2. Make sure **Code execution and file creation** is enabled in Settings → Capabilities.
 3. Go to **Customize → Skills**, click **+** → **Create skill** → **Upload a skill**, and choose the zip.
 
@@ -104,7 +104,7 @@ For apps with more than ~8 screens, Claude first sends you the screen inventory,
 
 To change something, just say it: *"เปลี่ยนสีหลักเป็นเขียว"*, *"add a Tablet layout to the list screen"*, *"remove the dashboard"*. Claude edits every affected file and bumps the version.
 
-In Claude Code you can also invoke it explicitly: `/ux-ui-designer:ux-ui-designer` when installed as a plugin, `/ux-ui-designer` when copied manually.
+In Claude Code you can also invoke it explicitly: `/design-kit:design-kit` when installed as a plugin, `/design-kit` when copied manually.
 
 ## What you get
 
@@ -167,12 +167,12 @@ Claude locates each pinned element, applies the change to every affected file, a
   plugin.json            plugin manifest
   marketplace.json       makes this repo installable with /plugin marketplace add
   icon.png
-skills/ux-ui-designer/   the skill (this is what gets installed)
+skills/design-kit/   the skill (this is what gets installed)
   SKILL.md               workflow instructions for Claude
   references/            color, icons, enterprise/web/mobile patterns, dev diagrams, accessibility
   assets/project/        the project template (content files + _engine/)
   scripts/               verify.py, sync_diagrams.py, export_tokens.py
-tools/build-skill.sh     builds dist/ux-ui-designer.zip for claude.ai
+tools/build-skill.sh     builds dist/design-kit.zip for claude.ai
 .github/workflows/       release: tag v* → zip attached to a GitHub Release
 ```
 
@@ -187,7 +187,7 @@ claude plugin validate .            # manifest + marketplace
 ./tools/build-skill.sh              # zip builds cleanly
 ```
 
-If you change `_engine/`, open `skills/ux-ui-designer/assets/project/wireframes.html` and `mockup.html` in a browser and check there are no console errors. To release, bump `version` in `.claude-plugin/plugin.json`, update `CHANGELOG.md`, and push a tag `vX.Y.Z` — the workflow checks the tag matches and publishes the zip.
+If you change `_engine/`, open `skills/design-kit/assets/project/wireframes.html` and `mockup.html` in a browser and check there are no console errors. To release, bump `version` in `.claude-plugin/plugin.json`, update `CHANGELOG.md`, and push a tag `vX.Y.Z` — the workflow checks the tag matches and publishes the zip.
 
 ## License
 

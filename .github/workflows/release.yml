@@ -19,5 +19,5 @@ jobs:
         run: ./tools/build-skill.sh
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/ux-ui-designer.zip
+          files: dist/design-kit.zip
           generate_release_notes: true

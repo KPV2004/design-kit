@@ -1,9 +1,9 @@
 ---
-name: ux-ui-designer
+name: design-kit
 description: Design UX/UI for a whole app or feature and deliver an AI-readable design project folder — design.md (colors, typography, icons, components), wireframes of every screen with zoom, pinned review comments and a Diagrams page, dev diagrams (user flow, ER, state, sequence, API contract), a clickable HTML + Tailwind mockup with device preview, a UX spec, design tokens, and an AGENTS.md guide — kept in sync when the design changes. Use whenever the user asks to design, mock up, wireframe, plan screens, choose colors, icons or a theme, write design.md, lay out a page, form, report, dashboard, or mobile app — ERP/back-office, web, or mobile — even if they only say "ออกแบบหน้าจอ", "ทำ wireframe", "ทำ mockup", "เลือกสี", "ทำ design.md", "วาง layout", "UX/UI", ask to change an existing design ("แก้หน้า...", "เปลี่ยนสี...", "เพิ่มหน้า..."), or paste wireframe feedback ("Wireframe feedback — ...").
 ---
 
-# UX/UI Designer
+# Design Kit
 
 Turn an app or feature idea into a complete, consistent design project a developer (or another AI) can pick up — and keep it consistent as it changes.
 

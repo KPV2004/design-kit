@@ -2,7 +2,7 @@
   <img src=".claude-plugin/icon.png" width="96" alt="">
 </p>
 
-<h1 align="center">UX/UI Designer — skill สำหรับ Claude</h1>
+<h1 align="center">Design Kit — skill สำหรับ Claude</h1>
 
 <p align="center">
   เล่าว่าจะทำแอปอะไร แล้วได้โปรเจกต์ออกแบบที่รีวิวได้ครบชุด: wireframe ทุกหน้า, mockup ที่คลิกได้,
@@ -39,39 +39,39 @@
 ใน session ของ Claude Code:
 
 ```
-/plugin marketplace add YOUR_GITHUB_USER/ux-ui-designer
-/plugin install ux-ui-designer@ux-ui-designer
+/plugin marketplace add KPV2004/design-kit
+/plugin install design-kit@design-kit
 ```
 
 หรือจาก terminal:
 
 ```bash
-claude plugin marketplace add YOUR_GITHUB_USER/ux-ui-designer
-claude plugin install ux-ui-designer@ux-ui-designer
+claude plugin marketplace add KPV2004/design-kit
+claude plugin install design-kit@design-kit
 ```
 
 อัปเดตเป็นเวอร์ชันใหม่:
 
 ```bash
-claude plugin marketplace update ux-ui-designer
-claude plugin update ux-ui-designer@ux-ui-designer
+claude plugin marketplace update design-kit
+claude plugin update design-kit@design-kit
 ```
 
-ถอนการติดตั้ง: `claude plugin uninstall ux-ui-designer@ux-ui-designer`
+ถอนการติดตั้ง: `claude plugin uninstall design-kit@design-kit`
 
 ### Claude Code — copy เอง
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USER/ux-ui-designer.git
-cp -r ux-ui-designer/skills/ux-ui-designer ~/.claude/skills/ux-ui-designer
+git clone https://github.com/KPV2004/design-kit.git
+cp -r design-kit/skills/design-kit ~/.claude/skills/design-kit
 ```
 
 ถ้าต้องการใช้เฉพาะโปรเจกต์เดียว ให้ copy ไปที่ `<โปรเจกต์>/.claude/skills/` แทน
 
 ### Claude.ai (เว็บ, desktop, มือถือ)
 
-1. ดาวน์โหลด `ux-ui-designer.zip` จาก [release ล่าสุด](https://github.com/YOUR_GITHUB_USER/ux-ui-designer/releases/latest)
-   (หรือสร้างเอง: `./tools/build-skill.sh` จะได้ `dist/ux-ui-designer.zip`)
+1. ดาวน์โหลด `design-kit.zip` จาก [release ล่าสุด](https://github.com/KPV2004/design-kit/releases/latest)
+   (หรือสร้างเอง: `./tools/build-skill.sh` จะได้ `dist/design-kit.zip`)
 2. เปิด **Code execution and file creation** ใน Settings → Capabilities
 3. ไปที่ **Customize → Skills** กด **+** → **Create skill** → **Upload a skill** แล้วเลือกไฟล์ zip
 
@@ -104,7 +104,7 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 
 อยากแก้อะไรก็บอกได้เลย เช่น *"เปลี่ยนสีหลักเป็นเขียว"*, *"เพิ่มแบบ Tablet ให้หน้ารายการ"*, *"ตัดหน้า dashboard ออก"* Claude จะแก้ทุกไฟล์ที่เกี่ยวข้องและเพิ่มเลขเวอร์ชันให้
 
-ใน Claude Code เรียกใช้ตรง ๆ ได้ด้วย: `/ux-ui-designer:ux-ui-designer` ถ้าติดตั้งแบบ plugin หรือ `/ux-ui-designer` ถ้า copy เอง
+ใน Claude Code เรียกใช้ตรง ๆ ได้ด้วย: `/design-kit:design-kit` ถ้าติดตั้งแบบ plugin หรือ `/design-kit` ถ้า copy เอง
 
 ## สิ่งที่ได้
 
@@ -167,12 +167,12 @@ Claude จะหาจุดที่ปักหมุดไว้ แก้ท
   plugin.json            ข้อมูล plugin
   marketplace.json       ทำให้ติดตั้งด้วย /plugin marketplace add ได้
   icon.png
-skills/ux-ui-designer/   ตัว skill (ส่วนที่ถูกติดตั้ง)
+skills/design-kit/   ตัว skill (ส่วนที่ถูกติดตั้ง)
   SKILL.md               ขั้นตอนการทำงานสำหรับ Claude
   references/            สี, icon, pattern ของ ERP/เว็บ/มือถือ, dev diagram, accessibility
   assets/project/        template โปรเจกต์ (ไฟล์เนื้อหา + _engine/)
   scripts/               verify.py, sync_diagrams.py, export_tokens.py
-tools/build-skill.sh     สร้าง dist/ux-ui-designer.zip สำหรับ claude.ai
+tools/build-skill.sh     สร้าง dist/design-kit.zip สำหรับ claude.ai
 .github/workflows/       release: push tag v* แล้วแนบไฟล์ zip ใน GitHub Release ให้อัตโนมัติ
 ```
 
@@ -187,7 +187,7 @@ claude plugin validate .            # ตรวจ manifest และ marketplac
 ./tools/build-skill.sh              # ตรวจว่าสร้าง zip ได้
 ```
 
-ถ้าแก้ `_engine/` ให้เปิด `skills/ux-ui-designer/assets/project/wireframes.html` และ `mockup.html` ในเบราว์เซอร์และตรวจว่าไม่มี error ใน console การออกเวอร์ชันใหม่: เปลี่ยน `version` ใน `.claude-plugin/plugin.json` อัปเดต `CHANGELOG.md` แล้ว push tag `vX.Y.Z` ระบบจะเช็กว่า tag ตรงกับเวอร์ชันแล้วสร้างไฟล์ zip ให้
+ถ้าแก้ `_engine/` ให้เปิด `skills/design-kit/assets/project/wireframes.html` และ `mockup.html` ในเบราว์เซอร์และตรวจว่าไม่มี error ใน console การออกเวอร์ชันใหม่: เปลี่ยน `version` ใน `.claude-plugin/plugin.json` อัปเดต `CHANGELOG.md` แล้ว push tag `vX.Y.Z` ระบบจะเช็กว่า tag ตรงกับเวอร์ชันแล้วสร้างไฟล์ zip ให้
 
 ## License
 
