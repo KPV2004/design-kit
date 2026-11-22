@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <a href="https://kpv2004.github.io/design-kit/">Docs (EN/TH)</a> ·
   <a href="README.th.md">ภาษาไทย</a> ·
   <a href="#install">Install</a> ·
   <a href="#update-the-skill">Update</a> ·

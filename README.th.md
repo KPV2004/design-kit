@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <a href="https://kpv2004.github.io/design-kit/">เอกสารเว็บ (ไทย/EN)</a> ·
   <a href="README.md">English</a> ·
   <a href="#ติดตั้ง">ติดตั้ง</a> ·
   <a href="#อัปเดต-skill">อัปเดต</a> ·

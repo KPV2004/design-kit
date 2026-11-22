@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<!--
+  Design Kit docs — https://kpv2004.github.io/design-kit/
+  Bilingual (EN/TH) single page. Language sections are marked data-lang="en|th"
+  and toggled by html[data-lang]; the choice is remembered in localStorage.
+  Screenshots are copied from docs/images by .github/workflows/docs.yml.
+-->
+<html lang="en" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Kit — wireframes, mockups and specs from a prompt</title>
+<meta name="description" content="A skill that turns an app idea into a complete, reviewable design project: wireframes of every screen, a clickable mock with a theme picker, a stand-alone UX spec, dev diagrams and design tokens — in English or Thai.">
+<link rel="icon" href="icon.png">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: {
+    fontFamily: { sans: ['Inter', 'Noto Sans Thai', 'system-ui', 'sans-serif'] },
+  } } };
+</script>
+<style>
+  /* Design-kit palette (design.md §2) as :root variables — live-editable with design tools */
+  :root {
+    --dk-brand-50: #fff7ed; --dk-brand-100: #ffedd5; --dk-brand-600: #ea580c;
+    --dk-brand-700: #c2410c; --dk-brand-800: #9a3412;
+    --dk-page: #fafaf9; --dk-surface: #ffffff; --dk-body: #292524; --dk-muted: #78716c;
+    --dk-border: #e7e5e4; --dk-ink: #1c1917;
+  }
+  body { font-family: Inter, 'Noto Sans Thai', system-ui, sans-serif; background: var(--dk-page); color: var(--dk-body); line-height: 1.65; }
+  html[data-lang="th"] body { line-height: 1.75; } /* Thai tone marks need room */
+  .btn-primary { background: var(--dk-brand-700); color: #fff; }
+  .btn-primary:hover { background: var(--dk-brand-800); }
+  .btn-ghost { color: var(--dk-brand-700); }
+  .btn-ghost:hover { background: var(--dk-brand-50); }
+  .brand-text { color: var(--dk-brand-700); }
+  .chip { background: var(--dk-brand-50); color: var(--dk-brand-700); }
+  pre { background: var(--dk-ink); color: #fafaf9; border-radius: 8px; padding: 12px 16px; overflow-x: auto; font-size: .85rem; line-height: 1.6; }
+  code.inline { background: var(--dk-brand-50); color: var(--dk-brand-800); border-radius: 4px; padding: 1px 6px; font-size: .85em; }
+  html[data-lang="en"] [data-lang="th"] { display: none; }
+  html[data-lang="th"] [data-lang="en"] { display: none; }
+  .lang-btn[aria-pressed="true"] { background: var(--dk-brand-700); color: #fff; }
+  nav a:hover { color: var(--dk-brand-700); }
+</style>
+</head>
+<body>
+
+<!-- ════════ NAV ════════ -->
+<header class="sticky top-0 z-40 border-b" style="border-color: var(--dk-border); background: rgba(255,255,255,.92); backdrop-filter: blur(8px);">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+    <img src="icon.png" alt="" width="28" height="28" class="rounded">
+    <span class="font-semibold">Design Kit</span>
+    <nav class="hidden md:flex items-center gap-4 text-sm" style="color: var(--dk-muted);">
+      <span data-lang="en"><a href="#features">Features</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#update">Update</a></span>
+      <span data-lang="th"><a href="#features">ฟีเจอร์</a> · <a href="#install">ติดตั้ง</a> · <a href="#usage">วิธีใช้</a> · <a href="#update">อัปเดต</a></span>
+    </nav>
+    <div class="ml-auto flex items-center gap-2">
+      <div class="flex items-center rounded-md border text-xs font-medium" style="border-color: var(--dk-border);">
+        <button class="lang-btn px-2 py-1 rounded-l-md" data-lang-btn="en" aria-pressed="true" onclick="setLang('en')">EN</button>
+        <button class="lang-btn px-2 py-1 rounded-r-md" data-lang-btn="th" aria-pressed="false" onclick="setLang('th')">ไทย</button>
+      </div>
+      <a href="https://github.com/KPV2004/design-kit" class="text-sm underline brand-text">GitHub</a>
+    </div>
+  </div>
+</header>
+
+<!-- ════════ HERO ════════ -->
+<section class="max-w-6xl mx-auto px-4 pt-14 pb-10">
+  <a href="https://github.com/KPV2004/design-kit/releases/tag/v1.1.0" class="chip text-xs rounded-full px-3 py-1 font-medium">v1.1.0</a>
+  <div data-lang="en">
+    <h1 class="text-4xl font-bold mt-4" style="color: var(--dk-ink);">Describe an app.<br>Get a complete, reviewable design project.</h1>
+    <p class="text-lg mt-4 max-w-2xl" style="color: var(--dk-muted);">A skill for Claude and other AI agents that turns one prompt into wireframes of every screen, a clickable HTML + Tailwind mock with a realtime theme picker, a stand-alone UX spec, dev diagrams and design tokens — all kept in sync when you ask for a change.</p>
+  </div>
+  <div data-lang="th">
+    <h1 class="text-4xl font-bold mt-4" style="color: var(--dk-ink);">บอกไอเดียแอป<br>ได้โปรเจกต์ดีไซน์ที่รีวิวได้ครบสำหรับส่งทีม dev</h1>
+    <p class="text-lg mt-4 max-w-2xl" style="color: var(--dk-muted);">Skill สำหรับ Claude และ AI agent อื่น ๆ เปลี่ยนพรอมป์เดียวเป็น wireframe ทุกหน้าจอ, mock แบบคลิกได้พร้อมเลือก theme แบบเรียลไทม์, UX spec ที่ dev เอาไปใช้ได้เลย, diagram สำหรับ dev และ design tokens — แก้ที่ไหน ทุกไฟล์อัปเดตตาม</p>
+  </div>
+  <div class="flex flex-wrap gap-3 mt-6">
+    <a href="#install" class="btn-primary rounded-md px-5 py-2.5 font-medium" data-lang="en">Install the skill</a>
+    <a href="#install" class="btn-primary rounded-md px-5 py-2.5 font-medium" data-lang="th">ติดตั้ง skill</a>
+    <a href="https://github.com/KPV2004/design-kit/releases/latest" class="btn-ghost rounded-md px-5 py-2.5 font-medium border" style="border-color: var(--dk-border);" data-lang="en">Download v1.1.0 zip (claude.ai)</a>
+    <a href="https://github.com/KPV2004/design-kit/releases/latest" class="btn-ghost rounded-md px-5 py-2.5 font-medium border" style="border-color: var(--dk-border);" data-lang="th">ดาวน์โหลด v1.1.0 zip (claude.ai)</a>
+  </div>
+  <img src="images/wireframe-devices.png" alt="Wireframes with desktop, tablet and mobile frames and a pinned comment" class="rounded-lg border shadow-sm mt-10" style="border-color: var(--dk-border);">
+</section>
+
+<!-- ════════ FEATURES ════════ -->
+<section id="features" class="max-w-6xl mx-auto px-4 py-12">
+  <div data-lang="en">
+    <h2 class="text-2xl font-semibold">What you get</h2>
+    <p class="mt-2" style="color: var(--dk-muted);">One folder, six deliverables, all cross-checked by a script before handover.</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Wireframes — every screen</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Login, 403/404, empty states, session expired — not just the happy path. Desktop / Tablet / Mobile frames per screen, zoom &amp; pan, 💬 pinned comments, diagrams page.</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Clickable mock + theme picker</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Hi-fi Tailwind mock (<code class="inline">mock.html</code>) with device preview, state switcher and a realtime theme picker — Default / Dark / palette presets from design.md §2.9.</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">A spec devs implement from</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Per-screen state matrix, exact error text, interactions, copy deck (EN/TH), API contract — the spec stands alone, nobody reopens app code.</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Dev diagrams</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">User flow, ER, state and sequence diagrams as Mermaid — synced into the wireframes page and matching the API table exactly.</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Design tokens</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">WCAG-AA-checked palette, <code class="inline">tokens.css / tailwind.config.js / tokens.json</code> — plus a platform mapping for Flutter / native constants.</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Changes propagate + verify</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">"Add a phone field" updates every affected file. <code class="inline">verify.py</code> checks inventory ↔ wireframes ↔ spec ↔ mock pairing before anything is handed over.</p></div>
+    </div>
+  </div>
+  <div data-lang="th">
+    <h2 class="text-2xl font-semibold">สิ่งที่ได้</h2>
+    <p class="mt-2" style="color: var(--dk-muted);">โฟลเดอร์เดียว ครบทั้งหมด และมีสคริปต์ตรวจความสอดคล้องก่อนส่งมอบทุกครั้ง</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Wireframe — ครบทุกหน้าจอ</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Login, 403/404, หน้าว่าง, session หมดอายุ — ไม่ใช่แค่ happy path มี frame Desktop / Tablet / Mobile ต่อหน้า, ซูม-เลื่อน, 💬 ปักหมุดความเห็น และหน้า Diagrams</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Mock คลิกได้ + เลือก theme</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">mock.html แบบ hi-fi มี device preview, สลับ state (ว่าง/โหลด/ผิดพลาด) และเลือก theme แบบเรียลไทม์ — Default / Dark / preset โทนสี จาก design.md §2.9</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Spec ที่ dev เอาไปใช้ได้เลย</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">ตาราง state ของทุกหน้า, ข้อความ error ตรงตามโค้ด, ตาราง interactions, copy deck (EN/TH) และ API contract — spec อยู่ได้ด้วยตัวเอง ไม่ต้องเปิดโค้ดเดิม</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Diagram สำหรับ dev</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">User flow, ER, state, sequence ในรูปแบบ Mermaid — sync เข้าหน้า wireframe และตรงกับตาราง API เป๊ะ</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Design tokens</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">พาเลตตรวจ WCAG AA แล้ว, ออกเป็น tokens.css / tailwind.config.js / tokens.json พร้อม platform mapping สำหรับ Flutter / native</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">แก้จุดเดียว อัปเดตทุกที่</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">"เพิ่มช่องเบอร์โทร" แก้ทุกไฟล์ที่เกี่ยวข้องพร้อมกัน โดย verify.py ตรวจว่า inventory ↔ wireframes ↔ spec ↔ mock ตรงกันก่อนส่งมอบ</p></div>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4 mt-8">
+    <img src="images/mockup-design-system.png" alt="Design system page with contrast-checked swatches" class="rounded-lg border shadow-sm" style="border-color: var(--dk-border);">
+    <img src="images/diagrams.png" alt="Diagrams page showing a sequence diagram" class="rounded-lg border shadow-sm" style="border-color: var(--dk-border);">
+  </div>
+</section>
+
+<!-- ════════ INSTALL ════════ -->
+<section id="install" class="max-w-6xl mx-auto px-4 py-12 border-t" style="border-color: var(--dk-border);">
+  <div data-lang="en">
+    <h2 class="text-2xl font-semibold">Install</h2>
+    <div class="grid lg:grid-cols-2 gap-6 mt-6">
+      <div class="rounded-lg p-5 border bg-white">
+        <h3 class="font-semibold">Claude Code — plugin marketplace <span class="chip text-xs rounded px-2 py-0.5">recommended</span></h3>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">Inside a Claude Code session:</p>
+        <pre><code>/plugin marketplace add KPV2004/design-kit
+/plugin install design-kit@design-kit</code></pre>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">Update later with <code class="inline">claude plugin marketplace update design-kit</code> + <code class="inline">claude plugin update design-kit@design-kit</code>. Invoke with <code class="inline">/design-kit:design-kit</code>.</p>
+      </div>
+      <div class="rounded-lg p-5 border bg-white">
+        <h3 class="font-semibold">Claude.ai (web / desktop)</h3>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">Download <code class="inline">design-kit.zip</code> from the <a class="brand-text underline" href="https://github.com/KPV2004/design-kit/releases/latest">latest release</a>, then <b>Customize → Skills → + → Upload a skill</b>. Needs "Code execution and file creation" enabled.</p>
+      </div>
+      <div class="rounded-lg p-5 border bg-white">
+        <h3 class="font-semibold">Claude Code — manual copy</h3>
+        <pre><code>git clone https://github.com/KPV2004/design-kit.git
+cp -r design-kit/skills/design-kit ~/.claude/skills/design-kit</code></pre>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">Use <code class="inline">.claude/skills/</code> in a repo to install it there only.</p>
+      </div>
+      <div class="rounded-lg p-5 border bg-white">
+        <h3 class="font-semibold">Other AI agents</h3>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">Standard Agent Skills format — easiest via the skills CLI:</p>
+        <pre><code>npx skills add KPV2004/design-kit</code></pre>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">Or copy <code class="inline">skills/design-kit</code> into <code class="inline">~/.agents/skills/</code> (Codex, Gemini, Cursor, ZCode…). Restart the agent after copying.</p>
+      </div>
+    </div>
+    <p class="text-sm mt-6" style="color: var(--dk-muted);">Requirements: Python 3.9+ for the helper scripts. Optional: <code class="inline">pip install playwright && playwright install chromium</code> enables browser checks (JS errors, icon names, Mermaid syntax, annotation visibility).</p>
+  </div>
+  <div data-lang="th">
+    <h2 class="text-2xl font-semibold">ติดตั้ง</h2>
+    <div class="grid lg:grid-cols-2 gap-6 mt-6">
+      <div class="rounded-lg p-5 border bg-white">
+        <h3 class="font-semibold">Claude Code — ผ่าน plugin marketplace <span class="chip text-xs rounded px-2 py-0.5">แนะนำ</span></h3>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">ใน session ของ Claude Code:</p>
+        <pre><code>/plugin marketplace add KPV2004/design-kit
+/plugin install design-kit@design-kit</code></pre>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">อัปเดตภายหลังด้วย <code class="inline">claude plugin marketplace update design-kit</code> + <code class="inline">claude plugin update design-kit@design-kit</code> เรียกใช้ด้วย <code class="inline">/design-kit:design-kit</code></p>
+      </div>
+      <div class="rounded-lg p-5 border bg-white">
+        <h3 class="font-semibold">Claude.ai (เว็บ / desktop)</h3>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">ดาวน์โหลด <code class="inline">design-kit.zip</code> จาก <a class="brand-text underline" href="https://github.com/KPV2004/design-kit/releases/latest">release ล่าสุด</a> แล้วไปที่ <b>Customize → Skills → + → Upload a skill</b> (ต้องเปิด "Code execution and file creation")</p>
+      </div>
+      <div class="rounded-lg p-5 border bg-white">
+        <h3 class="font-semibold">Claude Code — copy เอง</h3>
+        <pre><code>git clone https://github.com/KPV2004/design-kit.git
+cp -r design-kit/skills/design-kit ~/.claude/skills/design-kit</code></pre>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">ใช้ <code class="inline">.claude/skills/</code> ใน repo ถ้าจะติดตั้งเฉพาะโปรเจกต์นั้น</p>
+      </div>
+      <div class="rounded-lg p-5 border bg-white">
+        <h3 class="font-semibold">AI agent อื่น</h3>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">เป็น Agent Skills รูปแบบมาตรฐาน ง่ายสุดผ่าน skills CLI:</p>
+        <pre><code>npx skills add KPV2004/design-kit</code></pre>
+        <p class="text-sm mt-2" style="color: var(--dk-muted);">หรือ copy <code class="inline">skills/design-kit</code> ไปที่ <code class="inline">~/.agents/skills/</code> (Codex, Gemini, Cursor, ZCode…) แล้วรีสตาร์ท agent</p>
+      </div>
+    </div>
+    <p class="text-sm mt-6" style="color: var(--dk-muted);">สิ่งที่ต้องมี: Python 3.9+ สำหรับสคริปต์ ไม่บังคับ: <code class="inline">pip install playwright && playwright install chromium</code> เพื่อเปิดการตรวจในเบราว์เซอร์ (JS error, ชื่อ icon, Mermaid, หมุดที่มองไม่เห็น)</p>
+  </div>
+</section>
+
+<!-- ════════ USAGE ════════ -->
+<section id="usage" class="max-w-6xl mx-auto px-4 py-12 border-t" style="border-color: var(--dk-border);">
+  <div data-lang="en">
+    <h2 class="text-2xl font-semibold">Usage</h2>
+    <p class="mt-2" style="color: var(--dk-muted);">The skill triggers on its own — in English or Thai. For apps with more than ~8 screens it sends you the inventory, flow, palette and icon set to confirm before building anything.</p>
+    <div class="grid lg:grid-cols-2 gap-4 mt-6">
+      <pre><code>Design a purchase-order approval system for a factory:
+list, detail, approve/reject, dashboard.
+Users are office staff who use Dynamics AX all day.</code></pre>
+      <pre><code>ออกแบบแอปจดรายรับรายจ่ายบนมือถือ
+มีหน้าบันทึก สรุปรายเดือน และตั้งงบประมาณ
+สีหลักเป็นสีส้ม แล้วทำ mock พร้อมเลือก theme ให้ด้วย</code></pre>
+    </div>
+    <p class="text-sm mt-4" style="color: var(--dk-muted);">To change something, just say it: <i>"เปลี่ยนสีหลักเป็นเขียว"</i>, <i>"add a Tablet layout"</i>, <i>"remove the dashboard"</i> — every affected file is edited and the version is bumped. Reviewers pin 💬 comments in the wireframe and export them as markdown; Claude applies each item and answers the questions.</p>
+  </div>
+  <div data-lang="th">
+    <h2 class="text-2xl font-semibold">วิธีใช้</h2>
+    <p class="mt-2" style="color: var(--dk-muted);">skill ทำงานเองเมื่อขอให้ออกแบบ — ไทยหรืออังกฤษก็ได้ ถ้าแอปมีมากกว่า ~8 หน้าจอ จะส่ง inventory, flow, พาเลต และชุด icon มาให้ยืนยันก่อนลงมือสร้าง</p>
+    <div class="grid lg:grid-cols-2 gap-4 mt-6">
+      <pre><code>Design a purchase-order approval system for a factory:
+list, detail, approve/reject, dashboard.
+Users are office staff who use Dynamics AX all day.</code></pre>
+      <pre><code>ออกแบบแอปจดรายรับรายจ่ายบนมือถือ
+มีหน้าบันทึก สรุปรายเดือน และตั้งงบประมาณ
+สีหลักเป็นสีส้ม แล้วทำ mock พร้อมเลือก theme ให้ด้วย</code></pre>
+    </div>
+    <p class="text-sm mt-4" style="color: var(--dk-muted);">จะแก้อะไรบอกได้เลย: <i>"เปลี่ยนสีหลักเป็นเขียว"</i>, <i>"add a Tablet layout"</i>, <i>"remove the dashboard"</i> — ทุกไฟล์ที่เกี่ยวข้องถูกแก้และ bump version ผู้รีวิวปัก 💬 ความเห็นใน wireframe แล้วส่งออกเป็น markdown ให้ Claude แก้ตามรายการพร้อมตอบคำถาม</p>
+  </div>
+</section>
+
+<!-- ════════ UPDATE ════════ -->
+<section id="update" class="max-w-6xl mx-auto px-4 py-12 border-t" style="border-color: var(--dk-border);">
+  <div data-lang="en">
+    <h2 class="text-2xl font-semibold">Updating the skill</h2>
+    <div class="grid lg:grid-cols-2 gap-4 mt-6">
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Marketplace install</h3><pre class="mt-2"><code>claude plugin marketplace update design-kit
+claude plugin update design-kit@design-kit</code></pre></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">claude.ai upload</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Rebuild with <code class="inline">./tools/build-skill.sh</code>, then replace the upload in <b>Customize → Skills</b>.</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Manual copy</h3><pre class="mt-2"><code>rsync -a --delete --exclude '__pycache__' \
+  skills/design-kit/ ~/.claude/skills/design-kit/</code></pre><p class="text-sm mt-2" style="color: var(--dk-muted);">Then restart the agent — skills load at startup.</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Existing design projects</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Projects carry their own <code class="inline">_tools/</code> and <code class="inline">_engine/</code> — refresh with <code class="inline">cp skills/design-kit/scripts/*.py &lt;project&gt;/_tools/</code>.</p></div>
+    </div>
+  </div>
+  <div data-lang="th">
+    <h2 class="text-2xl font-semibold">การอัปเดต skill</h2>
+    <div class="grid lg:grid-cols-2 gap-4 mt-6">
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">ติดตั้งแบบ marketplace</h3><pre class="mt-2"><code>claude plugin marketplace update design-kit
+claude plugin update design-kit@design-kit</code></pre></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">claude.ai ที่อัปโหลดไว้</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">สร้าง zip ใหม่ด้วย <code class="inline">./tools/build-skill.sh</code> แล้วอัปโหลดทับใน <b>Customize → Skills</b></p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Copy เอง</h3><pre class="mt-2"><code>rsync -a --delete --exclude '__pycache__' \
+  skills/design-kit/ ~/.claude/skills/design-kit/</code></pre><p class="text-sm mt-2" style="color: var(--dk-muted);">แล้วรีสตาร์ท agent เพราะ skill โหลดตอนเริ่มทำงาน</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">โปรเจกต์ที่สร้างไว้แล้ว</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">โปรเจกต์มี <code class="inline">_tools/</code> และ <code class="inline">_engine/</code> ของตัวเอง — อัปเดตด้วย <code class="inline">cp skills/design-kit/scripts/*.py &lt;project&gt;/_tools/</code></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ CHANGELOG ════════ -->
+<section class="max-w-6xl mx-auto px-4 py-12 border-t" style="border-color: var(--dk-border);">
+  <div data-lang="en">
+    <h2 class="text-2xl font-semibold">Changelog</h2>
+    <div class="mt-6 space-y-4">
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.1.0 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-21 · latest release</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">English by default with a bilingual copy deck · a spec that stands alone (state matrix, exact error text, interactions, API contract) · wireframes + mock built in one pass · <code class="inline">:mock</code> screen pairing · realtime theme picker (Default / Dark / palette presets) · dark-mode tokens · platform mapping for Flutter.</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.0.0 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-20</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">First public release: project folder output, wireframes with device filter and pinned comments, clickable mockup, dev diagrams, WCAG-checked color system, verify.py consistency checks.</p></div>
+    </div>
+  </div>
+  <div data-lang="th">
+    <h2 class="text-2xl font-semibold">Changelog</h2>
+    <div class="mt-6 space-y-4">
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.1.0 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-21 · เวอร์ชันล่าสุด</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">เริ่มต้นภาษาอังกฤษ + copy deck รองรับหลายภาษา · spec ที่ stand alone (state matrix, error text ตรงตามโค้ด, interactions, API contract) · สร้าง wireframe + mock พร้อมกัน · คู่หน้าจอด้วย <code class="inline">:mock</code> · เลือก theme แบบเรียลไทม์ (Default / Dark / preset โทนสี) · dark-mode tokens · platform mapping สำหรับ Flutter</p></div>
+      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.0.0 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-20</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">เปิดตัวครั้งแรก: โปรเจกต์ดีไซน์ครบในโฟลเดอร์เดียว, wireframe มี device filter + หมุดความเห็น, mockup คลิกได้, dev diagram, ระบบสีตรวจ WCAG และการตรวจความสอดคล้องด้วย verify.py</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="border-t mt-8" style="border-color: var(--dk-border);">
+  <div class="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-center gap-4 text-sm" style="color: var(--dk-muted);">
+    <img src="icon.png" alt="" width="24" height="24" class="rounded">
+    <span><b style="color: var(--dk-ink);">Design Kit</b> — MIT license · by <a class="brand-text underline" href="https://github.com/KPV2004">KPV2004</a></span>
+    <span class="ml-auto"><a class="brand-text underline" href="https://github.com/KPV2004/design-kit">GitHub repo</a> · <a class="brand-text underline" href="https://github.com/KPV2004/design-kit/releases/latest">Releases</a> · <a class="brand-text underline" href="https://github.com/KPV2004/design-kit/issues">Issues</a></span>
+  </div>
+</footer>
+
+<script>
+  /* Language toggle — remembers the choice, defaults to the browser language. */
+  function setLang(l) {
+    if (l !== 'en' && l !== 'th') l = 'en';
+    document.documentElement.dataset.lang = l;
+    document.documentElement.lang = l;
+    try { localStorage.setItem('dk-lang', l); } catch {}
+    document.querySelectorAll('[data-lang-btn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.langBtn === l)));
+  }
+  let initial = 'en';
+  try { initial = localStorage.getItem('dk-lang') || (navigator.language && navigator.language.startsWith('th') ? 'th' : 'en'); } catch {}
+  setLang(initial);
+</script>
+</body>
+</html>
