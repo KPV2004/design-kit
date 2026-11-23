@@ -1,8 +1,9 @@
-# Push a tag like v1.0.0 → builds the claude.ai upload zip and attaches it to a GitHub Release.
+# Push a tag like v1.2.1 → builds the claude.ai upload zip and attaches it to a GitHub Release.
+# Create the tag with ./tools/release.sh tag X.Y.Z — only vMAJOR.MINOR.PATCH tags trigger this.
 name: Release
 on:
   push:
-    tags: ['v*']
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
 permissions:
   contents: write
 jobs:
@@ -14,7 +15,9 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME#v}"
           PLUGIN=$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+          ENGINE=$(cat skills/design-kit/assets/project/_engine/VERSION)
           [ "$TAG" = "$PLUGIN" ] || { echo "Tag $TAG != plugin.json version $PLUGIN"; exit 1; }
+          [ "$TAG" = "$ENGINE" ] || { echo "Tag $TAG != _engine/VERSION $ENGINE"; exit 1; }
       - name: Build skill zip
         run: ./tools/build-skill.sh
       - uses: softprops/action-gh-release@v2

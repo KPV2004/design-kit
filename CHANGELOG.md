@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+- **CI**: every PR runs `./tools/check.sh` — unit tests for the scripts, `verify.py` on `examples/procura-design`, browser tests on the template and the example (no JS errors, the State switcher shows exactly one variant, text ≥ 4.5:1 in every theme at desktop and mobile widths) and the zip build. The tests fail on each bug fixed in 1.2.1.
+- **`examples/procura-design`**: a full design project (purchase-order approval, 5 screens) made with the skill — the CI fixture and the docs site's live demo.
+- **Engine version stamp**: `_engine/VERSION`; `verify.py` warns when a project's engine is older than its tools or unstamped. New `_tools/update_engine.py` refreshes `_engine/` and `_tools/` from the installed skill without touching design files.
+- **`tools/release.sh prepare|tag X.Y.Z`**: writes the version everywhere it lives, dates the changelog, opens the release PR, and tags only when `main` carries that version. The Release workflow now reacts only to `vX.Y.Z` tags and also checks `_engine/VERSION`.
+- **Docs site redesign**: live demo, install tabs (keyboard accessible), copy buttons, mobile section nav, dark mode, changelog rendered from `CHANGELOG.md`, version read from one meta tag.
+
 ## 1.2.1 — 2026-11-23
 - **Wireframe component kit**: ~35 grayscale `wf-*` blocks (text, buttons + states, form controls incl. check/radio/toggle/chips, table, badges, stats, charts, list, top bar, sidebar, tabs, breadcrumb, pagination, stepper, mobile app/tab bar, modal, bottom sheet, menu, banner, toast, skeleton, empty). Error states use dashed borders + a mark, never color alone.
 - **Components page** in the wireframe toolbar (`#components`): live demo + copyable markup for every block.
