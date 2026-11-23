@@ -102,8 +102,8 @@ def parse_inventory(design):
 def design_tokens(design):
     # §2.9 theme variants repeat token names with different hexes — parse scales only up to that section
     design = design.split('Theme variants', 1)[0]
-    t = {k: v.lower() for k, v in re.findall(r'\|\s*([a-z]+-\d+)\s*\|\s*(#[0-9a-fA-F]{6})\b', design)}
-    for name, a, b, c in re.findall(r'\|\s*([a-z]+)\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})', design):
+    t = {k: v.lower() for k, v in re.findall(r'^\|\s*([a-z]+-\d+)\s*\|\s*(#[0-9a-fA-F]{6})\b', design, re.M)}
+    for name, a, b, c in re.findall(r'^\|\s*([a-z]+)\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})', design, re.M):
         t.update({f'{name}-50': a.lower(), f'{name}-600': b.lower(), f'{name}-700': c.lower()})
     return t
 
@@ -233,6 +233,18 @@ def main(folder):
     for i in sorted(ids_inv):
         if i.startswith('m-') and i[2:] in ids_inv and not is_native:
             err(f'"{i}" duplicates "{i[2:]}" — responsive web must use one screen ID with a mobile frame/viewport, not an m-* copy')
+
+    # --- component kits: only classes the engine defines (wf-* wireframes, mk-* mock)
+    for name, html, css, prefix in (('wireframes', wf, 'wireframe.css', 'wf'), ('mock', mk, 'mockup.css', 'mk')):
+        css_path = folder / '_engine' / css
+        if not css_path.exists():
+            continue
+        defined = set(re.findall(r'\.(' + prefix + r'-[a-z0-9-]+)', css_path.read_text(encoding='utf-8')))
+        used = set()
+        for cls in re.findall(r'class="([^"]*)"', html):
+            used.update(c for c in cls.split() if c.startswith(prefix + '-'))
+        for c in sorted(used - defined):
+            warn(f'{name}: class "{c}" is not part of the {prefix}-* component kit (_engine/{css}) — use a kit component or Tailwind utilities')
 
     # --- links
     for name, html, ids in (('wireframes', wf, ids_wf), ('mockup', mk, set(mk_sections))):

@@ -42,9 +42,10 @@
    | Behavior / interaction | spec interactions table + state matrix (+ screens if a state variant is visible) |
    | Dark-mode token | design.md §2.4 Dark column + contrast checks + mockup `tokens` + re-export `tokens/` |
 3. Edit inside the screen markers with targeted replacements; don't reformat untouched screens.
-4. Mock: screen ids end with `:mock`; theme-aware classes (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`) for surfaces that must follow the theme; token classes only (`bg-brand-600`); icons only from `icons`; no emoji; `data-notes` count = `.anno` markers; reviewer hints in `data-hint`.
-5. Responsive web: one screen ID whose template holds `.frame-desktop` / `.frame-tablet` (only if the layout differs) / `.frame-mobile` — never `m-*` copies.
-6. Bump the version in design.md, ux-spec.md, `WF.version` (wireframes.html) and this file; add a changelog row.
+4. Components: wireframes compose from the `wf-*` kit (toolbar → Components), the mock from the `mk-*` kit (gallery on `design-system:mock`). Don't invent new `wf-*`/`mk-*` names — verify.py warns.
+5. Mock: screen ids end with `:mock`; theme-aware classes (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`) for surfaces that must follow the theme; token classes only (`bg-brand-600`); icons only from `icons`; no emoji; `data-notes` count = `.anno` markers; reviewer hints in `data-hint`.
+6. Responsive web: one screen ID whose template holds `.frame-desktop` / `.frame-tablet` (only if the layout differs) / `.frame-mobile` — never `m-*` copies.
+7. Bump the version in design.md, ux-spec.md, `WF.version` (wireframes.html) and this file; add a changelog row.
 
 ## Commands (run from this folder)
 

@@ -129,6 +129,9 @@
     data-device: responsive (one screen, Tailwind breakpoints; check with the Mobile toggle) | mobile (native app, locked to phone frame)
     data-notes:  one entry per .anno marker, separated by |   ·   data-hint: reviewer instructions (never put them in the screen)
     State variants: <div data-state="default|empty|loading|error">
+  Components: use the mk-* kit (_engine/mockup.css — mk-btn mk-btn-primary, mk-input, mk-table, mk-badge-success,
+         mk-alert-danger, mk-modal …; gallery with copyable markup on design-system:mock) before hand-rolling Tailwind.
+         Layout and spacing stay Tailwind utilities; utilities override kit defaults (mk-btn w-full).
   Rules: theme-aware classes (bg-surface, bg-page, text-body, text-muted, border-input) + token scales
          (bg-brand-600, text-neutral-500) · icons only from `icons` · no emoji · navigation: onclick="showScreen('id:mock')"
   Never create m-* copies for responsive web.
@@ -141,28 +144,28 @@
     <div class="max-w-7xl mx-auto p-4 lg:p-6">
       <div class="flex items-center justify-between mb-4">
         <h1 class="text-xl font-semibold">Example list screen</h1>
-        <button onclick="showScreen('form:mock')" class="inline-flex items-center gap-2 bg-brand-700 hover:bg-brand-800 text-white rounded-md px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-600 outline-none"><iconify-icon icon="ph:plus" width="20" aria-hidden="true"></iconify-icon>New document</button>
+        <button onclick="showScreen('form:mock')" class="mk-btn mk-btn-primary"><iconify-icon icon="ph:plus" width="20" aria-hidden="true"></iconify-icon>New document</button>
       </div>
       <div data-state="default">
-        <div class="bg-surface rounded-lg shadow-sm overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-page text-muted"><tr><th class="text-left px-3 py-2">No.</th><th class="text-left px-3 py-2">Name</th><th class="text-right px-3 py-2">Amount (THB)</th><th class="text-left px-3 py-2">Status</th></tr></thead>
-            <tbody class="divide-y">
-              <tr class="hover:bg-page"><td class="px-3 py-2 tabular-nums">DOC-2611-0001</td><td class="px-3 py-2">Realistic sample data</td><td class="px-3 py-2 text-right tabular-nums">12,450.00</td><td class="px-3 py-2 whitespace-nowrap"><span class="bg-warning-50 text-warning-700 rounded px-2 py-0.5 text-xs">Pending approval</span><span class="anno">1</span></td></tr>
+        <div class="mk-card p-0 overflow-x-auto">
+          <table class="mk-table">
+            <thead><tr><th>No.</th><th>Name</th><th class="num">Amount (THB)</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="tabular-nums">DOC-2611-0001</td><td>Realistic sample data</td><td class="num">12,450.00</td><td class="whitespace-nowrap"><span class="mk-badge mk-badge-warning">Pending approval</span><span class="anno">1</span></td></tr>
             </tbody>
           </table>
         </div>
       </div>
-      <div data-state="empty" class="bg-surface rounded-lg shadow-sm p-12 text-center">
-        <iconify-icon icon="ph:tray" width="48" class="text-neutral-400 mb-2" aria-hidden="true"></iconify-icon>
-        <p class="font-medium">No documents yet</p><p class="text-muted text-sm mb-4">Create your first document to get started</p>
-        <button onclick="showScreen('form:mock')" class="inline-flex items-center gap-2 bg-brand-700 text-white rounded-md px-4 py-2"><iconify-icon icon="ph:plus" width="20" aria-hidden="true"></iconify-icon>Create first document</button>
+      <div data-state="empty" class="mk-card mk-empty">
+        <iconify-icon icon="ph:tray" width="48" class="text-neutral-400" aria-hidden="true"></iconify-icon>
+        <p class="font-medium">No documents yet</p><p class="text-muted text-sm mb-2">Create your first document to get started</p>
+        <button onclick="showScreen('form:mock')" class="mk-btn mk-btn-primary"><iconify-icon icon="ph:plus" width="20" aria-hidden="true"></iconify-icon>Create first document</button>
       </div>
-      <div data-state="loading" class="bg-surface rounded-lg shadow-sm p-4 space-y-3 animate-pulse">
-        <div class="h-4 bg-neutral-200 rounded w-1/3"></div><div class="h-4 bg-neutral-200 rounded"></div><div class="h-4 bg-neutral-200 rounded"></div>
+      <div data-state="loading" class="mk-card space-y-3" aria-busy="true" aria-label="Loading documents">
+        <div class="mk-skeleton w-1/3"></div><div class="mk-skeleton"></div><div class="mk-skeleton"></div>
       </div>
-      <div data-state="error" class="bg-danger-50 border border-danger-600/30 text-danger-700 rounded-lg p-4 flex items-center justify-between" role="alert">
-        <span>Couldn't load data — please try again</span><button class="inline-flex items-center gap-1 underline"><iconify-icon icon="ph:arrow-clockwise" width="16" aria-hidden="true"></iconify-icon>Retry</button>
+      <div data-state="error" class="mk-alert mk-alert-danger items-center" role="alert">
+        <span class="flex-1">Couldn't load data — please try again</span><button class="inline-flex items-center gap-1 underline"><iconify-icon icon="ph:arrow-clockwise" width="16" aria-hidden="true"></iconify-icon>Retry</button>
       </div>
     </div>
   </div>
@@ -175,16 +178,16 @@
   <div class="min-h-screen bg-page text-body">
     <div class="max-w-3xl mx-auto p-4 lg:p-6">
       <h1 class="text-xl font-semibold mb-4">Example form</h1>
-      <div class="bg-surface rounded-lg shadow-sm p-6 space-y-4">
-        <div>
-          <label for="f1" class="block text-sm font-medium mb-1">Name <span class="text-danger-600">*</span></label>
-          <input id="f1" class="w-full border border-danger-600 rounded-md px-3 py-2 focus-visible:ring-2 focus-visible:ring-brand-600 outline-none" aria-invalid="true" aria-describedby="f1-err">
-          <p id="f1-err" class="text-danger-600 text-sm mt-1">Enter a name<span class="anno">1</span></p>
+      <div class="mk-card p-6 space-y-4">
+        <div class="mk-field">
+          <label for="f1" class="mk-label mk-req">Name</label>
+          <input id="f1" class="mk-input" aria-invalid="true" aria-describedby="f1-err">
+          <p id="f1-err" class="mk-error">Enter a name<span class="anno">1</span></p>
         </div>
       </div>
       <div class="sticky bottom-0 bg-page py-3 flex justify-end gap-2">
-        <button onclick="showScreen('list:mock')" class="border border-input rounded-md px-4 py-2 bg-surface">Cancel</button>
-        <button onclick="showScreen('list:mock')" class="bg-brand-700 text-white rounded-md px-4 py-2">Save</button>
+        <button onclick="showScreen('list:mock')" class="mk-btn mk-btn-secondary">Cancel</button>
+        <button onclick="showScreen('list:mock')" class="mk-btn mk-btn-primary">Save</button>
       </div>
     </div>
   </div>
@@ -193,10 +196,10 @@
 
 <!-- ════════ SCREEN: design-system:mock ════════ -->
 <section class="screen" id="design-system:mock" data-title="Design system" data-module="Design system" data-device="responsive"
-         data-notes="" data-hint="Numbers under each color = contrast with white / dark text (body text must be ≥ 4.5). Swatches show the Default theme — switch Theme above to preview variants.">
+         data-notes="" data-hint="Numbers under each color = contrast with white / dark text (body text must be ≥ 4.5). Swatches show the Default theme — switch Theme above to preview variants; the component gallery restyles live.">
   <div class="min-h-screen bg-page text-body">
     <div class="max-w-6xl mx-auto p-6 space-y-8">
-      <h1 class="text-xl font-semibold">Design system — colors &amp; typography (matches design.md)</h1>
+      <h1 class="text-xl font-semibold">Design system — colors, typography &amp; components (matches design.md)</h1>
       <div id="swatches" class="space-y-6"></div>
       <div class="bg-surface rounded-lg p-6">
         <p class="font-medium mb-3">Icons <span id="icon-set" class="text-muted text-sm font-normal"></span></p>
@@ -207,13 +210,11 @@
         <p class="text-lg font-semibold">h2 Section title 18px</p>
         <p>body Body text — Thai needs line-height ≥ 1.6 so tone marks never clip</p>
         <p class="text-xs text-muted">small Caption / helper text 12px</p>
-        <div class="flex flex-wrap gap-2 pt-2">
-          <button class="bg-brand-700 hover:bg-brand-800 text-white rounded-md px-4 py-2">Primary</button>
-          <button class="border border-input bg-surface rounded-md px-4 py-2">Secondary</button>
-          <button class="text-brand-700 rounded-md px-4 py-2 hover:bg-brand-50">Ghost</button>
-          <button class="bg-danger-600 text-white rounded-md px-4 py-2">Danger</button>
-          <button class="bg-neutral-200 text-muted rounded-md px-4 py-2 cursor-not-allowed" disabled>Disabled</button>
-        </div>
+      </div>
+      <div class="space-y-6">
+        <div><p class="font-medium">Components</p>
+          <p class="text-sm text-muted">mk-* kit from _engine/mockup.css — every state, themed by the tokens above. Copy markup straight into screens.</p></div>
+        <div id="component-gallery" class="space-y-8"></div>
       </div>
     </div>
   </div>

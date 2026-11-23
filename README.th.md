@@ -169,7 +169,11 @@ npx skills add KPV2004/design-kit
 cp skills/design-kit/scripts/*.py <app>-design/_tools/
 ```
 
-`_engine/` ก็เหมือนกัน แต่ละโปรเจกต์ถือสำเนาของตัวเอง ถ้า engine เปลี่ยนให้ copy `skills/design-kit/assets/project/_engine/` ทับ
+`_engine/` ก็เหมือนกัน แต่ละโปรเจกต์ถือสำเนาของตัวเอง ถ้า engine เปลี่ยนให้ copy `skills/design-kit/assets/project/_engine/` ทับ ทำขั้นตอนนี้เพื่อให้ได้ชุด component และการแก้ตัวสลับ state จากเวอร์ชันล่าสุด:
+
+```bash
+cp -r skills/design-kit/assets/project/_engine/. <app>-design/_engine/
+```
 
 ### ปล่อยเวอร์ชันใหม่
 
@@ -215,7 +219,7 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 └── feedback/          ความเห็นที่ส่งออกจาก wireframe
 ```
 
-ต้องเปิด `wireframes.html` หรือ `mockup.html` จากในโฟลเดอร์ เพราะต้องใช้ `_engine/` ที่อยู่ข้างกัน
+ต้องเปิด `wireframes.html` หรือ `mock.html` จากในโฟลเดอร์ เพราะต้องใช้ `_engine/` ที่อยู่ข้างกัน
 
 ### Wireframe
 
@@ -223,6 +227,7 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 - เลือกแสดง **Desktop / Tablet / Mobile / ทั้งหมด** (กด `D`) วางเรียงกันในแถวเดียว
 - **Zoom** ด้วยปุ่ม `−` `+`, พอดีจอ, 100%, Ctrl/⌘ + scroll หรือ pinch และ **กด Space ค้างแล้วลาก** เพื่อเลื่อน
 - **หน้า Diagrams** มี user flow (คลิกกล่องเพื่อไปหน้านั้น), ER, state และ sequence
+- **หน้า Components** รวมชุด component `wf-*` แบบขาวดำ (~35 ชิ้น เช่น top bar, sidebar, ตาราง, badge, ฟอร์ม, tabs, stepper, pagination, modal, bottom sheet, toast, skeleton, หน้าว่าง) มีตัวอย่างจริงและปุ่ม **Copy** ทุกชิ้น ทุกหน้าจอสร้างจากชุดนี้ จึงใช้ภาษาภาพเดียวกันทั้งโปรเจกต์
 
 ![ภาพรวมทุกหน้า](docs/images/wireframe-overview.png)
 
@@ -232,7 +237,8 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 
 - ดูตัวอย่างแบบ **Desktop / Tablet / Mobile** ได้ โดย breakpoint ของ Tailwind ทำงานจริง
 - สลับสถานะได้ (ปกติ / ว่าง / กำลังโหลด / ผิดพลาด) และมี sidebar อธิบายหมุดหมายเลขแต่ละจุด
-- **หน้า Design system** แสดงทุกสีพร้อมค่า contrast, ขนาดตัวอักษร, ปุ่ม และชุด icon
+- **ชุด component** `mk-*` ที่เปลี่ยนตาม theme ได้ (ปุ่ม, ช่องกรอก, ตาราง, badge, tabs, pagination, dialog, alert, toast, skeleton, หน้าว่าง…) ใช้ค่าจาก design tokens มี state hover / focus / disabled / loading / error ในตัว ปุ่มสูง 40px (44px บนจอสัมผัส) รองรับ reduced-motion และสีตัวอักษรผ่าน AA ใน theme มืด
+- **หน้า Design system** แสดงทุกสีพร้อมค่า contrast, ขนาดตัวอักษร, ชุด icon และ **แกลเลอรี component** พร้อมโค้ดให้ copy ซึ่งเปลี่ยนตาม theme ทันที
 
 | ตัวอย่างบนมือถือ | Design system |
 |---|---|
