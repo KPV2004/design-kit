@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.1 — 2026-11-23
 - **Wireframe component kit**: ~35 grayscale `wf-*` blocks (text, buttons + states, form controls incl. check/radio/toggle/chips, table, badges, stats, charts, list, top bar, sidebar, tabs, breadcrumb, pagination, stepper, mobile app/tab bar, modal, bottom sheet, menu, banner, toast, skeleton, empty). Error states use dashed borders + a mark, never color alone.
 - **Components page** in the wireframe toolbar (`#components`): live demo + copyable markup for every block.
 - **Mock component kit**: themeable `mk-*` components driven by the `--c-*` tokens — buttons (variants, sizes, disabled, `aria-busy` loading, icon), fields (`aria-invalid` error, disabled, help), select/textarea, checkbox/radio/switch, chips, card, table, badges, stat, avatar, progress, side nav, tabs, breadcrumb, pagination, dialog, menu, alerts, toast, tooltip, skeleton, empty. 40px targets (44px on coarse pointers), `prefers-reduced-motion` respected.
@@ -12,18 +12,6 @@
 - Fix: the example `list` wireframe's `data-notes` broke on unescaped quotes, losing note 2.
 - Fix: `export_tokens.py` and `verify.py` read a §2.4 row like `| bg-page | neutral-50 | #020617 |` as a token row, overwriting `neutral-50` with the dark hex in tokens/ and verify (regexes now anchored to the row start).
 - Fix: the mock's State → Error option never showed error variants (sent `Error`, screens use `data-state="error"`).
-
-## 1.2.1 — 2026-11-21
-- **Realtime theming**: mock.html ships a static `:root { --c-* }` defaults block; the theme picker only writes its overrides, so switching themes (and live design-tool edits of `:root` variables) restyle the whole app — screens and shell chrome — instantly, no reload.
-- Shell chrome (toolbar, notes sidebar, focus rings) is themed through the same variables instead of hardcoded zinc colors.
-- A realtime bridge mirrors `--c-*` changes from the shell document into the screen iframe (CSS does not cross the boundary).
-- verify.py warns when a mock lacks the `:root` defaults block.
-
-## 1.2.0 — 2026-11-21
-- **Wireframes + mock in one pass**: the workflow builds `mock.html` alongside `wireframes.html`, screen by screen, so lo-fi and hi-fi are delivered together.
-- **`:mock` screen pairing**: every mock screen id ends with `:mock` (`stock-list:mock` pairs with wireframe `stock-list`); verify.py enforces the 1:1 pairing against the inventory.
-- **Theme picker in the mock**: toolbar dropdown with Default / Dark / palette presets (Corporate Blue, Industrial Teal, Neutral Mono) from design.md §2.9 — token overrides applied as CSS variables (opacity utilities keep working), remembered per browser.
-- `mockup.html` is now `mock.html` (legacy names still found by verify.py, with a rename warning).
 
 ## 1.1.0 — 2026-11-21
 - **English by default**: design.md, ux-spec.md, wireframe/mock copy, sample data and the review-tool chrome are English unless the app's UI language says otherwise; localized apps record every locale's exact strings in the spec's **copy deck**. Feedback markers are now Fix / Add / Remove / Question (older Thai exports still parse).
