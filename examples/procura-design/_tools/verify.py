@@ -384,6 +384,8 @@ def main(folder):
     if re.search(r'stack:\s*(flutter|react native|native)', header) and 'Platform mapping' not in design:
         warn('design.md stack is non-web but §2.8 platform mapping is missing — tokens/ alone cannot be pasted into Flutter/native code')
 
+    usability_checks(folder, ids_inv)
+
     # --- version
     dv = re.search(r'Version:\s*([\d.]+)', design)
     sv = re.search(r'Version\s*([\d.]+)', spec)
@@ -392,6 +394,53 @@ def main(folder):
 
     browser_checks(files, mk_sections, all_icons)
     return report(len(ids_inv))
+
+
+# Text contrast of every visible element against the first opaque background behind it.
+# Skips disabled controls, annotation markers, inactive states, code blocks and the color swatches
+# (they show each color with its own ratio). Shared with tests/test_browser.py.
+CONTRAST_JS = """(sel) => {
+  const ch = s => s.match(/[\\d.]+/g).map(Number);
+  const lum = ([r, g, b]) => [r, g, b].map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; })
+                                      .reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0);
+  const bgOf = el => { for (let e = el; e; e = e.parentElement) { const v = ch(getComputedStyle(e).backgroundColor);
+                       if (v.length < 4 || v[3] > 0.5) return v; } return [255, 255, 255]; };
+  const out = [];
+  document.querySelectorAll(sel + ' *').forEach(el => {
+    if (!el.offsetParent || el.closest('[disabled], .anno, [data-state]:not(.show), pre, #swatches')) return;
+    if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return;
+    const [a, b] = [lum(ch(getComputedStyle(el).color)), lum(bgOf(el))].sort((x, y) => y - x);
+    const r = (a + 0.05) / (b + 0.05);
+    if (r < 4.5) out.push(`${el.tagName.toLowerCase()}.${(el.className || '').toString().split(' ').slice(0, 3).join('.')} "${el.textContent.trim().slice(0, 24)}" ${r.toFixed(2)}:1`);
+  });
+  return [...new Set(out)];
+}"""
+
+
+def usability_checks(folder, ids_inv):
+    """usability-test.md: at least 5 tasks, each with screens + a success criterion, screens from the inventory."""
+    f = folder / 'usability-test.md'
+    if not f.exists():
+        warn('no usability-test.md — add the test plan (5 tasks with success criteria) before handing over')
+        return
+    text = f.read_text(encoding='utf-8')
+    tasks = re.split(r'^### ', text.split('## Tasks', 1)[-1].split('\n## ', 1)[0], flags=re.M)[1:]
+    if len(tasks) < 5:
+        err(f'usability-test.md has {len(tasks)} task(s) — plan at least 5')
+    for t in tasks:
+        name = t.splitlines()[0].strip()
+        if '[' in name and ']' in name and name.startswith('T') and '…' in t:
+            warn(f'usability-test.md task "{name}" is still the template placeholder')
+            continue
+        if not re.search(r'\*\*Success:\*\*\s*\S', t):
+            err(f'usability-test.md task "{name}" has no **Success:** criterion')
+        screens = re.search(r'\*\*Screens:\*\*(.*)', t)
+        ids = re.findall(r'\[(' + ID + r')\]', screens.group(1)) if screens else []
+        if not ids:
+            err(f'usability-test.md task "{name}" lists no **Screens:** [screen-id]')
+        for i in ids:
+            if i not in ids_inv:
+                err(f'usability-test.md task "{name}" uses screen "{i}" which is not in the design.md inventory')
 
 
 def browser_checks(files, mk_sections, all_icons=()):
@@ -456,10 +505,31 @@ def browser_checks(files, mk_sections, all_icons=()):
                 pg.wait_for_timeout(100)
                 hidden = pg.evaluate(f"""() => [...document.querySelectorAll('[id="{sid}"] .anno')]
                     .filter(a => !a.closest('[data-state]:not(.show)'))
+                    .filter(a => !a.dataset.device || a.dataset.device === '{label}')
                     .map(a => [a.textContent.trim(), a.getBoundingClientRect().width > 0 && getComputedStyle(a).visibility !== 'hidden'])
                     .filter(x => !x[1]).map(x => x[0])""")
                 if hidden:
                     level(f'mockup "{sid}" ({label}): annotation marker(s) {hidden} not visible')
+            pg.close()
+
+        # Text contrast >= 4.5:1 on every mock screen in every theme (desktop width)
+        pg = b.new_page(viewport={'width': 1440, 'height': 900})
+        pg.goto(uri)
+        pg.wait_for_timeout(1500)
+        themes = pg.evaluate("typeof themes === 'object' ? Object.keys(themes) : ['Default']")
+        pg.close()
+        for theme in themes:
+            pg = b.new_page(viewport={'width': 1440, 'height': 900})
+            pg.add_init_script(f"localStorage.setItem('mk-theme', {theme!r})")
+            pg.goto(uri)
+            pg.wait_for_timeout(1500)
+            for sid in mk_sections:
+                pg.evaluate(f"showScreen('{sid}')")
+                pg.wait_for_timeout(100)
+                low = pg.evaluate(CONTRAST_JS, f'[id="{sid}"]')
+                if low:
+                    more = f' (+{len(low) - 3} more)' if len(low) > 3 else ''
+                    err(f'mockup "{sid}" [{theme} theme]: text below 4.5:1 — {"; ".join(low[:3])}{more}')
             pg.close()
         b.close()
 

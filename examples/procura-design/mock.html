@@ -48,7 +48,7 @@
       'danger-50': '#450a0a', 'success-50': '#052e16', 'warning-50': '#451a03', 'info-50': '#082f49',
     },
     'Corporate Blue': { 'brand-600': '#2563eb', 'brand-700': '#1d4ed8', 'brand-800': '#1e40af' },
-    'Industrial Teal': { 'brand-600': '#0d9488', 'brand-700': '#0f766e', 'brand-800': '#115e59' },
+    'Industrial Teal': { 'brand-600': '#0f766e', 'brand-700': '#115e59', 'brand-800': '#134e4a' },
     'Neutral Mono': { 'brand-600': '#52525b', 'brand-700': '#3f3f46', 'brand-800': '#27272a' },
   };
   // Icon map — copy from design.md §6. Every <iconify-icon> in the screens must use a name listed here.
@@ -185,13 +185,13 @@
           <h1 class="text-2xl font-semibold">Purchase orders</h1>
           <button class="mk-btn mk-btn-primary" onclick="showScreen('po-form:mock')"><iconify-icon icon="ph:plus" width="20" aria-hidden="true"></iconify-icon>New order</button>
         </div>
-        <div class="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by status">
+        <div class="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by status" data-select="single">
           <button class="mk-chip" aria-pressed="false">All</button><button class="mk-chip" aria-pressed="true">Pending</button><button class="mk-chip" aria-pressed="false">Approved</button><button class="mk-chip" aria-pressed="false">Rejected</button><button class="mk-chip" aria-pressed="false">Draft</button><span class="anno">1</span>
         </div>
         <div data-state="default" class="space-y-4">
           <div class="mk-card p-0 overflow-x-auto hidden md:block">
             <table class="mk-table">
-              <thead><tr><th>PO no.</th><th>Supplier</th><th class="hidden lg:table-cell">Requester</th><th class="num">Amount (THB)<span class="anno">2</span></th><th>Status</th></tr></thead>
+              <thead><tr><th>PO no.</th><th>Supplier</th><th class="hidden lg:table-cell">Requester</th><th class="num">Amount (THB)<span class="anno" data-device="desktop">2</span></th><th>Status</th></tr></thead>
               <tbody>
                 <tr class="cursor-pointer" onclick="showScreen('po-detail:mock')"><td class="tabular-nums font-medium text-brand-600">PO-2611-0042</td><td class="max-w-xs">Siam Steel Co., Ltd.</td><td class="hidden lg:table-cell">Somchai K.</td><td class="num">128,450.00</td><td><span class="mk-badge mk-badge-warning">Pending approval</span></td></tr>
                 <tr class="cursor-pointer" onclick="showScreen('po-detail:mock')"><td class="tabular-nums font-medium text-brand-600">PO-2611-0041</td><td class="max-w-xs">Bangkok Office Supplies (Head Office, Ratchada branch)</td><td class="hidden lg:table-cell">Nattaya P.</td><td class="num">9,900.00</td><td><span class="mk-badge mk-badge-success">Approved</span></td></tr>
@@ -259,8 +259,8 @@
             <p class="text-sm text-muted">Siam Steel Co., Ltd. · requested by Somchai K. on 21/11/2026</p>
           </div>
           <div class="hidden lg:flex gap-2">
-            <button class="mk-btn mk-btn-secondary" onclick="document.getElementById('reject-dlg').classList.remove('hidden')"><iconify-icon icon="ph:x-circle" width="20" aria-hidden="true"></iconify-icon>Reject</button>
-            <button class="mk-btn mk-btn-primary" onclick="showScreen('po-list:mock')"><iconify-icon icon="ph:check-circle" width="20" aria-hidden="true"></iconify-icon>Approve</button><span class="anno">2</span>
+            <button class="mk-btn mk-btn-secondary" onclick="openDialog('reject-dlg')"><iconify-icon icon="ph:x-circle" width="20" aria-hidden="true"></iconify-icon>Reject</button>
+            <button class="mk-btn mk-btn-primary" onclick="showScreen('po-list:mock')"><iconify-icon icon="ph:check-circle" width="20" aria-hidden="true"></iconify-icon>Approve</button><span class="anno" data-device="desktop">2</span>
           </div>
         </div>
         <div class="grid sm:grid-cols-3 gap-3">
@@ -269,7 +269,7 @@
           <div class="mk-stat"><span class="text-sm text-muted">Cost center</span><b>CC-210 Plant</b><span class="anno">1</span></div>
         </div>
         <div class="mk-alert" role="status">Within your approval limit of 500,000 THB</div>
-        <div class="mk-tabs" role="tablist"><button class="mk-tab" role="tab" aria-selected="false">Details</button><button class="mk-tab" role="tab" aria-selected="true">Line items (4)</button><button class="mk-tab" role="tab" aria-selected="false">History</button></div>
+        <div class="mk-tabs" role="tablist" aria-label="Order sections"><button class="mk-tab" role="tab" aria-selected="false">Details</button><button class="mk-tab" role="tab" aria-selected="true">Line items (4)</button><button class="mk-tab" role="tab" aria-selected="false">History</button></div>
         <div class="mk-card p-0 overflow-x-auto">
           <table class="mk-table">
             <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Total (THB)</th></tr></thead>
@@ -284,7 +284,7 @@
         </div>
       </main>
       <div class="lg:hidden fixed bottom-0 inset-x-0 bg-surface border-t border-default p-3 flex gap-2">
-        <button class="mk-btn mk-btn-secondary mk-btn-lg flex-1" onclick="document.getElementById('reject-dlg').classList.remove('hidden')"><iconify-icon icon="ph:x-circle" width="20" aria-hidden="true"></iconify-icon>Reject</button>
+        <button class="mk-btn mk-btn-secondary mk-btn-lg flex-1" onclick="openDialog('reject-dlg')"><iconify-icon icon="ph:x-circle" width="20" aria-hidden="true"></iconify-icon>Reject</button>
         <button class="mk-btn mk-btn-primary mk-btn-lg flex-1" onclick="showScreen('po-list:mock')"><iconify-icon icon="ph:check-circle" width="20" aria-hidden="true"></iconify-icon>Approve</button>
       </div>
       <div id="reject-dlg" class="mk-scrim hidden">
@@ -296,7 +296,7 @@
             <textarea id="rj-reason" class="mk-textarea" aria-invalid="true" aria-describedby="rj-err">No</textarea>
             <p id="rj-err" class="mk-error">Tell the requester why (at least 5 characters).</p>
           </div>
-          <div class="flex justify-end gap-2"><button class="mk-btn mk-btn-secondary" onclick="document.getElementById('reject-dlg').classList.add('hidden')">Cancel</button><button class="mk-btn mk-btn-danger">Reject order</button></div>
+          <div class="flex justify-end gap-2"><button class="mk-btn mk-btn-secondary" onclick="closeDialog('reject-dlg')">Cancel</button><button class="mk-btn mk-btn-danger">Reject order</button></div>
         </div>
       </div>
     </div>

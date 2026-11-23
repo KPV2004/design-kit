@@ -10,8 +10,13 @@
    The same file runs in two modes:
      shell  (default)   toolbar + device frame (iframe) + notes sidebar
      frame  (?frame=1)  the screens themselves, loaded inside the shell's iframe
-   Global API used by screen markup: showScreen('id:mock')
+   Global API used by screen markup: showScreen('id:mock'), openDialog('id'), closeDialog('id')
    Component kit: mk-* classes in mockup.css; the gallery below renders into #component-gallery.
+   Keyboard behavior (frame mode) follows the WAI-ARIA patterns, wired by role — no per-screen JS:
+     [role=tablist] > [role=tab]          ←/→/Home/End move + select; aria-controls panels are shown/hidden
+     openDialog('id') on a .mk-scrim       focus moves in, Tab is trapped, Esc / closeDialog returns focus
+     [aria-haspopup=menu][aria-controls]   Enter/Space/↓ opens, ↑/↓/Home/End move, Esc closes
+     [role=switch]  ·  .mk-chip[aria-pressed]  (inside [data-select=single]: one at a time)
    ============================================================ */
 (function () {
   'use strict';
@@ -127,6 +132,106 @@
     });
     window.addEventListener('hashchange', () => showScreen(location.hash.slice(1)));
 
+    /* ---------- Keyboard & ARIA behavior (WAI-ARIA authoring patterns) ---------- */
+    const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    const visible = el => !!(el && el.offsetParent !== null);
+    // Tabs: roving tabindex, selection follows focus
+    function selectTab(tab, focus) {
+      const list = tab.closest('[role="tablist"]'); if (!list) return;
+      list.querySelectorAll('[role="tab"]').forEach(t => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1;
+        const panel = t.getAttribute('aria-controls') && document.getElementById(t.getAttribute('aria-controls'));
+        if (panel) panel.hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+    // Runs after the gallery renders (see bottom) so every tablist / menu on the page is initialised
+    function initWidgets() {
+      document.querySelectorAll('[role="tablist"]').forEach(list => {
+        const sel = list.querySelector('[role="tab"][aria-selected="true"]') || list.querySelector('[role="tab"]');
+        if (sel) selectTab(sel, false);
+      });
+      document.querySelectorAll('[aria-haspopup="menu"][aria-controls]').forEach(b => { b.setAttribute('aria-expanded', 'false'); const m = menuOf(b); if (m) m.hidden = true; });
+    }
+    // Dialogs: openDialog / closeDialog on a .mk-scrim (or any element) holding [role=dialog]
+    const dialogStack = [];
+    window.openDialog = function (id) {
+      const scrim = document.getElementById(id); if (!scrim) return;
+      dialogStack.push({ scrim, opener: document.activeElement });
+      scrim.classList.remove('hidden'); scrim.hidden = false;
+      const dlg = scrim.matches('[role="dialog"]') ? scrim : scrim.querySelector('[role="dialog"]') || scrim;
+      const target = dlg.querySelector('[autofocus]') || [...dlg.querySelectorAll(FOCUSABLE)].find(visible);
+      (target || dlg).focus();
+    };
+    window.closeDialog = function (id) {
+      const i = id ? dialogStack.findIndex(d => d.scrim.id === id) : dialogStack.length - 1;
+      if (i < 0) { document.getElementById(id)?.classList.add('hidden'); return; } // shown statically, never opened
+      const [{ scrim, opener }] = dialogStack.splice(i, 1);
+      scrim.classList.add('hidden');
+      if (opener && document.contains(opener)) opener.focus();
+    };
+    // Menus: button[aria-haspopup=menu][aria-controls] + [role=menu] > [role=menuitem]
+    function menuOf(btn) { return document.getElementById(btn.getAttribute('aria-controls')); }
+    function openMenu(btn, last) {
+      const m = menuOf(btn); if (!m) return;
+      m.hidden = false; btn.setAttribute('aria-expanded', 'true');
+      const items = [...m.querySelectorAll('[role="menuitem"]')]; (last ? items[items.length - 1] : items[0])?.focus();
+    }
+    function closeMenu(btn, refocus) {
+      const m = menuOf(btn); if (!m) return;
+      m.hidden = true; btn.setAttribute('aria-expanded', 'false'); if (refocus) btn.focus();
+    }
+    document.addEventListener('click', e => {
+      const t = e.target;
+      const tab = t.closest('[role="tab"]'); if (tab) selectTab(tab, false);
+      const sw = t.closest('[role="switch"]'); if (sw && !sw.disabled) sw.setAttribute('aria-checked', String(sw.getAttribute('aria-checked') !== 'true'));
+      const chip = t.closest('.mk-chip[aria-pressed]');
+      if (chip) {
+        const group = chip.closest('[data-select="single"]');
+        if (group) group.querySelectorAll('.mk-chip[aria-pressed]').forEach(c => c.setAttribute('aria-pressed', String(c === chip)));
+        else chip.setAttribute('aria-pressed', String(chip.getAttribute('aria-pressed') !== 'true'));
+      }
+      const mb = t.closest('[aria-haspopup="menu"][aria-controls]');
+      document.querySelectorAll('[aria-haspopup="menu"][aria-expanded="true"]').forEach(b => { if (b !== mb) closeMenu(b, false); });
+      if (mb) mb.getAttribute('aria-expanded') === 'true' ? closeMenu(mb, false) : openMenu(mb, false);
+      else if (t.closest('[role="menuitem"]')) { const m = t.closest('[role="menu"]'); const b = m && document.querySelector(`[aria-controls="${m.id}"]`); if (b) closeMenu(b, true); }
+    });
+    document.addEventListener('keydown', e => {
+      const t = e.target;
+      // Tabs
+      const tab = t.closest?.('[role="tab"]');
+      if (tab) {
+        const tabs = [...tab.closest('[role="tablist"]').querySelectorAll('[role="tab"]')], i = tabs.indexOf(tab);
+        const next = { ArrowRight: tabs[(i + 1) % tabs.length], ArrowLeft: tabs[(i - 1 + tabs.length) % tabs.length], Home: tabs[0], End: tabs[tabs.length - 1] }[e.key];
+        if (next) { e.preventDefault(); selectTab(next, true); return; }
+      }
+      // Menu button
+      const mb = t.closest?.('[aria-haspopup="menu"][aria-controls]');
+      if (mb && ['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); openMenu(mb, e.key === 'ArrowUp'); return; }
+      const item = t.closest?.('[role="menuitem"]');
+      if (item) {
+        const m = item.closest('[role="menu"]'), items = [...m.querySelectorAll('[role="menuitem"]')], i = items.indexOf(item);
+        const next = { ArrowDown: items[(i + 1) % items.length], ArrowUp: items[(i - 1 + items.length) % items.length], Home: items[0], End: items[items.length - 1] }[e.key];
+        if (next) { e.preventDefault(); next.focus(); return; }
+        const b = document.querySelector(`[aria-controls="${m.id}"]`);
+        if (e.key === 'Escape' && b) { e.preventDefault(); closeMenu(b, true); return; }
+        if (e.key === 'Tab' && b) closeMenu(b, false);
+      }
+      // Dialog: Esc closes, Tab stays inside
+      const top = dialogStack[dialogStack.length - 1];
+      if (top && !top.scrim.classList.contains('hidden')) {
+        if (e.key === 'Escape') { e.preventDefault(); closeDialog(top.scrim.id); return; }
+        if (e.key === 'Tab') {
+          const f = [...top.scrim.querySelectorAll(FOCUSABLE)].filter(visible); if (!f.length) return;
+          const first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && (document.activeElement === first || !top.scrim.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && (document.activeElement === last || !top.scrim.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+        }
+      }
+    });
+
+
     // Design-system swatches with contrast vs white / dark text
     (function renderSwatches() {
       const wrap = document.getElementById('swatches'); if (!wrap) return;
@@ -203,9 +308,9 @@
   <label class="mk-check"><input type="checkbox" checked> Send copy to supplier</label>
   <label class="mk-radio"><input type="radio" name="g-r" checked> Net 30</label>
   <label class="mk-radio"><input type="radio" name="g-r"> Net 60</label>
-  <button class="mk-switch" role="switch" aria-checked="true" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true')">Email alerts</button>
+  <button class="mk-switch" role="switch" aria-checked="true">Email alerts</button>
 </div>`],
-          ['Filter chips', `<div class="flex flex-wrap gap-2" role="group" aria-label="Filter by status">
+          ['Filter chips', `<div class="flex flex-wrap gap-2" role="group" aria-label="Filter by status" data-select="single">
   <button class="mk-chip" aria-pressed="true">Pending</button>
   <button class="mk-chip" aria-pressed="false">Approved</button>
   <button class="mk-chip" aria-pressed="false">Rejected</button>
@@ -237,11 +342,14 @@
   <a href="#" class="mk-nav-item">Suppliers</a>
   <a href="#" class="mk-nav-item">Reports</a>
 </nav>`],
-          ['Tabs', `<div class="mk-tabs" role="tablist">
-  <button class="mk-tab" role="tab" aria-selected="true">Details</button>
-  <button class="mk-tab" role="tab" aria-selected="false">Line items (4)</button>
-  <button class="mk-tab" role="tab" aria-selected="false">History</button>
-</div>`],
+          ['Tabs (← → to move)', `<div class="mk-tabs" role="tablist" aria-label="Order sections">
+  <button class="mk-tab" role="tab" id="g-tab-1" aria-controls="g-panel-1" aria-selected="true">Details</button>
+  <button class="mk-tab" role="tab" id="g-tab-2" aria-controls="g-panel-2" aria-selected="false">Line items (4)</button>
+  <button class="mk-tab" role="tab" id="g-tab-3" aria-controls="g-panel-3" aria-selected="false">History</button>
+</div>
+<div role="tabpanel" id="g-panel-1" aria-labelledby="g-tab-1" class="text-sm text-muted pt-3">Supplier, cost center and delivery date</div>
+<div role="tabpanel" id="g-panel-2" aria-labelledby="g-tab-2" class="text-sm text-muted pt-3">4 items · 128,450.00 THB</div>
+<div role="tabpanel" id="g-panel-3" aria-labelledby="g-tab-3" class="text-sm text-muted pt-3">Submitted 21/11/2026 by Somchai K.</div>`],
           ['Breadcrumb & pagination', `<div class="space-y-3">
   <nav class="mk-breadcrumb" aria-label="Breadcrumb"><a href="#">Purchasing</a><a href="#">Purchase orders</a><span aria-current="page">PO-2611-0042</span></nav>
   <nav class="mk-pagination" aria-label="Pagination">
@@ -252,12 +360,13 @@
 </div>`],
         ]],
         ['Overlays & feedback', [
-          ['Confirm dialog', `<div class="relative h-64">
-<div class="mk-scrim mk-inline">
+          ['Confirm dialog (Esc closes)', `<button class="mk-btn mk-btn-danger" onclick="openDialog('g-dlg-wrap')">${ic('delete')}Delete order</button>
+<div class="relative h-64">
+<div class="mk-scrim mk-inline" id="g-dlg-wrap">
   <div class="mk-modal" role="dialog" aria-modal="true" aria-labelledby="g-dlg">
     <h2 id="g-dlg" class="text-lg font-semibold mb-2">Delete PO-2611-0042?</h2>
     <p class="text-sm text-muted mb-5">The order and its 4 line items are removed. This can't be undone.</p>
-    <div class="flex justify-end gap-2"><button class="mk-btn mk-btn-secondary">Cancel</button><button class="mk-btn mk-btn-danger">Delete order</button></div>
+    <div class="flex justify-end gap-2"><button class="mk-btn mk-btn-secondary" onclick="closeDialog('g-dlg-wrap')">Cancel</button><button class="mk-btn mk-btn-danger" onclick="closeDialog('g-dlg-wrap')">Delete order</button></div>
   </div>
 </div></div>`],
           ['Alerts', `<div class="space-y-2">
@@ -266,10 +375,13 @@
   <div class="mk-alert mk-alert-warning" role="status">Supplier tax ID expires on 31/12/2026</div>
   <div class="mk-alert mk-alert-danger" role="alert"><span class="flex-1">Couldn't load orders — check your connection</span><button class="underline inline-flex items-center gap-1">${ic('retry', 16)}Retry</button></div>
 </div>`],
-          ['Menu, toast, tooltip', `<div class="flex flex-wrap items-start gap-6">
-  <div class="mk-menu" role="menu">
-    <button class="mk-menu-item" role="menuitem">${ic('edit', 16)}Edit</button>
-    <button class="mk-menu-item mk-danger" role="menuitem">${ic('delete', 16)}Delete</button>
+          ['Menu (↑ ↓ Esc), toast, tooltip', `<div class="flex flex-wrap items-start gap-6">
+  <div class="relative">
+    <button class="mk-btn mk-btn-secondary" aria-haspopup="menu" aria-controls="g-menu">Actions</button>
+    <div class="mk-menu absolute mt-1 z-10" role="menu" id="g-menu">
+      <button class="mk-menu-item" role="menuitem" tabindex="-1">${ic('edit', 16)}Edit</button>
+      <button class="mk-menu-item mk-danger" role="menuitem" tabindex="-1">${ic('delete', 16)}Delete</button>
+    </div>
   </div>
   <div class="mk-toast" role="status">Order saved <button class="underline">Undo</button></div>
   <span class="mk-tooltip" role="tooltip">Export to Excel</span>
@@ -301,6 +413,7 @@
         b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500);
       });
     })();
+    initWidgets();
     showScreen(firstId());
   } else {
     /* ---------- Shell mode: toolbar, device frame, notes ---------- */

@@ -214,6 +214,7 @@ Each design is a self-contained folder:
 ├── AGENTS.md          AI entry point — file roles, editing rules, commands (CLAUDE.md imports it)
 ├── design.md          colors (light + dark), typography, icons, components, screen inventory, changelog
 ├── ux-spec.md         behavior, state matrix, validation + exact error text, copy deck, diagrams (Mermaid), API contract, risks
+├── usability-test.md  test plan: goals, participants, 5 tasks with screens + success criteria, measures, results
 ├── wireframes.html    every screen, low-fi — open in a browser
 ├── mock.html          hi-fi clickable mock with a theme picker — open in a browser
 ├── _engine/           shared viewer code (toolbar, zoom, comments, device frames)
@@ -242,6 +243,7 @@ Open `wireframes.html` or `mock.html` from inside the folder — they need `_eng
 - **Theme picker** — Default / Dark / palette presets (from design.md §2.9) applied live, remembered per browser.
 - State switcher (normal / empty / loading / error), notes sidebar explaining each numbered marker.
 - **Component kit** — themeable `mk-*` components (buttons, fields, table, badges, tabs, pagination, dialog, alerts, toast, skeleton, empty…) driven by the design tokens. Hover / focus / disabled / loading / error states, 40px targets (44px on touch), reduced-motion support, and AA-safe text in dark themes are built in.
+- **Keyboard-testable** — mark widgets with ARIA roles and the engine adds the standard keyboard behavior: arrow keys in tabs and menus, `openDialog()` moves focus in, traps Tab and closes on Esc, then returns focus. `verify.py` checks text contrast ≥ 4.5:1 on every screen in every theme.
 - **Design system page** — every color with its contrast ratio, type scale, the icon set, and a **component gallery** with copyable markup that restyles live with the theme picker.
 
 | Mobile preview | Design system |

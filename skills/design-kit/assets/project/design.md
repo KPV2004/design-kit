@@ -80,7 +80,7 @@ Required when the stack isn't web (Flutter, React Native…): map each token to 
 | bg-page (dark) | dark:bg-neutral-950 | AppColors.dark.background | 0xFF… |
 
 ### 2.9 Theme variants (mock theme picker)
-Named looks the reviewer can switch between in mock.html. Each row overrides one token. Rules: keep `brand-700` dark enough that white text on it stays AA in every theme; Dark reuses the scale with dark surfaces instead of inventing new hues.
+Named looks the reviewer can switch between in mock.html. Each row overrides one token. Rules: keep `brand-700` dark enough that white text on it stays AA in every theme, and `brand-600` ≥ 4.5:1 on white — it is the link and selected-tab color; Dark reuses the scale with dark surfaces instead of inventing new hues.
 
 | Theme | Token | Value |
 |---|---|---|
@@ -96,9 +96,9 @@ Named looks the reviewer can switch between in mock.html. Each row overrides one
 | Corporate Blue | brand-600 | #2563eb |
 | Corporate Blue | brand-700 | #1d4ed8 |
 | Corporate Blue | brand-800 | #1e40af |
-| Industrial Teal | brand-600 | #0d9488 |
-| Industrial Teal | brand-700 | #0f766e |
-| Industrial Teal | brand-800 | #115e59 |
+| Industrial Teal | brand-600 | #0f766e |
+| Industrial Teal | brand-700 | #115e59 |
+| Industrial Teal | brand-800 | #134e4a |
 | Neutral Mono | brand-600 | #52525b |
 | Neutral Mono | brand-700 | #3f3f46 |
 | Neutral Mono | brand-800 | #27272a |

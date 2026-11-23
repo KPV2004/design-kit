@@ -213,6 +213,7 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 ├── AGENTS.md          ให้ AI อ่านก่อน — หน้าที่ของแต่ละไฟล์ กฎการแก้ คำสั่ง (CLAUDE.md โหลดไฟล์นี้)
 ├── design.md          สี (สว่าง + มืด) ตัวอักษร icon component รายการหน้าจอ changelog
 ├── ux-spec.md         พฤติกรรม ตาราง state ของทุกหน้า validation + ข้อความ error จริง copy deck diagram (Mermaid) API contract ความเสี่ยง
+├── usability-test.md  แผนทดสอบ usability: เป้าหมาย ผู้เข้าร่วม 5 tasks พร้อมหน้าจอ + เกณฑ์สำเร็จ ตัวชี้วัด ผลลัพธ์
 ├── wireframes.html    ทุกหน้าแบบ low-fi — เปิดในเบราว์เซอร์
 ├── mock.html          mock แบบ hi-fi ที่คลิกได้ พร้อมเลือก theme — เปิดในเบราว์เซอร์
 ├── _engine/           โค้ดตัวแสดงผลที่ใช้ร่วมกัน (toolbar, zoom, ความเห็น, กรอบอุปกรณ์)
@@ -240,6 +241,7 @@ skill จะทำงานเองเมื่อขอให้ช่วย�
 - ดูตัวอย่างแบบ **Desktop / Tablet / Mobile** ได้ โดย breakpoint ของ Tailwind ทำงานจริง
 - สลับสถานะได้ (ปกติ / ว่าง / กำลังโหลด / ผิดพลาด) และมี sidebar อธิบายหมุดหมายเลขแต่ละจุด
 - **ชุด component** `mk-*` ที่เปลี่ยนตาม theme ได้ (ปุ่ม, ช่องกรอก, ตาราง, badge, tabs, pagination, dialog, alert, toast, skeleton, หน้าว่าง…) ใช้ค่าจาก design tokens มี state hover / focus / disabled / loading / error ในตัว ปุ่มสูง 40px (44px บนจอสัมผัส) รองรับ reduced-motion และสีตัวอักษรผ่าน AA ใน theme มืด
+- **ทดสอบด้วยคีย์บอร์ดได้จริง** — ใส่ ARIA role ให้ widget แล้ว engine จะเพิ่มพฤติกรรมคีย์บอร์ดมาตรฐานให้: ลูกศรใน tabs และ menu, `openDialog()` ย้าย focus เข้า ล็อก Tab ปิดด้วย Esc และคืน focus กลับ ส่วน `verify.py` ตรวจ contrast ตัวอักษร ≥ 4.5:1 ทุกหน้าจอในทุก theme
 - **หน้า Design system** แสดงทุกสีพร้อมค่า contrast, ขนาดตัวอักษร, ชุด icon และ **แกลเลอรี component** พร้อมโค้ดให้ copy ซึ่งเปลี่ยนตาม theme ทันที
 
 | ตัวอย่างบนมือถือ | Design system |
