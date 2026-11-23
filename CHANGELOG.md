@@ -1,23 +1,27 @@
 # Changelog
 
 ## 2.0.0 — 2026-11-23
-**Breaking** — projects that passed `verify.py` before may now fail it:
+
+### Breaking
+Projects that passed `verify.py` before may now fail it.
 - `verify.py` errors on any text below 4.5:1 on any mock screen in any theme (it used to check none). The old **Industrial Teal** preset fails: its `brand-600` `#0d9488` is 3.74:1 on white — update §2.9 and `const themes` to `#0f766e` / `#115e59` / `#134e4a`.
 - `verify.py` warns when `usability-test.md` is missing and errors when it has fewer than 5 tasks, a task without `**Success:**`, or screens not in the inventory.
 
-Added:
+### Added
 - **Keyboard behavior in the mock engine** (WAI-ARIA patterns, wired by role): tabs with ←/→/Home/End and `aria-controls` panels; `openDialog('id')` / `closeDialog('id')` with focus moved in, Tab trapped, Esc to close and focus returned; menu buttons (`aria-haspopup=menu`) with ↑/↓/Home/End/Esc; `role=switch`; single-select chips (`data-select="single"`). The component gallery demonstrates each, and browser tests cover them.
 - **`usability-test.md`** deliverable: goals, participants + screener, setup, five tasks (scenario, screens, success, watch-for), measures (success, time, errors, SEQ, SUS), severity scale, results table. Workflow step 9 in SKILL.md; Procura example included.
 - **Device-specific markers**: `<span class="anno" data-device="desktop">` — the visibility check skips them at other widths (no more warnings for desktop-only elements).
 - Color presets in `references/color-system.md` now list a `brand-600` that is ≥ 4.5:1 on white (Teal `#0f766e`, Green `#15803d`, Orange `#c2410c`) with its ratio.
 
-Fixed:
-- The contrast check (tests and verify) skipped anything inside a `.hidden` class, including `hidden md:block` tables that are visible on desktop.
+### Tooling
 - **CI**: every PR runs `./tools/check.sh` — unit tests for the scripts, `verify.py` on `examples/procura-design`, browser tests on the template and the example (no JS errors, the State switcher shows exactly one variant, text ≥ 4.5:1 in every theme at desktop and mobile widths) and the zip build. The tests fail on each bug fixed in 1.2.1.
 - **`examples/procura-design`**: a full design project (purchase-order approval, 5 screens) made with the skill — the CI fixture and the docs site's live demo.
 - **Engine version stamp**: `_engine/VERSION`; `verify.py` warns when a project's engine is older than its tools or unstamped. New `_tools/update_engine.py` refreshes `_engine/` and `_tools/` from the installed skill without touching design files.
 - **`tools/release.sh prepare|tag X.Y.Z`**: writes the version everywhere it lives, dates the changelog, opens the release PR, and tags only when `main` carries that version. The Release workflow now reacts only to `vX.Y.Z` tags and also checks `_engine/VERSION`.
 - **Docs site redesign**: live demo, install tabs (keyboard accessible), copy buttons, mobile section nav, dark mode, changelog rendered from `CHANGELOG.md`, version read from one meta tag.
+
+### Fixed
+- The contrast check (tests and verify) skipped anything inside a `.hidden` class, including `hidden md:block` tables that are visible on desktop.
 
 ## 1.2.1 — 2026-11-23
 - **Wireframe component kit**: ~35 grayscale `wf-*` blocks (text, buttons + states, form controls incl. check/radio/toggle/chips, table, badges, stats, charts, list, top bar, sidebar, tabs, breadcrumb, pagination, stepper, mobile app/tab bar, modal, bottom sheet, menu, banner, toast, skeleton, empty). Error states use dashed borders + a mark, never color alone.

@@ -403,8 +403,16 @@ python _tools/verify.py .</code></pre>
   fetch('CHANGELOG.md').then(r => r.ok ? r.text() : Promise.reject()).then(md => {
     const entries = md.split(/^## /m).slice(1, 5).map(block => {
       const [head, ...lines] = block.split('\n');
-      const items = lines.filter(l => l.startsWith('- ')).map(l => `<li>${inline(l.slice(2))}</li>`).join('');
-      return `<div class="surface p-5"><h3>${inline(head.trim())}${head.startsWith(VERSION + ' ') ? ' <span class="chip text-xs rounded px-2 py-0.5 ml-1">latest</span>' : ''}</h3><ul class="text-sm mt-3 muted">${items}</ul></div>`;
+      // "### Group" subheadings, "- item" bullets and plain lines as short paragraphs
+      let body = '', open = false;
+      const close = () => { if (open) { body += '</ul>'; open = false; } };
+      lines.forEach(l => {
+        if (l.startsWith('### ')) { close(); body += `<p class="text-xs font-semibold uppercase tracking-wide mt-4 ink">${inline(l.slice(4))}</p>`; }
+        else if (l.startsWith('- ')) { if (!open) { body += '<ul class="text-sm mt-2 muted">'; open = true; } body += `<li>${inline(l.slice(2))}</li>`; }
+        else if (l.trim()) { close(); body += `<p class="text-sm mt-2 muted" style="max-width:62ch">${inline(l)}</p>`; }
+      });
+      close();
+      return `<div class="surface p-5"><h3>${inline(head.trim())}${head.startsWith(VERSION + ' ') ? ' <span class="chip text-xs rounded px-2 py-0.5 ml-1">latest</span>' : ''}</h3>${body}</div>`;
     });
     document.getElementById('changelog').innerHTML = entries.join('') +
       '<p class="text-sm"><a class="link" href="https://github.com/KPV2004/design-kit/blob/main/CHANGELOG.md">Full changelog →</a></p>';
