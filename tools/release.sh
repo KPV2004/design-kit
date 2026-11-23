@@ -56,7 +56,7 @@ EOF
   ok "version $CUR → $VER written to plugin.json, _engine/VERSION, verify.py, docs site, CHANGELOG"
   ( cd examples/procura-design && python3 _tools/update_engine.py ../../skills/design-kit >/dev/null )
   ok "example project engine refreshed"
-  ./tools/check.sh --fast >/dev/null || die "checks failed — run ./tools/check.sh to see why (branch release/$VER left in place)"
+  ./tools/check.sh --fast >/dev/null 2>&1 || die "checks failed — run ./tools/check.sh to see why (branch release/$VER left in place)"
   ok "checks passed"
   git add -A
   git commit -q -m "Release $VER"
