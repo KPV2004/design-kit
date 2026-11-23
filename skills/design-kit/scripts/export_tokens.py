@@ -20,9 +20,9 @@ def parse(design):
     # §2.9 theme variants repeat token names with different hexes — scales come only from above that section
     design = design.split('Theme variants', 1)[0]
     scales = {}
-    for name, step, hexv in re.findall(r'\|\s*([a-z]+)-(\d+)\s*\|\s*(#[0-9a-fA-F]{6})\b', design):
+    for name, step, hexv in re.findall(r'^\|\s*([a-z]+)-(\d+)\s*\|\s*(#[0-9a-fA-F]{6})\b', design, re.M):
         scales.setdefault(name, {})[int(step)] = hexv.lower()
-    for name, a, b, c in re.findall(r'\|\s*([a-z]+)\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})', design):
+    for name, a, b, c in re.findall(r'^\|\s*([a-z]+)\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})\s*\|\s*(#[0-9a-fA-F]{6})', design, re.M):
         scales.setdefault(name, {}).update({50: a.lower(), 600: b.lower(), 700: c.lower()})
     usage, dark = {}, {}
     sec = design.split('Usage tokens', 1)

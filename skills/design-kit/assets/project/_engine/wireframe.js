@@ -6,6 +6,7 @@
        frames inside a template: .frame-desktop / .frame-tablet / .frame-mobile
      <script type="text/plain" class="diagram" data-title>         (diagrams)
    Provides: overview grid, single-screen view with zoom/pan, Diagrams page,
+   Components page (every .wf-* block with copyable markup),
    pinned feedback comments (localStorage) and markdown export.
    Global API used by screen markup: showScreen('id')
    ============================================================ */
@@ -19,6 +20,7 @@
     <span id="tb-title" class="font-semibold mr-2"></span>
     <button data-act="overview">Overview</button>
     <button data-act="diagrams">Diagrams</button>
+    <button data-act="components" title="Wireframe component kit — copy markup into screens">Components</button>
     <select id="screen-select" class="bg-slate-700 rounded px-2 py-1" aria-label="Select screen"></select>
     <button data-act="prev" aria-label="Previous screen">◀</button>
     <button data-act="next" aria-label="Next screen">▶</button>
@@ -60,6 +62,17 @@
   </div>
 </div>
 
+<div id="components" class="view p-6">
+  <div class="flex gap-6 items-start">
+    <nav id="cp-nav" class="w-48 shrink-0 space-y-1 text-sm sticky" style="top:calc(var(--tbh,48px) + 24px)"></nav>
+    <div class="flex-1 min-w-0 space-y-8">
+      <div><h2 class="font-semibold text-lg">Wireframe components</h2>
+        <p class="text-xs text-slate-500">Grayscale building blocks from _engine/wireframe.css. Compose screens from these; click Copy to grab the markup. Hi-fi equivalents (mk-*) are on the mock's Design system page.</p></div>
+      <div id="cp-groups" class="space-y-8"></div>
+    </div>
+  </div>
+</div>
+
 <div id="single" class="view p-6">
   <div class="flex gap-6 items-start">
     <div id="sg-wrap" class="zoom-wrap flex-1 min-w-0"><div id="sg-outer"><div id="sg-inner" class="zoom-inner"></div></div></div>
@@ -89,6 +102,69 @@
     </div>
   </div>
 </dialog>`;
+
+
+  /* ---------- 0. Component catalog (Components page) — keep in sync with wireframe.css ---------- */
+  const COMPONENTS = [
+    ['Text & media', [
+      ['Headings & text', '.wf-h1 .wf-h2 .wf-text .wf-muted', `<div class="wf-h1">Purchase orders</div>
+<div class="wf-h2">Line items</div>
+<p class="wf-text">Body copy with real words where they matter</p>
+<p class="wf-muted">Helper or meta text</p>`],
+      ['Placeholder lines', '.wf-line(.sm|.lg)', `<div class="space-y-2"><div class="wf-line lg w-1/2"></div><div class="wf-line"></div><div class="wf-line w-5/6"></div><div class="wf-line sm w-2/3"></div></div>`],
+      ['Image / icon', '.wf-img .wf-icon(.lg|.round)', `<div class="flex items-center gap-3"><div class="wf-img h-16 w-24"></div><span class="wf-icon"></span><span class="wf-icon lg"></span><span class="wf-icon lg round"></span></div>`],
+      ['Avatar', '.wf-avatar(.lg)', `<div class="flex items-center gap-2"><span class="wf-avatar">SK</span><span class="wf-avatar lg">NP</span></div>`],
+      ['Divider', '.wf-divider', `<div class="wf-divider"></div>`],
+    ]],
+    ['Buttons', [
+      ['Variants', '.wf-btn(.primary|.ghost|.danger)', `<div class="flex flex-wrap gap-2"><button class="wf-btn primary">Save</button><button class="wf-btn">Cancel</button><button class="wf-btn ghost">View all</button><button class="wf-btn danger">Delete</button></div>`],
+      ['Sizes & states', '.sm .lg :disabled .loading', `<div class="flex flex-wrap items-center gap-2"><button class="wf-btn primary sm">Small</button><button class="wf-btn primary lg">Large 44px</button><button class="wf-btn primary" disabled>Disabled</button><button class="wf-btn primary loading">Saving…</button></div>`],
+      ['Icon button', '.wf-icon-btn', `<div class="flex gap-2"><button class="wf-icon-btn" aria-label="Edit"><span class="wf-icon"></span></button><button class="wf-icon-btn" aria-label="More"><span class="wf-icon round"></span></button></div>`],
+      ['Floating action (mobile)', '.wf-fab', `<div class="relative h-24"><div class="wf-fab" style="bottom:8px">+</div></div>`],
+    ]],
+    ['Form controls', [
+      ['Text field', '.wf-label .wf-input .wf-help .wf-req', `<div><div class="wf-label wf-req">Supplier</div><div class="wf-input">Siam Steel Co., Ltd.</div><div class="wf-help">As shown on the tax invoice</div></div>`],
+      ['Field states', '.wf-input.focus .error .disabled + .wf-error', `<div class="grid grid-cols-3 gap-3">
+  <div><div class="wf-label">Focus</div><div class="wf-input focus"></div></div>
+  <div><div class="wf-label">Error</div><div class="wf-input error"></div><div class="wf-error">Enter an amount above 0</div></div>
+  <div><div class="wf-label">Disabled</div><div class="wf-input disabled"></div></div>
+</div>`],
+      ['Select / search / textarea', '.wf-select .wf-search .wf-textarea', `<div class="grid grid-cols-3 gap-3"><div class="wf-input wf-select">All statuses</div><div class="wf-input wf-search">Search PO no.</div><div class="wf-input wf-textarea">Notes</div></div>`],
+      ['Checkbox / radio / toggle', '.wf-check .wf-radio .wf-toggle (.on)', `<div class="flex flex-wrap gap-4"><span class="wf-check on">Selected</span><span class="wf-check">Not selected</span><span class="wf-radio on">Option A</span><span class="wf-radio">Option B</span><span class="wf-toggle on">Notifications</span><span class="wf-toggle">Dark mode</span></div>`],
+      ['Filter chips', '.wf-chip(.on)', `<div class="flex gap-2"><span class="wf-chip on">Pending</span><span class="wf-chip">Approved</span><span class="wf-chip">Rejected</span></div>`],
+    ]],
+    ['Data display', [
+      ['Table', '.wf-table (.num, tr.sel)', `<table class="wf-table"><thead><tr><th><span class="wf-check"></span></th><th>PO no.</th><th>Supplier</th><th class="num">Amount (THB)</th><th>Status</th></tr></thead>
+<tbody><tr class="sel"><td><span class="wf-check on"></span></td><td>PO-2611-0042</td><td>Siam Steel Co., Ltd.</td><td class="num">128,450.00</td><td><span class="wf-badge">Pending</span></td></tr>
+<tr><td><span class="wf-check"></span></td><td>PO-2611-0041</td><td><div class="wf-line w-24"></div></td><td class="num">9,900.00</td><td><span class="wf-badge solid">Approved</span></td></tr></tbody></table>`],
+      ['Badges', '.wf-badge(.solid|.dashed)', `<div class="flex gap-2"><span class="wf-badge">Pending</span><span class="wf-badge solid">Approved</span><span class="wf-badge dashed">Draft</span></div>`],
+      ['Card', '.wf-card', `<div class="wf-card space-y-2 w-72"><div class="wf-h2">Card title</div><div class="wf-line"></div><div class="wf-line w-2/3"></div><button class="wf-btn sm">Action</button></div>`],
+      ['KPI stat', '.wf-stat', `<div class="grid grid-cols-3 gap-3"><div class="wf-stat"><span class="wf-muted">Open POs</span><b>128</b></div><div class="wf-stat"><span class="wf-muted">Awaiting approval</span><b>14</b></div><div class="wf-stat"><span class="wf-muted">Spend this month</span><b>2.4M</b></div></div>`],
+      ['Charts', '.wf-chart(.line|.pie) > i', `<div class="flex gap-6 items-end"><div class="wf-chart w-60"><i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i></div><div class="wf-chart line w-60"></div><div class="wf-chart pie"></div></div>`],
+      ['Progress', '.wf-progress > i', `<div class="wf-progress w-64"><i style="width:60%"></i></div>`],
+      ['List', '.wf-list', `<div class="wf-list w-80"><div><span class="wf-avatar">SK</span><div class="flex-1"><div class="wf-text">Somchai K.</div><div class="wf-muted">Requested 2 items</div></div><span class="wf-badge">New</span></div><div><span class="wf-avatar">NP</span><div class="flex-1"><div class="wf-line w-2/3"></div></div></div></div>`],
+    ]],
+    ['Navigation', [
+      ['Top bar', '.wf-topbar', `<div class="wf-topbar"><div class="wf-img h-6 w-20"></div><div class="wf-input wf-search flex-1 max-w-xs">Search</div><span class="ml-auto wf-icon round"></span><span class="wf-avatar">SK</span></div>`],
+      ['Sidebar', '.wf-sidebar .wf-nav-item(.active)', `<div class="wf-sidebar" style="height:180px"><div class="wf-nav-item active"><span class="wf-icon"></span>Purchase orders</div><div class="wf-nav-item"><span class="wf-icon"></span>Suppliers</div><div class="wf-nav-item"><span class="wf-icon"></span>Reports</div></div>`],
+      ['Tabs', '.wf-tabs .wf-tab(.active)', `<div class="wf-tabs"><div class="wf-tab active">Details</div><div class="wf-tab">Line items (4)</div><div class="wf-tab">History</div></div>`],
+      ['Breadcrumb', '.wf-breadcrumb', `<nav class="wf-breadcrumb"><span>Purchasing</span><span>Purchase orders</span><span>PO-2611-0042</span></nav>`],
+      ['Pagination', '.wf-pagination', `<div class="wf-pagination"><span>‹</span><span class="active">1</span><span>2</span><span>3</span><span>…</span><span>249</span><span>›</span><span class="wf-muted ml-2">1–50 of 12,431</span></div>`],
+      ['Stepper', '.wf-stepper (data-step, .done|.active)', `<div class="wf-stepper"><span class="done" data-step="1">Details</span><span class="active" data-step="2">Items</span><span data-step="3">Review</span></div>`],
+      ['Mobile app bar + tab bar', '.wf-appbar .wf-tabbar', `<div class="relative h-40 border-2 border-slate-300 rounded-[30px] overflow-hidden"><div class="wf-appbar"><span class="wf-icon"></span><div class="wf-h2">Orders</div></div><div class="wf-tabbar"><span class="active"><span class="wf-icon"></span>Home</span><span><span class="wf-icon"></span>Orders</span><span><span class="wf-icon"></span>Profile</span></div></div>`],
+    ]],
+    ['Overlays & feedback', [
+      ['Modal (confirm)', '.wf-overlay > .wf-modal', `<div class="relative h-56"><div class="wf-overlay"><div class="wf-modal space-y-3"><div class="wf-h2">Delete PO-2611-0042?</div><p class="wf-text">The order and its 4 line items are removed. This can't be undone.</p><div class="flex justify-end gap-2"><button class="wf-btn">Cancel</button><button class="wf-btn danger">Delete order</button></div></div></div></div>`],
+      ['Bottom sheet (mobile)', '.wf-overlay.bottom > .wf-sheet', `<div class="relative h-56"><div class="wf-overlay bottom"><div class="wf-sheet space-y-2"><div class="wf-h2">Sort by</div><span class="wf-radio on">Newest first</span><br><span class="wf-radio">Amount</span></div></div></div>`],
+      ['Menu', '.wf-menu', `<div class="wf-menu"><div class="active">Edit</div><div>Duplicate</div><div class="wf-divider my-1"></div><div>Delete</div></div>`],
+      ['Banner', '.wf-banner(.error)', `<div class="space-y-2"><div class="wf-banner"><span class="wf-icon round"></span>Approval limit is 500,000 THB per order</div><div class="wf-banner error"><span class="wf-icon round"></span>Couldn't load orders. <u>Retry</u></div></div>`],
+      ['Toast & tooltip', '.wf-toast .wf-tooltip', `<div class="flex items-center gap-4"><div class="wf-toast">Order saved <u>Undo</u></div><span class="wf-tooltip">Export to Excel</span></div>`],
+    ]],
+    ['States', [
+      ['Loading skeleton', '.wf-skeleton .wf-spinner', `<div class="flex gap-4 items-center"><div class="flex-1 space-y-2"><div class="wf-skeleton w-1/3"></div><div class="wf-skeleton"></div><div class="wf-skeleton"></div></div><span class="wf-spinner"></span></div>`],
+      ['Empty state', '.wf-empty', `<div class="wf-empty"><div class="wf-h2">No purchase orders yet</div><p class="wf-muted">Create your first order to start tracking spend</p><button class="wf-btn primary">+ New order</button></div>`],
+    ]],
+  ];
 
   document.addEventListener('DOMContentLoaded', init);
 
@@ -313,7 +389,8 @@
       document.querySelectorAll('.view').forEach(e => e.classList.toggle('active', e.id === v));
       $('zoom-ctl').style.display = v === 'overview' ? 'none' : '';
       $('thumb-ctl').style.display = v === 'overview' ? '' : 'none';
-      $('dev-ctl').style.display = v === 'diagrams' ? 'none' : '';
+      $('dev-ctl').style.display = v === 'diagrams' || v === 'components' ? 'none' : '';
+      if (v === 'components') { $('zoom-ctl').style.display = 'none'; $('thumb-ctl').style.display = 'none'; }
       window.scrollTo(0, 0);
     }
     function showOverview() {
@@ -381,9 +458,35 @@
       requestAnimationFrame(() => zDiagram.fit());
     }
 
+
+    /* ---------- 7b. Components page ---------- */
+    let componentsBuilt = false;
+    function showComponents() {
+      current = null; currentDiagram = null; setView('components'); history.replaceState(null, '', '#components');
+      if (componentsBuilt) return;
+      componentsBuilt = true;
+      const slug = t => 'cp-' + t.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      $('cp-nav').innerHTML = COMPONENTS.map(([g, items]) =>
+        `<a class="block px-3 py-1.5 rounded bg-white hover:bg-slate-200" href="#components" data-cp-jump="${slug(g)}">${esc(g)} <span class="text-slate-400">${items.length}</span></a>`).join('');
+      $('cp-groups').innerHTML = COMPONENTS.map(([g, items]) => `<section id="${slug(g)}"><h3 class="font-semibold mb-3">${esc(g)}</h3>
+        <div class="grid gap-4" style="grid-template-columns:repeat(auto-fill,minmax(420px,1fr))">${items.map(([name, cls, html], k) =>
+          `<div class="cp-item"><div class="flex items-baseline gap-2"><span class="font-medium text-sm">${esc(name)}</span>
+             <code class="text-[11px] text-slate-500 truncate">${esc(cls)}</code>
+             <button class="ml-auto text-xs underline shrink-0" data-cp-copy="${slug(g)}-${k}">Copy</button></div>
+           <div class="cp-demo">${html}</div><pre id="${slug(g)}-${k}">${esc(html)}</pre></div>`).join('')}</div></section>`).join('');
+      $('cp-nav').onclick = e => { const a = e.target.closest('[data-cp-jump]'); if (!a) return; e.preventDefault();
+        document.getElementById(a.dataset.cpJump)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); };
+      $('cp-groups').onclick = async e => {
+        const b = e.target.closest('[data-cp-copy]'); if (!b) return;
+        const text = $(b.dataset.cpCopy).textContent;
+        try { await navigator.clipboard.writeText(text); } catch { const r = document.createRange(); r.selectNodeContents($(b.dataset.cpCopy)); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand('copy'); }
+        b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = 'Copy', 1500);
+      };
+    }
+
     /* ---------- 8. Wiring ---------- */
     const actions = {
-      overview: showOverview, diagrams: () => showDiagrams(), prev: () => step(-1), next: () => step(1),
+      overview: showOverview, diagrams: () => showDiagrams(), components: showComponents, prev: () => step(-1), next: () => step(1),
       export: () => { $('export-text').value = exportMarkdown(); $('export').showModal(); },
       'add-general': () => newComment({ frame: null }),
       'clear-done': () => { comments = comments.filter(c => !c.done); save(); $('export-text').value = exportMarkdown(); refreshComments(); },
@@ -417,7 +520,7 @@
 
     save(); setTbh(); setDevice(devFilter);
     const route = () => { const h = location.hash.slice(1);
-      h === 'diagrams' ? showDiagrams() : ids.includes(h) ? (h !== current && showScreen(h)) : showOverview(); };
+      h === 'diagrams' ? showDiagrams() : h === 'components' ? showComponents() : ids.includes(h) ? (h !== current && showScreen(h)) : showOverview(); };
     window.addEventListener('hashchange', route);
     route();
   }

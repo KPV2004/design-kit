@@ -11,6 +11,7 @@
      shell  (default)   toolbar + device frame (iframe) + notes sidebar
      frame  (?frame=1)  the screens themselves, loaded inside the shell's iframe
    Global API used by screen markup: showScreen('id:mock')
+   Component kit: mk-* classes in mockup.css; the gallery below renders into #component-gallery.
    ============================================================ */
 (function () {
   'use strict';
@@ -41,6 +42,11 @@
     if (typeof usageTokens === 'object') for (const t of Object.keys(usageTokens)) clear[t] = null;
     applyTokenMap(clear);
     if (THEMES[name]) applyTokenMap(THEMES[name]);
+    // .theme-dark lets mk-* components swap 700-on-50 tints (below AA on dark surfaces) for body text
+    const surf = (THEMES[name] || {})['bg-surface'] || (typeof usageTokens === 'object' && usageTokens['bg-surface']) || '#ffffff';
+    const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+    const [r, g, b] = hexCh(surf).split(' ').map(Number);
+    document.documentElement.classList.toggle('theme-dark', 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) < 0.2);
     try { localStorage.setItem('mk-theme', name); } catch {}
     return name;
   }
@@ -63,7 +69,7 @@
         <span class="ml-2 text-muted">State:</span>
         <select id="state-select" aria-label="Screen state">
           <option value="default">Default</option><option value="empty">Empty</option>
-          <option value="loading">Loading</option><option value="Error">Error</option>
+          <option value="loading">Loading</option><option value="error">Error</option>
         </select>
         <span class="ml-2 text-muted">Theme:</span>
         <select id="theme-select" aria-label="Mockup theme"></select>
@@ -148,6 +154,152 @@
       grid.innerHTML = Object.entries(icons).map(([k, n]) =>
         `<div class="border border-neutral-200 rounded-md p-3 text-center"><iconify-icon icon="${n}" width="24" class="text-neutral-700"></iconify-icon>
          <div class="text-xs mt-1 font-medium">${k}</div><div class="text-[11px] text-neutral-500 break-all">${n}</div></div>`).join('');
+    })();
+    // Component gallery — every mk-* component with copyable markup. Icons come from the project's
+    // `icons` map (add/edit/delete/search/retry/empty) so the gallery never introduces a second set.
+    (function renderComponents() {
+      const wrap = document.getElementById('component-gallery'); if (!wrap) return;
+      const ic = (k, w = 20) => icons[k] ? `<iconify-icon icon="${icons[k]}" width="${w}" aria-hidden="true"></iconify-icon>` : '';
+      const G = [
+        ['Buttons', [
+          ['Variants', `<div class="flex flex-wrap gap-2">
+  <button class="mk-btn mk-btn-primary">${ic('add')}New order</button>
+  <button class="mk-btn mk-btn-secondary">Cancel</button>
+  <button class="mk-btn mk-btn-ghost">View all</button>
+  <button class="mk-btn mk-btn-danger">${ic('delete')}Delete</button>
+</div>`],
+          ['Sizes & states', `<div class="flex flex-wrap items-center gap-2">
+  <button class="mk-btn mk-btn-primary mk-btn-sm">Small</button>
+  <button class="mk-btn mk-btn-primary mk-btn-lg">Large</button>
+  <button class="mk-btn mk-btn-primary" disabled>Disabled</button>
+  <button class="mk-btn mk-btn-primary" aria-busy="true">Saving…</button>
+  <button class="mk-btn mk-btn-secondary mk-btn-icon" aria-label="Edit" title="Edit">${ic('edit')}</button>
+</div>`],
+        ]],
+        ['Form fields', [
+          ['Text field', `<div class="mk-field">
+  <label for="g-sup" class="mk-label mk-req">Supplier</label>
+  <input id="g-sup" class="mk-input" value="Siam Steel Co., Ltd." aria-describedby="g-sup-h">
+  <p id="g-sup-h" class="mk-help">As shown on the tax invoice</p>
+</div>`],
+          ['Error & disabled', `<div class="grid sm:grid-cols-2 gap-4">
+  <div class="mk-field">
+    <label for="g-amt" class="mk-label mk-req">Amount (THB)</label>
+    <input id="g-amt" class="mk-input" value="0" aria-invalid="true" aria-describedby="g-amt-e">
+    <p id="g-amt-e" class="mk-error">Enter an amount above 0</p>
+  </div>
+  <div class="mk-field">
+    <label for="g-no" class="mk-label">PO no.</label>
+    <input id="g-no" class="mk-input" value="Generated on save" disabled>
+  </div>
+</div>`],
+          ['Select & textarea', `<div class="grid sm:grid-cols-2 gap-4">
+  <div class="mk-field"><label for="g-st" class="mk-label">Status</label>
+    <select id="g-st" class="mk-select"><option>All statuses</option><option>Pending approval</option></select></div>
+  <div class="mk-field"><label for="g-nt" class="mk-label">Notes</label>
+    <textarea id="g-nt" class="mk-textarea" placeholder="Delivery instructions"></textarea></div>
+</div>`],
+          ['Choice controls', `<div class="flex flex-wrap gap-4 items-center">
+  <label class="mk-check"><input type="checkbox" checked> Send copy to supplier</label>
+  <label class="mk-radio"><input type="radio" name="g-r" checked> Net 30</label>
+  <label class="mk-radio"><input type="radio" name="g-r"> Net 60</label>
+  <button class="mk-switch" role="switch" aria-checked="true" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked') !== 'true')">Email alerts</button>
+</div>`],
+          ['Filter chips', `<div class="flex flex-wrap gap-2" role="group" aria-label="Filter by status">
+  <button class="mk-chip" aria-pressed="true">Pending</button>
+  <button class="mk-chip" aria-pressed="false">Approved</button>
+  <button class="mk-chip" aria-pressed="false">Rejected</button>
+</div>`],
+        ]],
+        ['Data display', [
+          ['Table', `<div class="mk-card p-0 overflow-x-auto">
+<table class="mk-table">
+  <thead><tr><th>PO no.</th><th>Supplier</th><th class="num">Amount (THB)</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr aria-selected="true"><td class="tabular-nums">PO-2611-0042</td><td>Siam Steel Co., Ltd.</td><td class="num">128,450.00</td><td><span class="mk-badge mk-badge-warning">Pending approval</span></td></tr>
+    <tr><td class="tabular-nums">PO-2611-0041</td><td>Bangkok Office Supplies (Head Office)</td><td class="num">9,900.00</td><td><span class="mk-badge mk-badge-success">Approved</span></td></tr>
+  </tbody>
+</table></div>`],
+          ['Badges', `<div class="flex flex-wrap gap-2">
+  <span class="mk-badge">Draft</span><span class="mk-badge mk-badge-info">Posted</span>
+  <span class="mk-badge mk-badge-success">Approved</span><span class="mk-badge mk-badge-warning">Pending approval</span>
+  <span class="mk-badge mk-badge-danger">Rejected</span>
+</div>`],
+          ['Stats, avatar, progress', `<div class="grid sm:grid-cols-3 gap-3 items-center">
+  <div class="mk-stat"><span class="text-sm text-muted">Open POs</span><b>128</b></div>
+  <div class="flex items-center gap-2"><span class="mk-avatar">SK</span><span class="text-sm">Somchai K.</span></div>
+  <div class="mk-progress" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" aria-label="Budget used"><i style="width:60%"></i></div>
+</div>`],
+        ]],
+        ['Navigation', [
+          ['Side nav', `<nav class="w-56 space-y-1" aria-label="Main">
+  <a href="#" class="mk-nav-item" aria-current="page">Purchase orders</a>
+  <a href="#" class="mk-nav-item">Suppliers</a>
+  <a href="#" class="mk-nav-item">Reports</a>
+</nav>`],
+          ['Tabs', `<div class="mk-tabs" role="tablist">
+  <button class="mk-tab" role="tab" aria-selected="true">Details</button>
+  <button class="mk-tab" role="tab" aria-selected="false">Line items (4)</button>
+  <button class="mk-tab" role="tab" aria-selected="false">History</button>
+</div>`],
+          ['Breadcrumb & pagination', `<div class="space-y-3">
+  <nav class="mk-breadcrumb" aria-label="Breadcrumb"><a href="#">Purchasing</a><a href="#">Purchase orders</a><span aria-current="page">PO-2611-0042</span></nav>
+  <nav class="mk-pagination" aria-label="Pagination">
+    <button class="mk-page" disabled aria-label="Previous page">‹</button><button class="mk-page" aria-current="page">1</button>
+    <button class="mk-page">2</button><button class="mk-page">3</button><button class="mk-page" aria-label="Next page">›</button>
+    <span class="text-muted ml-2">1–50 of 12,431</span>
+  </nav>
+</div>`],
+        ]],
+        ['Overlays & feedback', [
+          ['Confirm dialog', `<div class="relative h-64">
+<div class="mk-scrim mk-inline">
+  <div class="mk-modal" role="dialog" aria-modal="true" aria-labelledby="g-dlg">
+    <h2 id="g-dlg" class="text-lg font-semibold mb-2">Delete PO-2611-0042?</h2>
+    <p class="text-sm text-muted mb-5">The order and its 4 line items are removed. This can't be undone.</p>
+    <div class="flex justify-end gap-2"><button class="mk-btn mk-btn-secondary">Cancel</button><button class="mk-btn mk-btn-danger">Delete order</button></div>
+  </div>
+</div></div>`],
+          ['Alerts', `<div class="space-y-2">
+  <div class="mk-alert" role="status">Approval limit is 500,000 THB per order</div>
+  <div class="mk-alert mk-alert-success" role="status">PO-2611-0042 approved</div>
+  <div class="mk-alert mk-alert-warning" role="status">Supplier tax ID expires on 31/12/2026</div>
+  <div class="mk-alert mk-alert-danger" role="alert"><span class="flex-1">Couldn't load orders — check your connection</span><button class="underline inline-flex items-center gap-1">${ic('retry', 16)}Retry</button></div>
+</div>`],
+          ['Menu, toast, tooltip', `<div class="flex flex-wrap items-start gap-6">
+  <div class="mk-menu" role="menu">
+    <button class="mk-menu-item" role="menuitem">${ic('edit', 16)}Edit</button>
+    <button class="mk-menu-item mk-danger" role="menuitem">${ic('delete', 16)}Delete</button>
+  </div>
+  <div class="mk-toast" role="status">Order saved <button class="underline">Undo</button></div>
+  <span class="mk-tooltip" role="tooltip">Export to Excel</span>
+</div>`],
+        ]],
+        ['States', [
+          ['Loading', `<div class="mk-card space-y-3" aria-busy="true" aria-label="Loading orders">
+  <div class="mk-skeleton w-1/3"></div><div class="mk-skeleton"></div><div class="mk-skeleton w-5/6"></div>
+</div>`],
+          ['Empty', `<div class="mk-card mk-empty">
+  <span class="text-neutral-400">${ic('empty', 48)}</span>
+  <p class="font-medium">No purchase orders yet</p>
+  <p class="text-sm text-muted mb-2">Create your first order to start tracking spend</p>
+  <button class="mk-btn mk-btn-primary">${ic('add')}New order</button>
+</div>`],
+        ]],
+      ];
+      const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      // Copy shows icon keys' real names, so pasted markup still passes verify's icon-map check.
+      wrap.innerHTML = G.map(([g, items], gi) => `<section class="space-y-3"><h3 class="font-semibold">${g}</h3>
+        <div class="grid lg:grid-cols-2 gap-4">${items.map(([name, html], k) => `<div class="mk-card space-y-3">
+          <div class="flex items-center"><span class="text-sm font-medium">${name}</span>
+            <button class="mk-btn mk-btn-ghost mk-btn-sm ml-auto" data-copy="cg-${gi}-${k}">Copy</button></div>
+          <div>${html}</div><pre id="cg-${gi}-${k}">${esc(html)}</pre></div>`).join('')}</div></section>`).join('');
+      wrap.addEventListener('click', async e => {
+        const b = e.target.closest('[data-copy]'); if (!b) return;
+        const text = document.getElementById(b.dataset.copy).textContent;
+        try { await navigator.clipboard.writeText(text); } catch {}
+        b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1500);
+      });
     })();
     showScreen(firstId());
   } else {

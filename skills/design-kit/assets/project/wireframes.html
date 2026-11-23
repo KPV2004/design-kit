@@ -42,7 +42,17 @@ flowchart LR
     frames: .frame-desktop (1280) · .frame-tablet (768) · .frame-mobile (390) — responsive screens put all frames
             they need in the SAME template; the toolbar filter shows All / Desktop / Tablet / Mobile
     data-notes:  one entry per .anno marker, separated by |
-  Building blocks: .wf-box .wf-fill .wf-line .wf-img .wf-btn(.primary) .wf-input .wf-label .anno
+  Building blocks (full kit with copyable markup: toolbar → Components):
+    layout   .wf-box .wf-card .wf-fill .wf-divider · text .wf-h1 .wf-h2 .wf-text .wf-muted .wf-line(.sm|.lg)
+    media    .wf-img .wf-icon(.lg|.round) .wf-avatar
+    actions  .wf-btn(.primary|.ghost|.danger|.sm|.lg|.loading|:disabled) .wf-icon-btn .wf-fab
+    forms    .wf-label(.wf-req) .wf-input(.focus|.error|.disabled) .wf-select .wf-search .wf-textarea .wf-help .wf-error
+             .wf-check .wf-radio .wf-toggle .wf-chip (.on)
+    data     .wf-table(.num, tr.sel) .wf-badge(.solid|.dashed) .wf-stat .wf-chart(.line|.pie) .wf-progress .wf-list
+    nav      .wf-topbar .wf-sidebar .wf-nav-item .wf-tabs .wf-tab .wf-breadcrumb .wf-pagination .wf-stepper .wf-appbar .wf-tabbar (.active)
+    overlay  .wf-overlay(.bottom) .wf-modal .wf-sheet .wf-menu .wf-banner(.error) .wf-toast .wf-tooltip
+    states   .wf-skeleton .wf-spinner .wf-empty · markers .anno
+  Don't invent new wf-* classes — compose from these plus Tailwind layout utilities (verify.py warns on unknown ones).
   Navigation: onclick="showScreen('id')"
 -->
 
@@ -79,17 +89,31 @@ flowchart LR
 
 <!-- ════════ SCREEN: list ════════ -->
 <template id="list" data-title="Document list" data-module="Documents" data-device="desktop"
-          data-notes="Four primary filters; the rest live under "More filters"|Pagination is server-side">
-  <div class="frame-desktop wf-box flex" data-label="Desktop 1280">
-    <div class="w-56 border-r-2 border-slate-300 p-4 space-y-3">
-      <div class="wf-img h-8"></div><div class="wf-line w-3/4"></div><div class="wf-line w-2/3"></div><div class="wf-line w-3/4"></div>
+          data-notes="Four primary filters; the rest live under &quot;More filters&quot;|Pagination is server-side">
+  <div class="frame-desktop flex" data-label="Desktop 1280">
+    <div class="wf-sidebar">
+      <div class="wf-img h-8 mb-3"></div>
+      <div class="wf-nav-item"><span class="wf-icon"></span>Home</div>
+      <div class="wf-nav-item active"><span class="wf-icon"></span>Documents</div>
+      <div class="wf-nav-item"><span class="wf-icon"></span>Reports</div>
     </div>
-    <div class="flex-1 p-6 space-y-4">
-      <div class="flex justify-between"><div class="font-semibold">Document list</div><button class="wf-btn primary" onclick="showScreen('detail')">+ New document</button></div>
-      <div class="flex gap-2"><div class="wf-input w-40"></div><div class="wf-input w-40"></div><div class="wf-input w-40"></div><div class="wf-input w-40"></div><span class="anno">1</span></div>
-      <div class="wf-box"><div class="wf-fill h-8 rounded-none"></div>
-        <div class="p-3 space-y-3"><div class="wf-line"></div><div class="wf-line"></div><div class="wf-line"></div><div class="wf-line w-5/6"></div></div></div>
-      <div class="flex justify-end gap-1 text-xs">1–50 of 12,431 <span class="anno">2</span></div>
+    <div class="flex-1 min-w-0">
+      <div class="wf-topbar"><div class="wf-input wf-search w-80">Search documents</div><span class="ml-auto wf-icon round"></span><span class="wf-avatar">SK</span></div>
+      <div class="p-6 space-y-4">
+        <div class="flex items-center justify-between"><div class="wf-h1">Document list</div><button class="wf-btn primary" onclick="showScreen('detail')">+ New document</button></div>
+        <div class="flex items-center gap-2"><div class="wf-input wf-select w-40">Status</div><div class="wf-input wf-select w-40">Owner</div><div class="wf-input wf-select w-40">Date range</div><div class="wf-input wf-select w-40">Amount</div><button class="wf-btn ghost">More filters</button><span class="anno">1</span></div>
+        <div class="wf-box overflow-hidden">
+          <table class="wf-table">
+            <thead><tr><th>No.</th><th>Name</th><th>Owner</th><th class="num">Amount (THB)</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>DOC-2611-0042</td><td>Quarterly maintenance contract — Head Office building</td><td>Somchai K.</td><td class="num">128,450.00</td><td><span class="wf-badge">Pending</span></td></tr>
+              <tr><td>DOC-2611-0041</td><td><div class="wf-line w-48"></div></td><td><div class="wf-line w-20"></div></td><td class="num">9,900.00</td><td><span class="wf-badge solid">Approved</span></td></tr>
+              <tr><td>DOC-2611-0040</td><td><div class="wf-line w-40"></div></td><td><div class="wf-line w-24"></div></td><td class="num">54,000.00</td><td><span class="wf-badge dashed">Draft</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-end gap-3"><span class="wf-muted">1–50 of 12,431</span><div class="wf-pagination"><span>‹</span><span class="active">1</span><span>2</span><span>3</span><span>…</span><span>249</span><span>›</span></div><span class="anno">2</span></div>
+      </div>
     </div>
   </div>
 </template>

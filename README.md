@@ -170,7 +170,11 @@ A design project carries its own copy of the tools in `<app>-design/_tools/` —
 cp skills/design-kit/scripts/*.py <app>-design/_tools/
 ```
 
-`_engine/` behaves the same way: each project holds its own copy, so re-create the folder (or copy `skills/design-kit/assets/project/_engine/` over it) when the engine changes.
+`_engine/` behaves the same way: each project holds its own copy, so re-create the folder (or copy `skills/design-kit/assets/project/_engine/` over it) when the engine changes. Do this to get the component kits and the state-switcher fixes from the latest release:
+
+```bash
+cp -r skills/design-kit/assets/project/_engine/. <app>-design/_engine/
+```
 
 ### Releasing a new version
 
@@ -216,7 +220,7 @@ Each design is a self-contained folder:
 └── feedback/          exported review comments
 ```
 
-Open `wireframes.html` or `mockup.html` from inside the folder — they need `_engine/` next to them.
+Open `wireframes.html` or `mock.html` from inside the folder — they need `_engine/` next to them.
 
 ### Wireframes
 
@@ -224,6 +228,7 @@ Open `wireframes.html` or `mockup.html` from inside the folder — they need `_e
 - **Desktop / Tablet / Mobile / All** filter (key `D`), frames side by side.
 - **Zoom** — `−` `+`, fit, 100%, Ctrl/⌘ + scroll or pinch; **Space + drag** to pan.
 - **Diagrams page** — user flow (boxes link to screens), ER, state and sequence diagrams.
+- **Components page** — the grayscale `wf-*` kit (~35 blocks: top bar, sidebar, table, badges, form controls, tabs, stepper, pagination, modal, bottom sheet, toast, skeleton, empty state…) with a live example and **Copy** button for each. Screens are composed from it, so every wireframe uses the same vocabulary.
 
 ![Overview of all screens](docs/images/wireframe-overview.png)
 
@@ -234,7 +239,8 @@ Open `wireframes.html` or `mockup.html` from inside the folder — they need `_e
 - Review shell with **Desktop / Tablet / Mobile** preview — the real Tailwind breakpoints respond.
 - **Theme picker** — Default / Dark / palette presets (from design.md §2.9) applied live, remembered per browser.
 - State switcher (normal / empty / loading / error), notes sidebar explaining each numbered marker.
-- **Design system page** — every color with its contrast ratio, type scale, buttons, and the icon set.
+- **Component kit** — themeable `mk-*` components (buttons, fields, table, badges, tabs, pagination, dialog, alerts, toast, skeleton, empty…) driven by the design tokens. Hover / focus / disabled / loading / error states, 40px targets (44px on touch), reduced-motion support, and AA-safe text in dark themes are built in.
+- **Design system page** — every color with its contrast ratio, type scale, the icon set, and a **component gallery** with copyable markup that restyles live with the theme picker.
 
 | Mobile preview | Design system |
 |---|---|
