@@ -1,7 +1,6 @@
 # Changelog
 
-## Unreleased
-
+## 2.0.0 — 2026-11-23
 **Breaking** — projects that passed `verify.py` before may now fail it:
 - `verify.py` errors on any text below 4.5:1 on any mock screen in any theme (it used to check none). The old **Industrial Teal** preset fails: its `brand-600` `#0d9488` is 3.74:1 on white — update §2.9 and `const themes` to `#0f766e` / `#115e59` / `#134e4a`.
 - `verify.py` warns when `usability-test.md` is missing and errors when it has fewer than 5 tasks, a task without `**Success:**`, or screens not in the inventory.
