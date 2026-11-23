@@ -53,6 +53,7 @@
 python _tools/sync_diagrams.py ux-spec.md wireframes.html   # after any diagram change
 python _tools/export_tokens.py design.md tokens/            # after any color change
 python _tools/verify.py .                                   # always, before finishing — fix every ERROR
+python _tools/update_engine.py <path-to-skills/design-kit>  # when verify says _engine/ is out of date
 ```
 
 ## Applying review feedback

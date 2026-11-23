@@ -3,7 +3,7 @@ name: Docs
 on:
   push:
     branches: [main]
-    paths: ['docs-site/**', 'docs/images/**', '.github/workflows/docs.yml']
+    paths: ['docs-site/**', 'docs/images/**', 'CHANGELOG.md', 'examples/**', '.github/workflows/docs.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,12 +20,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Assemble site (pages + screenshots + icon)
+      - name: Assemble site (page, screenshots, icon, changelog, live demo)
         run: |
           mkdir -p site
           cp -r docs-site/* site/
           cp -r docs/images site/images
           cp .claude-plugin/icon.png site/icon.png
+          cp CHANGELOG.md site/CHANGELOG.md
+          cp -r examples/procura-design site/demo
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

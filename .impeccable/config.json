@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "docs-site/index.html"
+        ],
+        "createdAt": "2026-11-23T14:07:25.028Z",
+        "reason": "Claude: static scan misses Tailwind CDN classes (p-5, py-14, text-2xl); 'impeccable detect' on the rendered page reports no cramped-padding or flat hierarchy"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "docs-site/index.html"
+        ],
+        "createdAt": "2026-11-23T14:07:25.066Z",
+        "reason": "Claude: static scan misses Tailwind CDN classes (p-5, py-14, text-2xl); 'impeccable detect' on the rendered page reports no cramped-padding or flat hierarchy"
+      }
+    ]
+  }
+}

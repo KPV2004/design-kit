@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<!--
+  MOCK — content only. See AGENTS.md before editing.
+  Engine (review shell, device frames, notes, theme picker, swatches): _engine/mockup.js + .css — never edit per project.
+  CONFIG below: `tokens` = design.md §2 scales, `usageTokens` = §2.4 resolved, `themes` = §2.9 variants,
+  `icons` = design.md §6 icon map (verify checks all).
+
+  Every screen id ends with ":mock" and pairs with the wireframe screen of the same base id.
+  SCREENS (in order): login:mock · po-list:mock · po-detail:mock · po-form:mock · design-system:mock
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Procura — Mock</title>
+<!-- Mock only: CDN scripts are not for production use -->
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  /* ===== CONFIG ===== */
+
+  // Design tokens — copy the exact scales from design.md. Names must match design.md.
+  const tokens = {
+    brand:   { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' },
+    neutral: { 50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a' },
+    danger:  { 50:'#fef2f2',600:'#dc2626',700:'#b91c1c' },
+    success: { 50:'#f0fdf4',600:'#16a34a',700:'#15803d' },
+    warning: { 50:'#fffbeb',600:'#d97706',700:'#b45309' },
+    info:    { 50:'#f0f9ff',600:'#0284c7',700:'#0369a1' },
+  };
+  // Usage tokens — design.md §2.4 with references resolved to hex. The theme engine can override these.
+  const usageTokens = {
+    'bg-page': '#f8fafc', 'bg-surface': '#ffffff', 'text-body': '#1e293b', 'text-muted': '#64748b',
+    'border-default': '#e2e8f0', 'border-input': '#cbd5e1', 'focus-ring': '#2563eb',
+  };
+  // Theme variants — design.md §2.9. Each theme overrides tokens/usageTokens by hex.
+  // Keep brand-700 dark enough that white text on it stays AA in every theme.
+  const themes = {
+    'Default': null,
+    'Dark': {
+      'bg-page': '#020617', 'bg-surface': '#0f172a', 'text-body': '#f1f5f9', 'text-muted': '#94a3b8',
+      'border-default': '#334155', 'border-input': '#475569', 'focus-ring': '#60a5fa',
+      'brand-600': '#60a5fa', 'brand-50': '#1e293b', 'brand-100': '#334155',
+      'neutral-50': '#0f172a', 'neutral-100': '#1e293b', 'neutral-200': '#334155', 'neutral-300': '#475569',
+      'neutral-500': '#94a3b8', 'neutral-600': '#cbd5e1', 'neutral-800': '#f1f5f9', 'neutral-900': '#f8fafc',
+      'danger-50': '#450a0a', 'success-50': '#052e16', 'warning-50': '#451a03', 'info-50': '#082f49',
+    },
+    'Corporate Blue': { 'brand-600': '#2563eb', 'brand-700': '#1d4ed8', 'brand-800': '#1e40af' },
+    'Industrial Teal': { 'brand-600': '#0d9488', 'brand-700': '#0f766e', 'brand-800': '#115e59' },
+    'Neutral Mono': { 'brand-600': '#52525b', 'brand-700': '#3f3f46', 'brand-800': '#27272a' },
+  };
+  // Icon map — copy from design.md §6. Every <iconify-icon> in the screens must use a name listed here.
+  const icons = {
+    add: 'ph:plus',
+    edit: 'ph:pencil-simple',
+    delete: 'ph:trash',
+    search: 'ph:magnifying-glass',
+    retry: 'ph:arrow-clockwise',
+    empty: 'ph:tray',
+    approve: 'ph:check-circle',
+    reject: 'ph:x-circle',
+    back: 'ph:arrow-left',
+    orders: 'ph:file-text',
+    suppliers: 'ph:buildings',
+    reports: 'ph:chart-bar',
+    notifications: 'ph:bell',
+  };
+  // Colors as CSS variables so the theme picker can override them at runtime.
+  const varColor = t => `rgb(var(--c-${t}) / <alpha-value>)`;
+  const colors = {};
+  for (const [name, scale] of Object.entries(tokens)) for (const k of Object.keys(scale)) colors[`${name}-${k}`] = varColor(`${name}-${k}`);
+  Object.assign(colors, {
+    page: varColor('bg-page'), surface: varColor('bg-surface'), body: varColor('text-body'),
+    muted: varColor('text-muted'), default: varColor('border-default'), input: varColor('border-input'),
+  });
+  tailwind.config = { theme: { extend: {
+    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+    colors,
+  } } };
+</script>
+<link rel="stylesheet" href="_engine/mockup.css">
+<script src="_engine/mockup.js"></script>
+<style id="theme-defaults">
+  /* Default theme values — the theme picker overrides these live; design tools may edit :root directly. */
+  :root {
+  --c-bg-page: 248 250 252;
+  --c-bg-surface: 255 255 255;
+  --c-border-default: 226 232 240;
+  --c-border-input: 203 213 225;
+  --c-brand-100: 219 234 254;
+  --c-brand-200: 191 219 254;
+  --c-brand-300: 147 197 253;
+  --c-brand-400: 96 165 250;
+  --c-brand-50: 239 246 255;
+  --c-brand-500: 59 130 246;
+  --c-brand-600: 37 99 235;
+  --c-brand-700: 29 78 216;
+  --c-brand-800: 30 64 175;
+  --c-brand-900: 30 58 138;
+  --c-danger-50: 254 242 242;
+  --c-danger-600: 220 38 38;
+  --c-danger-700: 185 28 28;
+  --c-focus-ring: 37 99 235;
+  --c-info-50: 240 249 255;
+  --c-info-600: 2 132 199;
+  --c-info-700: 3 105 161;
+  --c-neutral-100: 241 245 249;
+  --c-neutral-200: 226 232 240;
+  --c-neutral-300: 203 213 225;
+  --c-neutral-400: 148 163 184;
+  --c-neutral-50: 248 250 252;
+  --c-neutral-500: 100 116 139;
+  --c-neutral-600: 71 85 105;
+  --c-neutral-700: 51 65 85;
+  --c-neutral-800: 30 41 59;
+  --c-neutral-900: 15 23 42;
+  --c-success-50: 240 253 244;
+  --c-success-600: 22 163 74;
+  --c-success-700: 21 128 61;
+  --c-text-body: 30 41 59;
+  --c-text-muted: 100 116 139;
+  --c-warning-50: 255 251 235;
+  --c-warning-600: 217 119 6;
+  --c-warning-700: 180 83 9;
+  }
+</style>
+</head>
+<body>
+<main id="screens">
+<!--
+  SCREEN FORMAT — one block per screen, in inventory order:
+  <!== SCREEN: id:mock ==> <section class="screen" id="<id>:mock" data-title data-module data-device data-notes data-hint> ... </section> <!== /SCREEN: id:mock ==>
+    Every id ends with ":mock" (pairs with the wireframe screen id).
+    data-device: responsive (one screen, Tailwind breakpoints; check with the Mobile toggle) | mobile (native app, locked to phone frame)
+    data-notes:  one entry per .anno marker, separated by |   ·   data-hint: reviewer instructions (never put them in the screen)
+    State variants: <div data-state="default|empty|loading|error">
+  Components: use the mk-* kit (_engine/mockup.css — mk-btn mk-btn-primary, mk-input, mk-table, mk-badge-success,
+         mk-alert-danger, mk-modal …; gallery with copyable markup on design-system:mock) before hand-rolling Tailwind.
+         Layout and spacing stay Tailwind utilities; utilities override kit defaults (mk-btn w-full).
+  Rules: theme-aware classes (bg-surface, bg-page, text-body, text-muted, border-input) + token scales
+         (bg-brand-600, text-neutral-500) · icons only from `icons` · no emoji · navigation: onclick="showScreen('id:mock')"
+  Never create m-* copies for responsive web.
+-->
+
+<!-- ════════ SCREEN: login:mock ════════ -->
+<section class="screen" id="login:mock" data-title="Sign in" data-module="Auth" data-device="responsive"
+         data-notes="Last username is remembered on this device|Forgot password opens the IT self-service portal in a new tab" data-hint="Shown in its failed-sign-in state">
+  <div class="min-h-screen bg-page text-body flex sm:items-center justify-center p-5">
+    <form class="w-full max-w-sm sm:mk-card sm:p-8 space-y-4" onsubmit="showScreen('po-list:mock');return false">
+      <p class="font-semibold text-lg">Procura</p>
+      <h1 class="text-2xl font-semibold">Sign in to Procura</h1>
+      <div class="mk-alert mk-alert-danger" role="alert">Username or password is incorrect.</div>
+      <div class="mk-field"><label for="lg-user" class="mk-label mk-req">Username<span class="anno">1</span></label><input id="lg-user" class="mk-input" value="somchai.k" autocomplete="username"></div>
+      <div class="mk-field"><label for="lg-pw" class="mk-label mk-req">Password</label><input id="lg-pw" type="password" class="mk-input" autocomplete="current-password"></div>
+      <button class="mk-btn mk-btn-primary mk-btn-lg w-full" type="submit">Sign in</button>
+      <p class="text-center"><a href="#" class="mk-btn mk-btn-ghost">Forgot password?</a><span class="anno">2</span></p>
+    </form>
+  </div>
+</section>
+<!-- ════════ /SCREEN: login:mock ════════ -->
+
+<!-- ════════ SCREEN: po-list:mock ════════ -->
+<section class="screen" id="po-list:mock" data-title="Purchase orders" data-module="Purchasing" data-device="responsive"
+         data-notes="Status chips — approvers land on Pending|Amounts right-aligned with tabular figures|Server-side pagination, 50 per page" data-hint="Switch State to Empty / Loading / Error; try Mobile to see rows become cards">
+  <div class="min-h-screen bg-page text-body lg:flex">
+    <aside class="hidden lg:flex lg:flex-col w-60 shrink-0 bg-surface border-r border-default p-3 gap-1">
+      <p class="font-semibold text-lg px-3 py-2 mb-2">Procura</p>
+      <nav class="space-y-1" aria-label="Main">
+        <a href="#" class="mk-nav-item" aria-current="page" onclick="showScreen('po-list:mock');return false"><iconify-icon icon="ph:file-text" width="20" aria-hidden="true"></iconify-icon>Purchase orders</a>
+        <a href="#" class="mk-nav-item"><iconify-icon icon="ph:buildings" width="20" aria-hidden="true"></iconify-icon>Suppliers</a>
+        <a href="#" class="mk-nav-item"><iconify-icon icon="ph:chart-bar" width="20" aria-hidden="true"></iconify-icon>Reports</a>
+      </nav>
+    </aside>
+    <div class="flex-1 min-w-0">
+      <header class="h-14 bg-surface border-b border-default flex items-center gap-3 px-4 lg:px-6">
+        <span class="font-semibold lg:hidden">Procura</span>
+        <div class="relative hidden sm:block w-80"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted"><iconify-icon icon="ph:magnifying-glass" width="16" aria-hidden="true"></iconify-icon></span><input class="mk-input pl-9" placeholder="Search PO no. or supplier" aria-label="Search purchase orders"></div>
+        <button class="mk-btn mk-btn-ghost mk-btn-icon ml-auto" aria-label="Notifications" title="Notifications"><iconify-icon icon="ph:bell" width="20" aria-hidden="true"></iconify-icon></button>
+        <span class="mk-avatar">SK</span>
+      </header>
+      <main class="p-4 lg:p-6 max-w-6xl space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <h1 class="text-2xl font-semibold">Purchase orders</h1>
+          <button class="mk-btn mk-btn-primary" onclick="showScreen('po-form:mock')"><iconify-icon icon="ph:plus" width="20" aria-hidden="true"></iconify-icon>New order</button>
+        </div>
+        <div class="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter by status">
+          <button class="mk-chip" aria-pressed="false">All</button><button class="mk-chip" aria-pressed="true">Pending</button><button class="mk-chip" aria-pressed="false">Approved</button><button class="mk-chip" aria-pressed="false">Rejected</button><button class="mk-chip" aria-pressed="false">Draft</button><span class="anno">1</span>
+        </div>
+        <div data-state="default" class="space-y-4">
+          <div class="mk-card p-0 overflow-x-auto hidden md:block">
+            <table class="mk-table">
+              <thead><tr><th>PO no.</th><th>Supplier</th><th class="hidden lg:table-cell">Requester</th><th class="num">Amount (THB)<span class="anno">2</span></th><th>Status</th></tr></thead>
+              <tbody>
+                <tr class="cursor-pointer" onclick="showScreen('po-detail:mock')"><td class="tabular-nums font-medium text-brand-600">PO-2611-0042</td><td class="max-w-xs">Siam Steel Co., Ltd.</td><td class="hidden lg:table-cell">Somchai K.</td><td class="num">128,450.00</td><td><span class="mk-badge mk-badge-warning">Pending approval</span></td></tr>
+                <tr class="cursor-pointer" onclick="showScreen('po-detail:mock')"><td class="tabular-nums font-medium text-brand-600">PO-2611-0041</td><td class="max-w-xs">Bangkok Office Supplies (Head Office, Ratchada branch)</td><td class="hidden lg:table-cell">Nattaya P.</td><td class="num">9,900.00</td><td><span class="mk-badge mk-badge-success">Approved</span></td></tr>
+                <tr class="cursor-pointer" onclick="showScreen('po-detail:mock')"><td class="tabular-nums font-medium text-brand-600">PO-2611-0040</td><td class="max-w-xs">Thai Logistics Partners</td><td class="hidden lg:table-cell">Somchai K.</td><td class="num">54,000.00</td><td><span class="mk-badge mk-badge-danger">Rejected</span></td></tr>
+                <tr class="cursor-pointer" onclick="showScreen('po-detail:mock')"><td class="tabular-nums font-medium text-brand-600">PO-2611-0039</td><td class="max-w-xs">Chiang Mai Packaging</td><td class="hidden lg:table-cell">Wanchai T.</td><td class="num">2,310.50</td><td><span class="mk-badge mk-badge-warning">Pending approval</span></td></tr>
+                <tr class="cursor-pointer" onclick="showScreen('po-detail:mock')"><td class="tabular-nums font-medium text-brand-600">PO-2611-0038</td><td class="max-w-xs">Eastern Seaboard Industrial Gas Co., Ltd.</td><td class="hidden lg:table-cell">Nattaya P.</td><td class="num">310,000.00</td><td><span class="mk-badge">Draft</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul class="md:hidden space-y-2">
+            <li><button class="mk-card p-4 w-full text-left space-y-1" onclick="showScreen('po-detail:mock')"><span class="flex items-center justify-between gap-2"><span class="font-medium tabular-nums">PO-2611-0042</span><span class="mk-badge mk-badge-warning">Pending approval</span></span><span class="block text-sm text-muted truncate">Siam Steel Co., Ltd.</span><span class="block text-right tabular-nums">128,450.00 THB</span></button></li>
+            <li><button class="mk-card p-4 w-full text-left space-y-1" onclick="showScreen('po-detail:mock')"><span class="flex items-center justify-between gap-2"><span class="font-medium tabular-nums">PO-2611-0041</span><span class="mk-badge mk-badge-success">Approved</span></span><span class="block text-sm text-muted truncate">Bangkok Office Supplies (Head Office, Ratchada branch)</span><span class="block text-right tabular-nums">9,900.00 THB</span></button></li>
+            <li><button class="mk-card p-4 w-full text-left space-y-1" onclick="showScreen('po-detail:mock')"><span class="flex items-center justify-between gap-2"><span class="font-medium tabular-nums">PO-2611-0040</span><span class="mk-badge mk-badge-danger">Rejected</span></span><span class="block text-sm text-muted truncate">Thai Logistics Partners</span><span class="block text-right tabular-nums">54,000.00 THB</span></button></li>
+            <li><button class="mk-card p-4 w-full text-left space-y-1" onclick="showScreen('po-detail:mock')"><span class="flex items-center justify-between gap-2"><span class="font-medium tabular-nums">PO-2611-0039</span><span class="mk-badge mk-badge-warning">Pending approval</span></span><span class="block text-sm text-muted truncate">Chiang Mai Packaging</span><span class="block text-right tabular-nums">2,310.50 THB</span></button></li>
+            <li><button class="mk-card p-4 w-full text-left space-y-1" onclick="showScreen('po-detail:mock')"><span class="flex items-center justify-between gap-2"><span class="font-medium tabular-nums">PO-2611-0038</span><span class="mk-badge">Draft</span></span><span class="block text-sm text-muted truncate">Eastern Seaboard Industrial Gas Co., Ltd.</span><span class="block text-right tabular-nums">310,000.00 THB</span></button></li>
+          </ul>
+          <div class="flex items-center justify-between md:justify-end gap-3">
+            <span class="text-sm text-muted">1–50 of 1,284</span>
+            <nav class="mk-pagination" aria-label="Pagination"><button class="mk-page" disabled aria-label="Previous page">‹</button><button class="mk-page" aria-current="page">1</button><button class="mk-page">2</button><button class="mk-page hidden sm:inline-flex">3</button><button class="mk-page" aria-label="Next page">›</button></nav><span class="anno">3</span>
+          </div>
+        </div>
+        <div data-state="empty" class="mk-card mk-empty">
+          <span class="text-neutral-400"><iconify-icon icon="ph:tray" width="48" aria-hidden="true"></iconify-icon></span>
+          <p class="font-medium">No purchase orders yet</p>
+          <p class="text-sm text-muted mb-2">Create your first order to start tracking spend</p>
+          <button class="mk-btn mk-btn-primary" onclick="showScreen('po-form:mock')"><iconify-icon icon="ph:plus" width="20" aria-hidden="true"></iconify-icon>New order</button>
+        </div>
+        <div data-state="loading" class="mk-card space-y-3" aria-busy="true" aria-label="Loading purchase orders">
+          <div class="mk-skeleton w-1/3"></div><div class="mk-skeleton"></div><div class="mk-skeleton"></div><div class="mk-skeleton w-5/6"></div>
+        </div>
+        <div data-state="error" class="mk-alert mk-alert-danger items-center" role="alert">
+          <span class="flex-1">Couldn't load orders — check your connection</span>
+          <button class="mk-btn mk-btn-secondary mk-btn-sm"><iconify-icon icon="ph:arrow-clockwise" width="16" aria-hidden="true"></iconify-icon>Retry</button>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+<!-- ════════ /SCREEN: po-list:mock ════════ -->
+
+<!-- ════════ SCREEN: po-detail:mock ════════ -->
+<section class="screen" id="po-detail:mock" data-title="Purchase order detail" data-module="Purchasing" data-device="responsive"
+         data-notes="Amount, supplier and status always visible together|Reject requires a reason shown to the requester" data-hint="Click Reject to open the dialog (shown with its validation error); on Mobile the actions move to a sticky bottom bar">
+  <div class="min-h-screen bg-page text-body lg:flex">
+    <aside class="hidden lg:flex lg:flex-col w-60 shrink-0 bg-surface border-r border-default p-3 gap-1">
+      <p class="font-semibold text-lg px-3 py-2 mb-2">Procura</p>
+      <nav class="space-y-1" aria-label="Main">
+        <a href="#" class="mk-nav-item" aria-current="page" onclick="showScreen('po-list:mock');return false"><iconify-icon icon="ph:file-text" width="20" aria-hidden="true"></iconify-icon>Purchase orders</a>
+        <a href="#" class="mk-nav-item"><iconify-icon icon="ph:buildings" width="20" aria-hidden="true"></iconify-icon>Suppliers</a>
+        <a href="#" class="mk-nav-item"><iconify-icon icon="ph:chart-bar" width="20" aria-hidden="true"></iconify-icon>Reports</a>
+      </nav>
+    </aside>
+    <div class="flex-1 min-w-0">
+      <header class="h-14 bg-surface border-b border-default flex items-center gap-3 px-4 lg:px-6">
+        <span class="font-semibold lg:hidden">Procura</span>
+        <div class="relative hidden sm:block w-80"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted"><iconify-icon icon="ph:magnifying-glass" width="16" aria-hidden="true"></iconify-icon></span><input class="mk-input pl-9" placeholder="Search PO no. or supplier" aria-label="Search purchase orders"></div>
+        <button class="mk-btn mk-btn-ghost mk-btn-icon ml-auto" aria-label="Notifications" title="Notifications"><iconify-icon icon="ph:bell" width="20" aria-hidden="true"></iconify-icon></button>
+        <span class="mk-avatar">SK</span>
+      </header>
+      <main class="p-4 lg:p-6 max-w-6xl space-y-5 pb-28 lg:pb-6">
+        <nav class="mk-breadcrumb" aria-label="Breadcrumb"><a href="#" onclick="showScreen('po-list:mock');return false">Purchase orders</a><span aria-current="page">PO-2611-0042</span></nav>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-3"><h1 class="text-2xl font-semibold tabular-nums">PO-2611-0042</h1><span class="mk-badge mk-badge-warning">Pending approval</span></div>
+            <p class="text-sm text-muted">Siam Steel Co., Ltd. · requested by Somchai K. on 21/11/2026</p>
+          </div>
+          <div class="hidden lg:flex gap-2">
+            <button class="mk-btn mk-btn-secondary" onclick="document.getElementById('reject-dlg').classList.remove('hidden')"><iconify-icon icon="ph:x-circle" width="20" aria-hidden="true"></iconify-icon>Reject</button>
+            <button class="mk-btn mk-btn-primary" onclick="showScreen('po-list:mock')"><iconify-icon icon="ph:check-circle" width="20" aria-hidden="true"></iconify-icon>Approve</button><span class="anno">2</span>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-3 gap-3">
+          <div class="mk-stat"><span class="text-sm text-muted">Amount</span><b>128,450.00 THB</b></div>
+          <div class="mk-stat"><span class="text-sm text-muted">Needed by</span><b>05/12/2026</b></div>
+          <div class="mk-stat"><span class="text-sm text-muted">Cost center</span><b>CC-210 Plant</b><span class="anno">1</span></div>
+        </div>
+        <div class="mk-alert" role="status">Within your approval limit of 500,000 THB</div>
+        <div class="mk-tabs" role="tablist"><button class="mk-tab" role="tab" aria-selected="false">Details</button><button class="mk-tab" role="tab" aria-selected="true">Line items (4)</button><button class="mk-tab" role="tab" aria-selected="false">History</button></div>
+        <div class="mk-card p-0 overflow-x-auto">
+          <table class="mk-table">
+            <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Total (THB)</th></tr></thead>
+            <tbody>
+              <tr><td>Steel sheet 2mm 4×8 ft</td><td class="num">120</td><td class="num">850.00</td><td class="num">102,000.00</td></tr>
+              <tr><td>Galvanized pipe 1" × 6 m</td><td class="num">40</td><td class="num">412.50</td><td class="num">16,500.00</td></tr>
+              <tr><td>Welding rod E6013 3.2 mm (5 kg box)</td><td class="num">15</td><td class="num">530.00</td><td class="num">7,950.00</td></tr>
+              <tr><td>Delivery to Rayong plant</td><td class="num">1</td><td class="num">2,000.00</td><td class="num">2,000.00</td></tr>
+              <tr><td class="font-semibold">Total</td><td></td><td></td><td class="num font-semibold">128,450.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+      <div class="lg:hidden fixed bottom-0 inset-x-0 bg-surface border-t border-default p-3 flex gap-2">
+        <button class="mk-btn mk-btn-secondary mk-btn-lg flex-1" onclick="document.getElementById('reject-dlg').classList.remove('hidden')"><iconify-icon icon="ph:x-circle" width="20" aria-hidden="true"></iconify-icon>Reject</button>
+        <button class="mk-btn mk-btn-primary mk-btn-lg flex-1" onclick="showScreen('po-list:mock')"><iconify-icon icon="ph:check-circle" width="20" aria-hidden="true"></iconify-icon>Approve</button>
+      </div>
+      <div id="reject-dlg" class="mk-scrim hidden">
+        <div class="mk-modal space-y-4" role="dialog" aria-modal="true" aria-labelledby="rj-title">
+          <h2 id="rj-title" class="text-lg font-semibold">Reject PO-2611-0042?</h2>
+          <p class="text-sm text-muted">Somchai K. will see your reason and can edit and resubmit.</p>
+          <div class="mk-field">
+            <label for="rj-reason" class="mk-label mk-req">Reason</label>
+            <textarea id="rj-reason" class="mk-textarea" aria-invalid="true" aria-describedby="rj-err">No</textarea>
+            <p id="rj-err" class="mk-error">Tell the requester why (at least 5 characters).</p>
+          </div>
+          <div class="flex justify-end gap-2"><button class="mk-btn mk-btn-secondary" onclick="document.getElementById('reject-dlg').classList.add('hidden')">Cancel</button><button class="mk-btn mk-btn-danger">Reject order</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ════════ /SCREEN: po-detail:mock ════════ -->
+
+<!-- ════════ SCREEN: po-form:mock ════════ -->
+<section class="screen" id="po-form:mock" data-title="New purchase order" data-module="Purchasing" data-device="responsive"
+         data-notes="Error text below the field, wording from the Fields table">
+  <div class="min-h-screen bg-page text-body lg:flex">
+    <aside class="hidden lg:flex lg:flex-col w-60 shrink-0 bg-surface border-r border-default p-3 gap-1">
+      <p class="font-semibold text-lg px-3 py-2 mb-2">Procura</p>
+      <nav class="space-y-1" aria-label="Main">
+        <a href="#" class="mk-nav-item" aria-current="page" onclick="showScreen('po-list:mock');return false"><iconify-icon icon="ph:file-text" width="20" aria-hidden="true"></iconify-icon>Purchase orders</a>
+        <a href="#" class="mk-nav-item"><iconify-icon icon="ph:buildings" width="20" aria-hidden="true"></iconify-icon>Suppliers</a>
+        <a href="#" class="mk-nav-item"><iconify-icon icon="ph:chart-bar" width="20" aria-hidden="true"></iconify-icon>Reports</a>
+      </nav>
+    </aside>
+    <div class="flex-1 min-w-0">
+      <header class="h-14 bg-surface border-b border-default flex items-center gap-3 px-4 lg:px-6">
+        <span class="font-semibold lg:hidden">Procura</span>
+        <div class="relative hidden sm:block w-80"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted"><iconify-icon icon="ph:magnifying-glass" width="16" aria-hidden="true"></iconify-icon></span><input class="mk-input pl-9" placeholder="Search PO no. or supplier" aria-label="Search purchase orders"></div>
+        <button class="mk-btn mk-btn-ghost mk-btn-icon ml-auto" aria-label="Notifications" title="Notifications"><iconify-icon icon="ph:bell" width="20" aria-hidden="true"></iconify-icon></button>
+        <span class="mk-avatar">SK</span>
+      </header>
+      <main class="p-4 lg:p-6 max-w-3xl space-y-5">
+        <nav class="mk-breadcrumb" aria-label="Breadcrumb"><a href="#" onclick="showScreen('po-list:mock');return false">Purchase orders</a><span aria-current="page">New order</span></nav>
+        <h1 class="text-2xl font-semibold">New purchase order</h1>
+        <div class="mk-card p-6 space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="mk-field"><label for="pf-sup" class="mk-label mk-req">Supplier</label>
+              <select id="pf-sup" class="mk-select"><option>Siam Steel Co., Ltd.</option><option>Thai Logistics Partners</option></select></div>
+            <div class="mk-field"><label for="pf-cc" class="mk-label mk-req">Cost center</label>
+              <select id="pf-cc" class="mk-select"><option>CC-210 Plant</option><option>CC-100 Head office</option></select></div>
+            <div class="mk-field"><label for="pf-amt" class="mk-label mk-req">Amount (THB)</label>
+              <input id="pf-amt" class="mk-input text-right tabular-nums" inputmode="decimal" value="0" aria-invalid="true" aria-describedby="pf-amt-e">
+              <p id="pf-amt-e" class="mk-error">Enter an amount above 0.<span class="anno">1</span></p></div>
+            <div class="mk-field"><label for="pf-date" class="mk-label mk-req">Needed by</label>
+              <input id="pf-date" class="mk-input" value="05/12/2026" aria-describedby="pf-date-h"><p id="pf-date-h" class="mk-help">dd/MM/yyyy</p></div>
+          </div>
+          <div class="mk-field"><label for="pf-note" class="mk-label">Note to approver</label>
+            <textarea id="pf-note" class="mk-textarea" aria-describedby="pf-note-h" placeholder="Why is this needed, and by when?"></textarea><p id="pf-note-h" class="mk-help">0 / 500</p></div>
+          <label class="mk-check"><input type="checkbox" checked> Email the supplier a copy once approved</label>
+        </div>
+        <div class="sticky bottom-0 bg-page py-3 flex flex-wrap justify-end gap-2">
+          <button class="mk-btn mk-btn-ghost" onclick="showScreen('po-list:mock')">Cancel</button>
+          <button class="mk-btn mk-btn-secondary">Save draft</button>
+          <button class="mk-btn mk-btn-primary" onclick="showScreen('po-detail:mock')">Submit for approval</button>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+<!-- ════════ /SCREEN: po-form:mock ════════ -->
+
+<!-- ════════ SCREEN: design-system:mock ════════ -->
+<section class="screen" id="design-system:mock" data-title="Design system" data-module="Design system" data-device="responsive"
+         data-notes="" data-hint="Numbers under each color = contrast with white / dark text (body text must be ≥ 4.5). Swatches show the Default theme — switch Theme above to preview variants; the component gallery restyles live.">
+  <div class="min-h-screen bg-page text-body">
+    <div class="max-w-6xl mx-auto p-6 space-y-8">
+      <h1 class="text-xl font-semibold">Design system — colors, typography &amp; components (matches design.md)</h1>
+      <div id="swatches" class="space-y-6"></div>
+      <div class="bg-surface rounded-lg p-6">
+        <p class="font-medium mb-3">Icons <span id="icon-set" class="text-muted text-sm font-normal"></span></p>
+        <div id="icon-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3"></div>
+      </div>
+      <div class="bg-surface rounded-lg p-6 space-y-2">
+        <p class="text-2xl font-semibold">h1 Page title 24px</p>
+        <p class="text-lg font-semibold">h2 Section title 18px</p>
+        <p>body Body text — Thai needs line-height ≥ 1.6 so tone marks never clip</p>
+        <p class="text-xs text-muted">small Caption / helper text 12px</p>
+      </div>
+      <div class="space-y-6">
+        <div><p class="font-medium">Components</p>
+          <p class="text-sm text-muted">mk-* kit from _engine/mockup.css — every state, themed by the tokens above. Copy markup straight into screens.</p></div>
+        <div id="component-gallery" class="space-y-8"></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ════════ /SCREEN: design-system:mock ════════ -->
+</main>
+</body>
+</html>

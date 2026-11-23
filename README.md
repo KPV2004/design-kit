@@ -164,21 +164,23 @@ Re-running it refreshes the copies it installed.
 
 ### Existing design projects
 
-A design project carries its own copy of the tools in `<app>-design/_tools/` — it does not update itself. To give an existing project the latest checks and exporters:
+A design project carries its own copy of the review engine (`_engine/`) and tools (`_tools/`) — it does not update itself. `verify.py` warns when the engine is older than the tools. From the project folder:
 
 ```bash
-cp skills/design-kit/scripts/*.py <app>-design/_tools/
+python _tools/update_engine.py ~/.claude/skills/design-kit   # or the path where you installed the skill
+python _tools/verify.py .
 ```
 
-`_engine/` behaves the same way: each project holds its own copy, so re-create the folder (or copy `skills/design-kit/assets/project/_engine/` over it) when the engine changes. Do this to get the component kits and the state-switcher fixes from the latest release:
-
-```bash
-cp -r skills/design-kit/assets/project/_engine/. <app>-design/_engine/
-```
+It copies the skill's `_engine/` and `scripts/` over the project's copies; your design files are never touched. Without a path it searches the usual install locations. Projects made before 1.2.1 don't have `update_engine.py` yet — copy it once from `skills/design-kit/scripts/`.
 
 ### Releasing a new version
 
-Bump `version` in `.claude-plugin/plugin.json`, add a `CHANGELOG.md` row, then tag `vX.Y.Z` and push — the release workflow attaches the zip to the GitHub Release. Full checklist in [Contributing](#contributing).
+```bash
+./tools/release.sh prepare 1.3.0   # writes the version everywhere, dates the CHANGELOG entry, opens a release PR
+./tools/release.sh tag 1.3.0       # after merging: pushes tag v1.3.0 → the workflow publishes the zip
+```
+
+Details in [Contributing](#contributing).
 
 ## Usage
 
@@ -272,22 +274,40 @@ skills/design-kit/   the skill (this is what gets installed)
   references/            color, icons, enterprise/web/mobile patterns, dev diagrams, accessibility
   assets/project/        the project template (content files + _engine/)
   scripts/               verify.py, sync_diagrams.py, export_tokens.py
-tools/build-skill.sh     builds dist/design-kit.zip for claude.ai
-.github/workflows/       release: tag v* → zip attached to a GitHub Release
+examples/procura-design/ a full design project made with the skill — test fixture and the docs site's live demo
+tests/                   unit tests (scripts) and browser tests (engines, contrast in every theme)
+tools/
+  check.sh               everything CI runs
+  release.sh             prepare / tag a release
+  build-skill.sh         builds dist/design-kit.zip for claude.ai
+docs-site/               the GitHub Pages site (kpv2004.github.io/design-kit)
+.github/workflows/       ci (every PR) · release (tag vX.Y.Z → zip) · docs (Pages)
 ```
 
 ## Contributing
 
 Issues and pull requests are welcome. Publishing your own fork? Run `./tools/set-owner.sh <github-user> "<Your Name>"` once to fill in the install links and manifests.
 
-Before opening a PR:
+Before opening a PR, run what CI runs:
 
 ```bash
-claude plugin validate .            # manifest + marketplace
-./tools/build-skill.sh              # zip builds cleanly
+pip install playwright && playwright install chromium   # once
+./tools/check.sh                                        # or --fast to skip browser tests
+claude plugin validate .                                # manifest + marketplace
 ```
 
-If you change `_engine/`, open `skills/design-kit/assets/project/wireframes.html` and `mock.html` in a browser and check there are no console errors. To release, bump `version` in `.claude-plugin/plugin.json`, update `CHANGELOG.md`, and push a tag `vX.Y.Z` — the workflow checks the tag matches and publishes the zip.
+`check.sh` runs the unit tests, `verify.py` on `examples/procura-design`, browser tests on the template and the example (no JS errors; the State switcher shows exactly one variant; every text ≥ 4.5:1 in every theme at desktop and mobile widths) and builds the zip. If you change `_engine/` or `scripts/`, refresh the example with `cd examples/procura-design && python3 _tools/update_engine.py ../../skills/design-kit` — CI fails while its copies differ. Add a line under `## Unreleased` in `CHANGELOG.md`.
+
+**Releasing** takes two commands, matching the PR workflow:
+
+```bash
+./tools/release.sh prepare 1.3.0   # on an up-to-date main
+# merge the release PR on GitHub, then:
+git switch main && git pull
+./tools/release.sh tag 1.3.0
+```
+
+`prepare` refuses a version that isn't `X.Y.Z` or isn't higher than the current one, writes it to `plugin.json`, `_engine/VERSION`, `verify.py` and the docs site, dates the `## Unreleased` entry, runs the checks and opens the PR. `tag` only tags when `main` already carries that version. The Release workflow only reacts to `vX.Y.Z` tags.
 
 ## License
 

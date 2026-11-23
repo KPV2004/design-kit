@@ -13,6 +13,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from sync_diagrams import extract as extract_diagrams  # noqa: E402
 
+# design-kit version these tools ship with — tools/release.sh keeps it equal to plugin.json and _engine/VERSION
+KIT_VERSION = '1.2.1'
+
 errors, warns = [], []
 err = errors.append
 warn = warns.append
@@ -21,6 +24,26 @@ ID = r'[a-z][a-z0-9-]*'
 
 
 EMOJI = re.compile('[\U0001F000-\U0001FAFF\u2600-\u26FF\u2705\u274C\u2728\u2B50]')
+
+
+def vtuple(v):
+    return tuple(int(x) for x in re.findall(r'\d+', v)[:3])
+
+
+def engine_version_check(folder):
+    """Each project holds its own _engine/ copy, which never updates itself — flag stale ones."""
+    if not (folder / '_engine').is_dir():
+        return
+    vf = folder / '_engine' / 'VERSION'
+    fix = 'run `python _tools/update_engine.py <path-to-skills/design-kit>`'
+    if not vf.exists():
+        warn(f'_engine/ has no VERSION stamp (made before design-kit 1.2.1) — it misses later engine fixes; {fix}')
+        return
+    ev = vf.read_text(encoding='utf-8').strip()
+    if vtuple(ev) < vtuple(KIT_VERSION):
+        warn(f'_engine/ is {ev} but these tools are {KIT_VERSION} — {fix}')
+    elif vtuple(ev) > vtuple(KIT_VERSION):
+        warn(f'_tools/ ({KIT_VERSION}) are older than _engine/ ({ev}) — {fix}')
 
 
 def structure_checks(folder, raw):
@@ -193,6 +216,7 @@ def main(folder):
     strip = lambda h: re.sub(r'<!--.*?-->', '', h, flags=re.S)  # ignore commented-out examples
     raw = {k: files[k].read_text(encoding='utf-8') for k in ('wf', 'mk')}
     structure_checks(folder, raw)
+    engine_version_check(folder)
     design = files['design'].read_text(encoding='utf-8')
     wf = strip(files['wf'].read_text(encoding='utf-8'))
     mk = strip(files['mk'].read_text(encoding='utf-8'))

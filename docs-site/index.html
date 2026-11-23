@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <!--
   Design Kit docs — https://kpv2004.github.io/design-kit/
-  Bilingual (EN/TH) single page. Language sections are marked data-lang="en|th"
-  and toggled by html[data-lang]; the choice is remembered in localStorage.
-  Screenshots are copied from docs/images by .github/workflows/docs.yml.
+  Bilingual (EN/TH) single page. Language blocks are marked data-lang="en|th" and toggled by
+  html[data-lang]; the choice is remembered in localStorage.
+  Assembled by .github/workflows/docs.yml: screenshots from docs/images → images/, CHANGELOG.md
+  (rendered by the script below), and examples/procura-design → demo/ (the live demo).
+  Version: the dk-version meta tag below is the only place it appears — tools/release.sh updates it.
 -->
 <html lang="en" data-lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="dk-version" content="1.2.1">
 <title>Design Kit — wireframes, mockups and specs from a prompt</title>
 <meta name="description" content="A skill that turns an app idea into a complete, reviewable design project: wireframes of every screen, a clickable mock with a theme picker, a stand-alone UX spec, dev diagrams and design tokens — in English or Thai.">
 <link rel="icon" href="icon.png">
@@ -16,255 +19,336 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
-  tailwind.config = { theme: { extend: {
-    fontFamily: { sans: ['Inter', 'Noto Sans Thai', 'system-ui', 'sans-serif'] },
-  } } };
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'Noto Sans Thai', 'system-ui', 'sans-serif'] } } } };
 </script>
 <style>
-  /* Design-kit palette (design.md §2) as :root variables — live-editable with design tools */
+  /* Tokens — light + dark. Contrast: body 14.5:1, muted 4.8:1, brand text 5.2:1 (light); 13.9 / 7.4 / 6.9:1 (dark) */
   :root {
-    --dk-brand-50: #fff7ed; --dk-brand-100: #ffedd5; --dk-brand-600: #ea580c;
-    --dk-brand-700: #c2410c; --dk-brand-800: #9a3412;
-    --dk-page: #fafaf9; --dk-surface: #ffffff; --dk-body: #292524; --dk-muted: #78716c;
-    --dk-border: #e7e5e4; --dk-ink: #1c1917;
+    --dk-brand-50: #fff7ed; --dk-brand-100: #ffedd5; --dk-brand-600: #ea580c; --dk-brand-700: #c2410c; --dk-brand-800: #9a3412;
+    --dk-page: #fafaf9; --dk-surface: #ffffff; --dk-sunken: #f5f5f4; --dk-body: #292524; --dk-muted: #6b6560;
+    --dk-border: #e7e5e4; --dk-ink: #1c1917; --dk-code-bg: #1c1917; --dk-code-fg: #fafaf9;
+    --dk-link: #c2410c; --dk-chip-bg: #fff7ed; --dk-chip-fg: #9a3412; --dk-header: rgba(250,250,249,.94);
+    color-scheme: light;
   }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --dk-page: #0c0a09; --dk-surface: #1c1917; --dk-sunken: #171412; --dk-body: #e7e5e4; --dk-muted: #a8a29e;
+      --dk-border: #2e2a27; --dk-ink: #fafaf9; --dk-code-bg: #000000; --dk-code-fg: #f5f5f4;
+      --dk-link: #fb923c; --dk-chip-bg: #2a1a10; --dk-chip-fg: #fdba74; --dk-header: rgba(12,10,9,.94);
+      color-scheme: dark;
+    }
+  }
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
   body { font-family: Inter, 'Noto Sans Thai', system-ui, sans-serif; background: var(--dk-page); color: var(--dk-body); line-height: 1.65; }
   html[data-lang="th"] body { line-height: 1.75; } /* Thai tone marks need room */
+  html[data-lang="en"] [data-lang="th"], html[data-lang="th"] [data-lang="en"] { display: none !important; }
+
+  .ink { color: var(--dk-ink); } .muted { color: var(--dk-muted); } .link { color: var(--dk-link); text-decoration: underline; text-underline-offset: 2px; }
+  .surface { background: var(--dk-surface); border: 1px solid var(--dk-border); border-radius: 12px; }
+  .sunken { background: var(--dk-sunken); }
+  .divider { border-top: 1px solid var(--dk-border); }
+  .chip { background: var(--dk-chip-bg); color: var(--dk-chip-fg); }
+  .btn { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: 0 1.25rem; border-radius: 8px; font-weight: 500; transition: background-color .15s; }
   .btn-primary { background: var(--dk-brand-700); color: #fff; }
   .btn-primary:hover { background: var(--dk-brand-800); }
-  .btn-ghost { color: var(--dk-brand-700); }
-  .btn-ghost:hover { background: var(--dk-brand-50); }
-  .brand-text { color: var(--dk-brand-700); }
-  .chip { background: var(--dk-brand-50); color: var(--dk-brand-700); }
-  pre { background: var(--dk-ink); color: #fafaf9; border-radius: 8px; padding: 12px 16px; overflow-x: auto; font-size: .85rem; line-height: 1.6; }
-  code.inline { background: var(--dk-brand-50); color: var(--dk-brand-800); border-radius: 4px; padding: 1px 6px; font-size: .85em; }
-  html[data-lang="en"] [data-lang="th"] { display: none; }
-  html[data-lang="th"] [data-lang="en"] { display: none; }
-  .lang-btn[aria-pressed="true"] { background: var(--dk-brand-700); color: #fff; }
-  nav a:hover { color: var(--dk-brand-700); }
+  .btn-secondary { border: 1px solid var(--dk-border); color: var(--dk-ink); background: var(--dk-surface); }
+  .btn-secondary:hover { background: var(--dk-sunken); }
+  :focus-visible { outline: 2px solid var(--dk-brand-600); outline-offset: 2px; border-radius: 4px; }
+  .skip { position: absolute; left: -9999px; } .skip:focus { left: 16px; top: 8px; z-index: 60; background: var(--dk-surface); padding: 8px 12px; }
+
+  .grid > * { min-width: 0; } /* let long code lines scroll inside their card instead of widening the page */
+  pre { position: relative; background: var(--dk-code-bg); color: var(--dk-code-fg); border-radius: 8px; padding: 12px 16px; overflow-x: auto; font-size: .85rem; line-height: 1.6; }
+  pre.has-copy { padding-top: 36px; } /* room for the Copy button so it never covers code */
+  pre .copy { position: absolute; top: 6px; right: 6px; font: 500 12px Inter, sans-serif; color: var(--dk-code-fg); border: 1px solid #ffffff33; border-radius: 6px; padding: 2px 8px; background: #ffffff14; }
+  pre .copy:hover { background: #ffffff29; }
+  code.inline { background: var(--dk-chip-bg); color: var(--dk-chip-fg); border-radius: 4px; padding: 1px 6px; font-size: .85em; }
+
+  .nav a { color: var(--dk-muted); padding: 4px 2px; white-space: nowrap; }
+  .nav a:hover, .nav a.active { color: var(--dk-ink); }
+  .nav a.active { box-shadow: inset 0 -2px var(--dk-brand-600); }
+  .lang-btn { min-height: 32px; } .lang-btn[aria-pressed="true"] { background: var(--dk-brand-700); color: #fff; }
+  .tab { min-height: 40px; padding: 0 14px; border-radius: 8px; color: var(--dk-muted); font-weight: 500; white-space: nowrap; }
+  .tab[aria-selected="true"] { background: var(--dk-surface); color: var(--dk-ink); box-shadow: 0 1px 2px #0000001f, 0 0 0 1px var(--dk-border); }
+  .step-n { width: 32px; height: 32px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; background: var(--dk-brand-700); color: #fff; }
+  .shot { border: 1px solid var(--dk-border); border-radius: 10px; box-shadow: 0 1px 3px #0000001a; }
+  #changelog h3 { color: var(--dk-ink); font-weight: 600; }
+  #changelog li { margin-left: 1.1rem; list-style: disc; }
+  #changelog ul { max-width: 62ch; } /* keep long changelog lines readable */
+  p, li { text-wrap: pretty; } /* no single-word last lines */
+  #changelog li + li { margin-top: .35rem; }
 </style>
 </head>
 <body>
+<a href="#main" class="skip"><span data-lang="en">Skip to content</span><span data-lang="th">ข้ามไปที่เนื้อหา</span></a>
 
 <!-- ════════ NAV ════════ -->
-<header class="sticky top-0 z-40 border-b" style="border-color: var(--dk-border); background: rgba(255,255,255,.92); backdrop-filter: blur(8px);">
+<header class="sticky top-0 z-40 divider" style="border-top:0; border-bottom:1px solid var(--dk-border); background: var(--dk-header); backdrop-filter: blur(8px);">
   <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
-    <img src="icon.png" alt="" width="28" height="28" class="rounded">
-    <span class="font-semibold">Design Kit</span>
-    <nav class="hidden md:flex items-center gap-4 text-sm" style="color: var(--dk-muted);">
-      <span data-lang="en"><a href="#features">Features</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#update">Update</a></span>
-      <span data-lang="th"><a href="#features">ฟีเจอร์</a> · <a href="#install">ติดตั้ง</a> · <a href="#usage">วิธีใช้</a> · <a href="#update">อัปเดต</a></span>
+    <a href="#top" class="flex items-center gap-2 shrink-0"><img src="icon.png" alt="" width="28" height="28" class="rounded"><span class="font-semibold ink">Design Kit</span></a>
+    <nav class="nav hidden md:flex items-center gap-5 text-sm" aria-label="Sections">
+      <a href="#demo"><span data-lang="en">Demo</span><span data-lang="th">ตัวอย่าง</span></a>
+      <a href="#features"><span data-lang="en">Features</span><span data-lang="th">ฟีเจอร์</span></a>
+      <a href="#install"><span data-lang="en">Install</span><span data-lang="th">ติดตั้ง</span></a>
+      <a href="#usage"><span data-lang="en">Usage</span><span data-lang="th">วิธีใช้</span></a>
+      <a href="#update"><span data-lang="en">Update</span><span data-lang="th">อัปเดต</span></a>
+      <a href="#changelog-section"><span data-lang="en">Changelog</span><span data-lang="th">Changelog</span></a>
     </nav>
-    <div class="ml-auto flex items-center gap-2">
-      <div class="flex items-center rounded-md border text-xs font-medium" style="border-color: var(--dk-border);">
-        <button class="lang-btn px-2 py-1 rounded-l-md" data-lang-btn="en" aria-pressed="true" onclick="setLang('en')">EN</button>
-        <button class="lang-btn px-2 py-1 rounded-r-md" data-lang-btn="th" aria-pressed="false" onclick="setLang('th')">ไทย</button>
+    <div class="ml-auto flex items-center gap-3">
+      <div class="flex items-center rounded-md text-xs font-medium" style="border:1px solid var(--dk-border);" role="group" aria-label="Language">
+        <button class="lang-btn px-2.5 rounded-l-md" data-lang-btn="en" aria-pressed="true" onclick="setLang('en')">EN</button>
+        <button class="lang-btn px-2.5 rounded-r-md" data-lang-btn="th" aria-pressed="false" onclick="setLang('th')">ไทย</button>
       </div>
-      <a href="https://github.com/KPV2004/design-kit" class="text-sm underline brand-text">GitHub</a>
+      <a href="https://github.com/KPV2004/design-kit" class="text-sm link">GitHub</a>
     </div>
   </div>
+  <!-- Mobile: same section links, horizontally scrollable -->
+  <nav class="nav md:hidden flex gap-5 overflow-x-auto px-4 pb-2 text-sm" aria-label="Sections">
+    <a href="#demo"><span data-lang="en">Demo</span><span data-lang="th">ตัวอย่าง</span></a>
+    <a href="#features"><span data-lang="en">Features</span><span data-lang="th">ฟีเจอร์</span></a>
+    <a href="#install"><span data-lang="en">Install</span><span data-lang="th">ติดตั้ง</span></a>
+    <a href="#usage"><span data-lang="en">Usage</span><span data-lang="th">วิธีใช้</span></a>
+    <a href="#update"><span data-lang="en">Update</span><span data-lang="th">อัปเดต</span></a>
+    <a href="#changelog-section">Changelog</a>
+  </nav>
 </header>
 
+<main id="main">
 <!-- ════════ HERO ════════ -->
-<section class="max-w-6xl mx-auto px-4 pt-14 pb-10">
-  <a href="https://github.com/KPV2004/design-kit/releases/tag/v1.1.0" class="chip text-xs rounded-full px-3 py-1 font-medium">v1.1.0</a>
+<section id="top" class="max-w-6xl mx-auto px-4 pt-14 pb-12">
+  <a data-version-link href="https://github.com/KPV2004/design-kit/releases/latest" class="chip inline-flex text-xs rounded-full px-3 py-1 font-medium">
+    <span data-lang="en">v<span data-version>1.2.1</span> — component kits for wireframes &amp; mock</span>
+    <span data-lang="th">v<span data-version>1.2.1</span> — ชุด component สำหรับ wireframe และ mock</span>
+  </a>
   <div data-lang="en">
-    <h1 class="text-4xl font-bold mt-4" style="color: var(--dk-ink);">Describe an app.<br>Get a complete, reviewable design project.</h1>
-    <p class="text-lg mt-4 max-w-2xl" style="color: var(--dk-muted);">A skill for Claude and other AI agents that turns one prompt into wireframes of every screen, a clickable HTML + Tailwind mock with a realtime theme picker, a stand-alone UX spec, dev diagrams and design tokens — all kept in sync when you ask for a change.</p>
+    <h1 class="text-4xl md:text-5xl font-bold mt-5 ink leading-tight">Describe an app.<br>Get a complete, reviewable design project.</h1>
+    <p class="text-lg mt-5 max-w-2xl muted">A skill for Claude and other AI agents that turns one prompt into wireframes of every screen, a clickable mock with a realtime theme picker, a stand-alone UX spec, dev diagrams and design tokens — kept in sync whenever you ask for a change.</p>
   </div>
   <div data-lang="th">
-    <h1 class="text-4xl font-bold mt-4" style="color: var(--dk-ink);">บอกไอเดียแอป<br>ได้โปรเจกต์ดีไซน์ที่รีวิวได้ครบสำหรับส่งทีม dev</h1>
-    <p class="text-lg mt-4 max-w-2xl" style="color: var(--dk-muted);">Skill สำหรับ Claude และ AI agent อื่น ๆ เปลี่ยนพรอมป์เดียวเป็น wireframe ทุกหน้าจอ, mock แบบคลิกได้พร้อมเลือก theme แบบเรียลไทม์, UX spec ที่ dev เอาไปใช้ได้เลย, diagram สำหรับ dev และ design tokens — แก้ที่ไหน ทุกไฟล์อัปเดตตาม</p>
+    <h1 class="text-4xl md:text-5xl font-bold mt-5 ink" style="line-height:1.35">บอกไอเดียแอป<br>ได้โปรเจกต์ดีไซน์ที่รีวิวได้ครบ พร้อมส่งทีม dev</h1>
+    <p class="text-lg mt-5 max-w-2xl muted">Skill สำหรับ Claude และ AI agent อื่น ๆ เปลี่ยนพรอมป์เดียวเป็น wireframe ทุกหน้าจอ, mock ที่คลิกได้พร้อมเลือก theme แบบเรียลไทม์, UX spec ที่ dev ใช้ได้เลย, diagram และ design tokens — แก้ตรงไหน ทุกไฟล์อัปเดตตาม</p>
   </div>
-  <div class="flex flex-wrap gap-3 mt-6">
-    <a href="#install" class="btn-primary rounded-md px-5 py-2.5 font-medium" data-lang="en">Install the skill</a>
-    <a href="#install" class="btn-primary rounded-md px-5 py-2.5 font-medium" data-lang="th">ติดตั้ง skill</a>
-    <a href="https://github.com/KPV2004/design-kit/releases/latest" class="btn-ghost rounded-md px-5 py-2.5 font-medium border" style="border-color: var(--dk-border);" data-lang="en">Download v1.1.0 zip (claude.ai)</a>
-    <a href="https://github.com/KPV2004/design-kit/releases/latest" class="btn-ghost rounded-md px-5 py-2.5 font-medium border" style="border-color: var(--dk-border);" data-lang="th">ดาวน์โหลด v1.1.0 zip (claude.ai)</a>
+  <div class="flex flex-wrap gap-3 mt-7">
+    <a href="#install" class="btn btn-primary"><span data-lang="en">Install the skill</span><span data-lang="th">ติดตั้ง skill</span></a>
+    <a href="demo/mock.html" class="btn btn-secondary"><span data-lang="en">Open the live demo</span><span data-lang="th">เปิดตัวอย่างจริง</span></a>
   </div>
-  <img src="images/wireframe-devices.png" alt="Wireframes with desktop, tablet and mobile frames and a pinned comment" class="rounded-lg border shadow-sm mt-10" style="border-color: var(--dk-border);">
+  <img src="images/wireframe-devices.png" alt="Wireframes with desktop, tablet and mobile frames side by side and a pinned review comment" class="shot mt-12 w-full">
+</section>
+
+<!-- ════════ DEMO ════════ -->
+<section id="demo" class="sunken divider">
+  <div class="max-w-6xl mx-auto px-4 py-14">
+    <div data-lang="en">
+      <h2 class="text-2xl font-semibold ink">Try a real output</h2>
+      <p class="mt-2 muted max-w-3xl"><b class="ink">Procura</b> — a purchase-order approval app made with the skill and used as its test fixture. Five screens, responsive, light and dark, verified by <code class="inline">verify.py</code> on every change.</p>
+    </div>
+    <div data-lang="th">
+      <h2 class="text-2xl font-semibold ink">ลองเปิดผลงานจริง</h2>
+      <p class="mt-2 muted max-w-3xl"><b class="ink">Procura</b> — แอปอนุมัติใบสั่งซื้อที่สร้างด้วย skill นี้ และใช้เป็นชุดทดสอบของโปรเจกต์ มี 5 หน้าจอ รองรับทุกขนาดจอ ทั้ง theme สว่างและมืด ผ่าน <code class="inline">verify.py</code> ทุกครั้งที่มีการแก้</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 mt-8">
+      <a href="demo/wireframes.html" class="surface p-5 block hover:shadow-md transition-shadow">
+        <p class="font-semibold ink">wireframes.html →</p>
+        <p class="text-sm mt-1 muted" data-lang="en">Every screen low-fi, Desktop / Tablet / Mobile, zoom, pinned comments, Diagrams and Components pages.</p>
+        <p class="text-sm mt-1 muted" data-lang="th">ทุกหน้าแบบ low-fi, Desktop / Tablet / Mobile, ซูม, ปักหมุดความเห็น, หน้า Diagrams และ Components</p>
+      </a>
+      <a href="demo/mock.html" class="surface p-5 block hover:shadow-md transition-shadow">
+        <p class="font-semibold ink">mock.html →</p>
+        <p class="text-sm mt-1 muted" data-lang="en">Clickable hi-fi: switch device, state (empty / loading / error) and theme in the toolbar.</p>
+        <p class="text-sm mt-1 muted" data-lang="th">hi-fi ที่คลิกได้: สลับอุปกรณ์, state (ว่าง / โหลด / ผิดพลาด) และ theme ได้จาก toolbar</p>
+      </a>
+      <a href="https://github.com/KPV2004/design-kit/tree/main/examples/procura-design" class="surface p-5 block hover:shadow-md transition-shadow">
+        <p class="font-semibold ink">design.md · ux-spec.md →</p>
+        <p class="text-sm mt-1 muted" data-lang="en">The source of truth: tokens with contrast ratios, state matrix, exact error text, API contract.</p>
+        <p class="text-sm mt-1 muted" data-lang="th">แหล่งข้อมูลหลัก: tokens พร้อมค่า contrast, ตาราง state, ข้อความ error, API contract</p>
+      </a>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4 mt-6">
+      <img src="images/mockup-design-system.png" alt="Design system page with contrast-checked color swatches" class="shot w-full" loading="lazy">
+      <img src="images/diagrams.png" alt="Diagrams page showing a sequence diagram" class="shot w-full" loading="lazy">
+    </div>
+  </div>
 </section>
 
 <!-- ════════ FEATURES ════════ -->
-<section id="features" class="max-w-6xl mx-auto px-4 py-12">
+<section id="features" class="max-w-6xl mx-auto px-4 py-14">
   <div data-lang="en">
-    <h2 class="text-2xl font-semibold">What you get</h2>
-    <p class="mt-2" style="color: var(--dk-muted);">One folder, six deliverables, all cross-checked by a script before handover.</p>
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Wireframes — every screen</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Login, 403/404, empty states, session expired — not just the happy path. Desktop / Tablet / Mobile frames per screen, zoom &amp; pan, 💬 pinned comments, diagrams page, and a Components page with ~35 copyable <code class="inline">wf-*</code> blocks.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Clickable mock + theme picker</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Hi-fi Tailwind mock (<code class="inline">mock.html</code>) with device preview, state switcher and a realtime theme picker — Default / Dark / palette presets from design.md §2.9. Built from a themeable <code class="inline">mk-*</code> component kit with every state and AA-safe dark text.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">A spec devs implement from</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Per-screen state matrix, exact error text, interactions, copy deck (EN/TH), API contract — the spec stands alone, nobody reopens app code.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Dev diagrams</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">User flow, ER, state and sequence diagrams as Mermaid — synced into the wireframes page and matching the API table exactly.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Design tokens</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">WCAG-AA-checked palette, <code class="inline">tokens.css / tailwind.config.js / tokens.json</code> — plus a platform mapping for Flutter / native constants.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Changes propagate + verify</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">"Add a phone field" updates every affected file. <code class="inline">verify.py</code> checks inventory ↔ wireframes ↔ spec ↔ mock pairing before anything is handed over.</p></div>
+    <h2 class="text-2xl font-semibold ink">What you get</h2>
+    <p class="mt-2 muted">One folder, cross-checked by a script before handover.</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+      <div class="surface p-5"><h3 class="font-semibold ink">Wireframes — every screen</h3><p class="text-sm mt-2 muted">Login, 403/404, empty states, session expired — not just the happy path. Desktop / Tablet / Mobile frames, zoom &amp; pan, pinned comments.</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">Component kits</h3><p class="text-sm mt-2 muted">~35 grayscale <code class="inline">wf-*</code> blocks and themeable <code class="inline">mk-*</code> components with every state built in — galleries with copyable markup in both files.</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">Clickable mock + themes</h3><p class="text-sm mt-2 muted">Device preview, state switcher, realtime theme picker (Default / Dark / presets). Text stays ≥ 4.5:1 in every theme.</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">A spec devs implement from</h3><p class="text-sm mt-2 muted">State matrix, exact error text, interactions, copy deck (EN/TH), API contract — nobody reopens app code.</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">Dev diagrams + tokens</h3><p class="text-sm mt-2 muted">User flow, ER, state and sequence diagrams in Mermaid; <code class="inline">tokens.css</code> / Tailwind / JSON with dark values and a Flutter mapping.</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">Changes propagate, then verify</h3><p class="text-sm mt-2 muted">"Add a phone field" edits every affected file. <code class="inline">verify.py</code> checks pairing, tokens, icons, diagrams and stale engines.</p></div>
     </div>
   </div>
   <div data-lang="th">
-    <h2 class="text-2xl font-semibold">สิ่งที่ได้</h2>
-    <p class="mt-2" style="color: var(--dk-muted);">โฟลเดอร์เดียว ครบทั้งหมด และมีสคริปต์ตรวจความสอดคล้องก่อนส่งมอบทุกครั้ง</p>
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Wireframe — ครบทุกหน้าจอ</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Login, 403/404, หน้าว่าง, session หมดอายุ — ไม่ใช่แค่ happy path มี frame Desktop / Tablet / Mobile ต่อหน้า, ซูม-เลื่อน, 💬 ปักหมุดความเห็น, หน้า Diagrams และหน้า Components ที่มี <code class="inline">wf-*</code> ~35 ชิ้นให้ copy</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Mock คลิกได้ + เลือก theme</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">mock.html แบบ hi-fi มี device preview, สลับ state (ว่าง/โหลด/ผิดพลาด) และเลือก theme แบบเรียลไทม์ — Default / Dark / preset โทนสี จาก design.md §2.9 สร้างจากชุด component <code class="inline">mk-*</code> ที่มีทุก state และสีตัวอักษรผ่าน AA ใน theme มืด</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Spec ที่ dev เอาไปใช้ได้เลย</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">ตาราง state ของทุกหน้า, ข้อความ error ตรงตามโค้ด, ตาราง interactions, copy deck (EN/TH) และ API contract — spec อยู่ได้ด้วยตัวเอง ไม่ต้องเปิดโค้ดเดิม</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Diagram สำหรับ dev</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">User flow, ER, state, sequence ในรูปแบบ Mermaid — sync เข้าหน้า wireframe และตรงกับตาราง API เป๊ะ</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Design tokens</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">พาเลตตรวจ WCAG AA แล้ว, ออกเป็น tokens.css / tailwind.config.js / tokens.json พร้อม platform mapping สำหรับ Flutter / native</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">แก้จุดเดียว อัปเดตทุกที่</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">"เพิ่มช่องเบอร์โทร" แก้ทุกไฟล์ที่เกี่ยวข้องพร้อมกัน โดย verify.py ตรวจว่า inventory ↔ wireframes ↔ spec ↔ mock ตรงกันก่อนส่งมอบ</p></div>
+    <h2 class="text-2xl font-semibold ink">สิ่งที่ได้</h2>
+    <p class="mt-2 muted">โฟลเดอร์เดียว มีสคริปต์ตรวจความสอดคล้องก่อนส่งมอบทุกครั้ง</p>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+      <div class="surface p-5"><h3 class="font-semibold ink">Wireframe ครบทุกหน้าจอ</h3><p class="text-sm mt-2 muted">Login, 403/404, หน้าว่าง, session หมดอายุ — ไม่ใช่แค่ happy path มี frame Desktop / Tablet / Mobile, ซูม-เลื่อน, ปักหมุดความเห็น</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">ชุด component</h3><p class="text-sm mt-2 muted"><code class="inline">wf-*</code> แบบขาวดำ ~35 ชิ้น และ <code class="inline">mk-*</code> ที่เปลี่ยนตาม theme พร้อมทุก state — มีแกลเลอรีให้ copy โค้ดทั้งสองไฟล์</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">Mock คลิกได้ + theme</h3><p class="text-sm mt-2 muted">ดูตัวอย่างตามอุปกรณ์, สลับ state, เลือก theme แบบเรียลไทม์ (Default / Dark / preset) ตัวอักษรผ่าน 4.5:1 ทุก theme</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">Spec ที่ dev ใช้ได้เลย</h3><p class="text-sm mt-2 muted">ตาราง state, ข้อความ error ตรงตัว, interactions, copy deck (EN/TH), API contract — ไม่ต้องเปิดโค้ดเดิม</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">Diagram + tokens</h3><p class="text-sm mt-2 muted">User flow, ER, state, sequence ใน Mermaid; <code class="inline">tokens.css</code> / Tailwind / JSON พร้อมค่า dark และ mapping สำหรับ Flutter</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink">แก้จุดเดียว อัปเดตทุกที่</h3><p class="text-sm mt-2 muted">"เพิ่มช่องเบอร์โทร" แก้ทุกไฟล์ที่เกี่ยวข้อง แล้ว <code class="inline">verify.py</code> ตรวจการจับคู่หน้าจอ, tokens, icon, diagram และ engine ที่ล้าสมัย</p></div>
     </div>
   </div>
-  <div class="grid md:grid-cols-2 gap-4 mt-8">
-    <img src="images/mockup-design-system.png" alt="Design system page with contrast-checked swatches" class="rounded-lg border shadow-sm" style="border-color: var(--dk-border);">
-    <img src="images/diagrams.png" alt="Diagrams page showing a sequence diagram" class="rounded-lg border shadow-sm" style="border-color: var(--dk-border);">
+
+  <div class="grid md:grid-cols-3 gap-6 mt-12">
+    <div><span class="step-n">1</span>
+      <p class="font-semibold ink mt-3" data-lang="en">Describe</p><p class="font-semibold ink mt-3" data-lang="th">เล่าไอเดีย</p>
+      <p class="text-sm muted mt-1" data-lang="en">Who uses it, what they do, any brand. Bigger apps get an inventory to confirm first.</p>
+      <p class="text-sm muted mt-1" data-lang="th">ใครใช้ ทำอะไร มีแบรนด์ไหม ถ้าแอปใหญ่จะได้รายการหน้าจอให้ยืนยันก่อน</p></div>
+    <div><span class="step-n">2</span>
+      <p class="font-semibold ink mt-3" data-lang="en">Review</p><p class="font-semibold ink mt-3" data-lang="th">รีวิว</p>
+      <p class="text-sm muted mt-1" data-lang="en">Pin comments on the wireframe, export them, paste back — every item is applied across files.</p>
+      <p class="text-sm muted mt-1" data-lang="th">ปักหมุดความเห็นบน wireframe ส่งออกแล้ววางกลับมา — ทุกข้อถูกแก้ในทุกไฟล์ที่เกี่ยวข้อง</p></div>
+    <div><span class="step-n">3</span>
+      <p class="font-semibold ink mt-3" data-lang="en">Hand off</p><p class="font-semibold ink mt-3" data-lang="th">ส่งต่อ</p>
+      <p class="text-sm muted mt-1" data-lang="en">Developers get the spec, tokens and diagrams; AGENTS.md tells any AI how to keep editing safely.</p>
+      <p class="text-sm muted mt-1" data-lang="th">dev ได้ spec, tokens และ diagram ส่วน AGENTS.md บอก AI ตัวถัดไปว่าแก้ต่ออย่างไรให้ปลอดภัย</p></div>
   </div>
 </section>
 
 <!-- ════════ INSTALL ════════ -->
-<section id="install" class="max-w-6xl mx-auto px-4 py-12 border-t" style="border-color: var(--dk-border);">
-  <div data-lang="en">
-    <h2 class="text-2xl font-semibold">Install</h2>
-    <div class="grid lg:grid-cols-2 gap-6 mt-6">
-      <div class="rounded-lg p-5 border bg-white">
-        <h3 class="font-semibold">Claude Code — plugin marketplace <span class="chip text-xs rounded px-2 py-0.5">recommended</span></h3>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">Inside a Claude Code session:</p>
-        <pre><code>/plugin marketplace add KPV2004/design-kit
+<section id="install" class="sunken divider">
+  <div class="max-w-6xl mx-auto px-4 py-14">
+    <h2 class="text-2xl font-semibold ink"><span data-lang="en">Install</span><span data-lang="th">ติดตั้ง</span></h2>
+    <div class="mt-6 flex gap-1 overflow-x-auto p-1 rounded-lg" style="background: var(--dk-border);" role="tablist" aria-label="Install method">
+      <button class="tab" role="tab" id="t-plugin" aria-controls="p-plugin" aria-selected="true">Claude Code<span class="chip text-[11px] rounded px-1.5 ml-2" data-lang="en">recommended</span><span class="chip text-[11px] rounded px-1.5 ml-2" data-lang="th">แนะนำ</span></button>
+      <button class="tab" role="tab" id="t-web" aria-controls="p-web" aria-selected="false" tabindex="-1">Claude.ai</button>
+      <button class="tab" role="tab" id="t-agents" aria-controls="p-agents" aria-selected="false" tabindex="-1"><span data-lang="en">Other agents</span><span data-lang="th">Agent อื่น</span></button>
+      <button class="tab" role="tab" id="t-manual" aria-controls="p-manual" aria-selected="false" tabindex="-1"><span data-lang="en">Manual copy</span><span data-lang="th">Copy เอง</span></button>
+    </div>
+    <div class="surface p-6 mt-4">
+      <div role="tabpanel" id="p-plugin" aria-labelledby="t-plugin" tabindex="0">
+        <p class="text-sm muted" data-lang="en">Inside a Claude Code session:</p><p class="text-sm muted" data-lang="th">ใน session ของ Claude Code:</p>
+        <pre class="mt-2"><code>/plugin marketplace add KPV2004/design-kit
 /plugin install design-kit@design-kit</code></pre>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">Update later with <code class="inline">claude plugin marketplace update design-kit</code> + <code class="inline">claude plugin update design-kit@design-kit</code>. Invoke with <code class="inline">/design-kit:design-kit</code>.</p>
+        <p class="text-sm muted mt-3" data-lang="en">Invoke it by asking for a design, or explicitly with <code class="inline">/design-kit:design-kit</code>.</p>
+        <p class="text-sm muted mt-3" data-lang="th">ขอให้ออกแบบได้เลย หรือเรียกตรง ๆ ด้วย <code class="inline">/design-kit:design-kit</code></p>
       </div>
-      <div class="rounded-lg p-5 border bg-white">
-        <h3 class="font-semibold">Claude.ai (web / desktop)</h3>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">Download <code class="inline">design-kit.zip</code> from the <a class="brand-text underline" href="https://github.com/KPV2004/design-kit/releases/latest">latest release</a>, then <b>Customize → Skills → + → Upload a skill</b>. Needs "Code execution and file creation" enabled.</p>
+      <div role="tabpanel" id="p-web" aria-labelledby="t-web" tabindex="0" hidden>
+        <ol class="text-sm space-y-2 list-decimal ml-5" data-lang="en">
+          <li>Download <code class="inline">design-kit.zip</code> from the <a class="link" href="https://github.com/KPV2004/design-kit/releases/latest">latest release</a>.</li>
+          <li>Enable <b>Code execution and file creation</b> in Settings → Capabilities.</li>
+          <li><b>Customize → Skills → + → Upload a skill</b>, choose the zip.</li>
+        </ol>
+        <ol class="text-sm space-y-2 list-decimal ml-5" data-lang="th">
+          <li>ดาวน์โหลด <code class="inline">design-kit.zip</code> จาก <a class="link" href="https://github.com/KPV2004/design-kit/releases/latest">release ล่าสุด</a></li>
+          <li>เปิด <b>Code execution and file creation</b> ใน Settings → Capabilities</li>
+          <li>ไปที่ <b>Customize → Skills → + → Upload a skill</b> แล้วเลือก zip</li>
+        </ol>
       </div>
-      <div class="rounded-lg p-5 border bg-white">
-        <h3 class="font-semibold">Claude Code — manual copy</h3>
+      <div role="tabpanel" id="p-agents" aria-labelledby="t-agents" tabindex="0" hidden>
+        <p class="text-sm muted" data-lang="en">Standard Agent Skills format — the skills CLI copies it to every agent you have:</p>
+        <p class="text-sm muted" data-lang="th">เป็น Agent Skills รูปแบบมาตรฐาน — skills CLI จะ copy ไปให้ทุก agent ที่มีในเครื่อง:</p>
+        <pre class="mt-2"><code>npx skills add KPV2004/design-kit</code></pre>
+        <p class="text-sm muted mt-3" data-lang="en">Pick agents with <code class="inline">-a codex -a cursor</code>. Written and tested with Claude; other models vary.</p>
+        <p class="text-sm muted mt-3" data-lang="th">เลือก agent ด้วย <code class="inline">-a codex -a cursor</code> เขียนและทดสอบกับ Claude โมเดลอื่นผลอาจต่างกัน</p>
+      </div>
+      <div role="tabpanel" id="p-manual" aria-labelledby="t-manual" tabindex="0" hidden>
         <pre><code>git clone https://github.com/KPV2004/design-kit.git
 cp -r design-kit/skills/design-kit ~/.claude/skills/design-kit</code></pre>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">Use <code class="inline">.claude/skills/</code> in a repo to install it there only.</p>
-      </div>
-      <div class="rounded-lg p-5 border bg-white">
-        <h3 class="font-semibold">Other AI agents</h3>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">Standard Agent Skills format — easiest via the skills CLI:</p>
-        <pre><code>npx skills add KPV2004/design-kit</code></pre>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">Or copy <code class="inline">skills/design-kit</code> into <code class="inline">~/.agents/skills/</code> (Codex, Gemini, Cursor, ZCode…). Restart the agent after copying.</p>
+        <p class="text-sm muted mt-3" data-lang="en">Use <code class="inline">.claude/skills/</code> inside a repo to install for that project only; <code class="inline">~/.agents/skills/</code> for Codex, Cursor and others. Restart the agent after copying.</p>
+        <p class="text-sm muted mt-3" data-lang="th">ใช้ <code class="inline">.claude/skills/</code> ใน repo ถ้าจะติดตั้งเฉพาะโปรเจกต์นั้น และ <code class="inline">~/.agents/skills/</code> สำหรับ Codex, Cursor และอื่น ๆ แล้วรีสตาร์ท agent</p>
       </div>
     </div>
-    <p class="text-sm mt-6" style="color: var(--dk-muted);">Requirements: Python 3.9+ for the helper scripts. Optional: <code class="inline">pip install playwright && playwright install chromium</code> enables browser checks (JS errors, icon names, Mermaid syntax, annotation visibility).</p>
-  </div>
-  <div data-lang="th">
-    <h2 class="text-2xl font-semibold">ติดตั้ง</h2>
-    <div class="grid lg:grid-cols-2 gap-6 mt-6">
-      <div class="rounded-lg p-5 border bg-white">
-        <h3 class="font-semibold">Claude Code — ผ่าน plugin marketplace <span class="chip text-xs rounded px-2 py-0.5">แนะนำ</span></h3>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">ใน session ของ Claude Code:</p>
-        <pre><code>/plugin marketplace add KPV2004/design-kit
-/plugin install design-kit@design-kit</code></pre>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">อัปเดตภายหลังด้วย <code class="inline">claude plugin marketplace update design-kit</code> + <code class="inline">claude plugin update design-kit@design-kit</code> เรียกใช้ด้วย <code class="inline">/design-kit:design-kit</code></p>
-      </div>
-      <div class="rounded-lg p-5 border bg-white">
-        <h3 class="font-semibold">Claude.ai (เว็บ / desktop)</h3>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">ดาวน์โหลด <code class="inline">design-kit.zip</code> จาก <a class="brand-text underline" href="https://github.com/KPV2004/design-kit/releases/latest">release ล่าสุด</a> แล้วไปที่ <b>Customize → Skills → + → Upload a skill</b> (ต้องเปิด "Code execution and file creation")</p>
-      </div>
-      <div class="rounded-lg p-5 border bg-white">
-        <h3 class="font-semibold">Claude Code — copy เอง</h3>
-        <pre><code>git clone https://github.com/KPV2004/design-kit.git
-cp -r design-kit/skills/design-kit ~/.claude/skills/design-kit</code></pre>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">ใช้ <code class="inline">.claude/skills/</code> ใน repo ถ้าจะติดตั้งเฉพาะโปรเจกต์นั้น</p>
-      </div>
-      <div class="rounded-lg p-5 border bg-white">
-        <h3 class="font-semibold">AI agent อื่น</h3>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">เป็น Agent Skills รูปแบบมาตรฐาน ง่ายสุดผ่าน skills CLI:</p>
-        <pre><code>npx skills add KPV2004/design-kit</code></pre>
-        <p class="text-sm mt-2" style="color: var(--dk-muted);">หรือ copy <code class="inline">skills/design-kit</code> ไปที่ <code class="inline">~/.agents/skills/</code> (Codex, Gemini, Cursor, ZCode…) แล้วรีสตาร์ท agent</p>
-      </div>
-    </div>
-    <p class="text-sm mt-6" style="color: var(--dk-muted);">สิ่งที่ต้องมี: Python 3.9+ สำหรับสคริปต์ ไม่บังคับ: <code class="inline">pip install playwright && playwright install chromium</code> เพื่อเปิดการตรวจในเบราว์เซอร์ (JS error, ชื่อ icon, Mermaid, หมุดที่มองไม่เห็น)</p>
+    <p class="text-sm muted mt-4" data-lang="en">Requirements: Python 3.9+. Optional: <code class="inline">pip install playwright &amp;&amp; playwright install chromium</code> turns on browser checks (JS errors, icon names, Mermaid syntax).</p>
+    <p class="text-sm muted mt-4" data-lang="th">สิ่งที่ต้องมี: Python 3.9+ ไม่บังคับ: <code class="inline">pip install playwright &amp;&amp; playwright install chromium</code> เพื่อเปิดการตรวจในเบราว์เซอร์ (JS error, ชื่อ icon, Mermaid)</p>
   </div>
 </section>
 
 <!-- ════════ USAGE ════════ -->
-<section id="usage" class="max-w-6xl mx-auto px-4 py-12 border-t" style="border-color: var(--dk-border);">
+<section id="usage" class="max-w-6xl mx-auto px-4 py-14">
   <div data-lang="en">
-    <h2 class="text-2xl font-semibold">Usage</h2>
-    <p class="mt-2" style="color: var(--dk-muted);">The skill triggers on its own — in English or Thai. For apps with more than ~8 screens it sends you the inventory, flow, palette and icon set to confirm before building anything.</p>
-    <div class="grid lg:grid-cols-2 gap-4 mt-6">
-      <pre><code>Design a purchase-order approval system for a factory:
-list, detail, approve/reject, dashboard.
-Users are office staff who use Dynamics AX all day.</code></pre>
-      <pre><code>ออกแบบแอปจดรายรับรายจ่ายบนมือถือ
-มีหน้าบันทึก สรุปรายเดือน และตั้งงบประมาณ
-สีหลักเป็นสีส้ม แล้วทำ mock พร้อมเลือก theme ให้ด้วย</code></pre>
-    </div>
-    <p class="text-sm mt-4" style="color: var(--dk-muted);">To change something, just say it: <i>"เปลี่ยนสีหลักเป็นเขียว"</i>, <i>"add a Tablet layout"</i>, <i>"remove the dashboard"</i> — every affected file is edited and the version is bumped. Reviewers pin 💬 comments in the wireframe and export them as markdown; Claude applies each item and answers the questions.</p>
+    <h2 class="text-2xl font-semibold ink">Usage</h2>
+    <p class="mt-2 muted max-w-3xl">The skill triggers on its own, in English or Thai. To change something later, just say it — every affected file is edited and the version bumped.</p>
   </div>
   <div data-lang="th">
-    <h2 class="text-2xl font-semibold">วิธีใช้</h2>
-    <p class="mt-2" style="color: var(--dk-muted);">skill ทำงานเองเมื่อขอให้ออกแบบ — ไทยหรืออังกฤษก็ได้ ถ้าแอปมีมากกว่า ~8 หน้าจอ จะส่ง inventory, flow, พาเลต และชุด icon มาให้ยืนยันก่อนลงมือสร้าง</p>
-    <div class="grid lg:grid-cols-2 gap-4 mt-6">
-      <pre><code>Design a purchase-order approval system for a factory:
+    <h2 class="text-2xl font-semibold ink">วิธีใช้</h2>
+    <p class="mt-2 muted max-w-3xl">skill ทำงานเองเมื่อขอให้ออกแบบ จะพิมพ์ไทยหรืออังกฤษก็ได้ อยากแก้อะไรภายหลังก็บอกได้เลย — ทุกไฟล์ที่เกี่ยวข้องถูกแก้และ bump version ให้</p>
+  </div>
+  <div class="grid lg:grid-cols-2 gap-4 mt-6">
+    <pre><code>Design a purchase-order approval system for a factory:
 list, detail, approve/reject, dashboard.
 Users are office staff who use Dynamics AX all day.</code></pre>
-      <pre><code>ออกแบบแอปจดรายรับรายจ่ายบนมือถือ
+    <pre><code>ออกแบบแอปจดรายรับรายจ่ายบนมือถือ
 มีหน้าบันทึก สรุปรายเดือน และตั้งงบประมาณ
 สีหลักเป็นสีส้ม แล้วทำ mock พร้อมเลือก theme ให้ด้วย</code></pre>
-    </div>
-    <p class="text-sm mt-4" style="color: var(--dk-muted);">จะแก้อะไรบอกได้เลย: <i>"เปลี่ยนสีหลักเป็นเขียว"</i>, <i>"add a Tablet layout"</i>, <i>"remove the dashboard"</i> — ทุกไฟล์ที่เกี่ยวข้องถูกแก้และ bump version ผู้รีวิวปัก 💬 ความเห็นใน wireframe แล้วส่งออกเป็น markdown ให้ Claude แก้ตามรายการพร้อมตอบคำถาม</p>
+  </div>
+  <div class="flex flex-wrap gap-2 mt-4 text-sm">
+    <span class="chip rounded-full px-3 py-1">"เปลี่ยนสีหลักเป็นเขียว"</span>
+    <span class="chip rounded-full px-3 py-1">"add a Tablet layout"</span>
+    <span class="chip rounded-full px-3 py-1">"remove the dashboard"</span>
+    <span class="chip rounded-full px-3 py-1">"Wireframe feedback — …"</span>
   </div>
 </section>
 
 <!-- ════════ UPDATE ════════ -->
-<section id="update" class="max-w-6xl mx-auto px-4 py-12 border-t" style="border-color: var(--dk-border);">
-  <div data-lang="en">
-    <h2 class="text-2xl font-semibold">Updating the skill</h2>
+<section id="update" class="sunken divider">
+  <div class="max-w-6xl mx-auto px-4 py-14">
+    <h2 class="text-2xl font-semibold ink"><span data-lang="en">Updating</span><span data-lang="th">การอัปเดต</span></h2>
     <div class="grid lg:grid-cols-2 gap-4 mt-6">
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Marketplace install</h3><pre class="mt-2"><code>claude plugin marketplace update design-kit
-claude plugin update design-kit@design-kit</code></pre></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">claude.ai upload</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Rebuild with <code class="inline">./tools/build-skill.sh</code>, then replace the upload in <b>Customize → Skills</b>.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Manual copy</h3><pre class="mt-2"><code>rsync -a --delete --exclude '__pycache__' \
-  skills/design-kit/ ~/.claude/skills/design-kit/</code></pre><p class="text-sm mt-2" style="color: var(--dk-muted);">Then restart the agent — skills load at startup.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Existing design projects</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Projects carry their own <code class="inline">_tools/</code> and <code class="inline">_engine/</code> — refresh with <code class="inline">cp skills/design-kit/scripts/*.py &lt;project&gt;/_tools/</code>.</p></div>
-    </div>
-  </div>
-  <div data-lang="th">
-    <h2 class="text-2xl font-semibold">การอัปเดต skill</h2>
-    <div class="grid lg:grid-cols-2 gap-4 mt-6">
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">ติดตั้งแบบ marketplace</h3><pre class="mt-2"><code>claude plugin marketplace update design-kit
-claude plugin update design-kit@design-kit</code></pre></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">claude.ai ที่อัปโหลดไว้</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">สร้าง zip ใหม่ด้วย <code class="inline">./tools/build-skill.sh</code> แล้วอัปโหลดทับใน <b>Customize → Skills</b></p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">Copy เอง</h3><pre class="mt-2"><code>rsync -a --delete --exclude '__pycache__' \
-  skills/design-kit/ ~/.claude/skills/design-kit/</code></pre><p class="text-sm mt-2" style="color: var(--dk-muted);">แล้วรีสตาร์ท agent เพราะ skill โหลดตอนเริ่มทำงาน</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">โปรเจกต์ที่สร้างไว้แล้ว</h3><p class="text-sm mt-2" style="color: var(--dk-muted);">โปรเจกต์มี <code class="inline">_tools/</code> และ <code class="inline">_engine/</code> ของตัวเอง — อัปเดตด้วย <code class="inline">cp skills/design-kit/scripts/*.py &lt;project&gt;/_tools/</code></p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink"><span data-lang="en">The skill (marketplace)</span><span data-lang="th">ตัว skill (marketplace)</span></h3>
+        <pre class="mt-3"><code>claude plugin marketplace update design-kit
+claude plugin update design-kit@design-kit</code></pre>
+        <p class="text-sm muted mt-3" data-lang="en">claude.ai: download the new zip and replace the upload. Manual copy: <code class="inline">git pull</code>, copy again, restart the agent.</p>
+        <p class="text-sm muted mt-3" data-lang="th">claude.ai: ดาวน์โหลด zip ใหม่แล้วอัปโหลดทับ แบบ copy เอง: <code class="inline">git pull</code> แล้ว copy ใหม่ และรีสตาร์ท agent</p></div>
+      <div class="surface p-5"><h3 class="font-semibold ink"><span data-lang="en">Existing design projects</span><span data-lang="th">โปรเจกต์ดีไซน์ที่สร้างไว้แล้ว</span></h3>
+        <p class="text-sm muted mt-2" data-lang="en">Each project keeps its own <code class="inline">_engine/</code> and <code class="inline">_tools/</code>. <code class="inline">verify.py</code> warns when they are older than the skill; refresh both from the project folder:</p>
+        <p class="text-sm muted mt-2" data-lang="th">แต่ละโปรเจกต์มี <code class="inline">_engine/</code> และ <code class="inline">_tools/</code> ของตัวเอง <code class="inline">verify.py</code> จะเตือนเมื่อเก่ากว่า skill — อัปเดตทั้งคู่จากในโฟลเดอร์โปรเจกต์:</p>
+        <pre class="mt-3"><code>python _tools/update_engine.py ~/.claude/skills/design-kit
+python _tools/verify.py .</code></pre>
+        <p class="text-sm muted mt-3" data-lang="en">Projects made before 1.2.1 have no <code class="inline">update_engine.py</code> yet — copy it once from <code class="inline">skills/design-kit/scripts/</code>.</p>
+        <p class="text-sm muted mt-3" data-lang="th">โปรเจกต์ที่สร้างก่อน 1.2.1 ยังไม่มี <code class="inline">update_engine.py</code> — copy จาก <code class="inline">skills/design-kit/scripts/</code> ครั้งแรกครั้งเดียว</p></div>
     </div>
   </div>
 </section>
 
-<!-- ════════ CHANGELOG ════════ -->
-<section class="max-w-6xl mx-auto px-4 py-12 border-t" style="border-color: var(--dk-border);">
-  <div data-lang="en">
-    <h2 class="text-2xl font-semibold">Changelog</h2>
-    <div class="mt-6 space-y-4">
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.2.1 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-23 · latest release</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">Component kits: grayscale <code class="inline">wf-*</code> blocks with a Components page in the wireframes, themeable <code class="inline">mk-*</code> components with a gallery in the mock · verify.py warns on unknown kit classes · fixes: mock state switcher (Error option, states leaking), token export misreading hex Dark values.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.1.0 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-21</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">English by default with a bilingual copy deck · a spec that stands alone (state matrix, exact error text, interactions, API contract) · wireframes + mock built in one pass · <code class="inline">:mock</code> screen pairing · realtime theme picker (Default / Dark / palette presets) · dark-mode tokens · platform mapping for Flutter.</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.0.0 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-20</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">First public release: project folder output, wireframes with device filter and pinned comments, clickable mockup, dev diagrams, WCAG-checked color system, verify.py consistency checks.</p></div>
-    </div>
+<!-- ════════ CONTRIBUTING ════════ -->
+<section id="contributing" class="max-w-6xl mx-auto px-4 py-14">
+  <h2 class="text-2xl font-semibold ink">Contributing</h2>
+  <div class="grid lg:grid-cols-2 gap-4 mt-6">
+    <div class="surface p-5"><h3 class="font-semibold ink"><span data-lang="en">Before a pull request</span><span data-lang="th">ก่อนเปิด pull request</span></h3>
+      <pre class="mt-3"><code>./tools/check.sh          # what CI runs
+./tools/check.sh --fast   # without browser tests</code></pre>
+      <p class="text-sm muted mt-3" data-lang="en">Unit tests, <code class="inline">verify.py</code> on the Procura example, browser tests (state switcher, contrast in every theme, JS errors) and the zip build.</p>
+      <p class="text-sm muted mt-3" data-lang="th">unit test, <code class="inline">verify.py</code> กับตัวอย่าง Procura, ทดสอบในเบราว์เซอร์ (ตัวสลับ state, contrast ทุก theme, JS error) และ build zip</p></div>
+    <div class="surface p-5"><h3 class="font-semibold ink"><span data-lang="en">Releasing</span><span data-lang="th">ออก release</span></h3>
+      <pre class="mt-3"><code>./tools/release.sh prepare 1.3.0   # opens the release PR
+./tools/release.sh tag 1.3.0       # after merging it</code></pre>
+      <p class="text-sm muted mt-3" data-lang="en">Writes the version everywhere it lives and only tags when <code class="inline">main</code> already says it — the Release workflow then builds the zip.</p>
+      <p class="text-sm muted mt-3" data-lang="th">เขียนเลข version ลงทุกที่ที่ใช้ และจะสร้าง tag เมื่อ <code class="inline">main</code> เป็นเลขนั้นแล้วเท่านั้น จากนั้น Release workflow จะ build zip ให้</p></div>
   </div>
-  <div data-lang="th">
-    <h2 class="text-2xl font-semibold">Changelog</h2>
-    <div class="mt-6 space-y-4">
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.1.0 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-21 · เวอร์ชันล่าสุด</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">เริ่มต้นภาษาอังกฤษ + copy deck รองรับหลายภาษา · spec ที่ stand alone (state matrix, error text ตรงตามโค้ด, interactions, API contract) · สร้าง wireframe + mock พร้อมกัน · คู่หน้าจอด้วย <code class="inline">:mock</code> · เลือก theme แบบเรียลไทม์ (Default / Dark / preset โทนสี) · dark-mode tokens · platform mapping สำหรับ Flutter</p></div>
-      <div class="rounded-lg p-5 border bg-white"><h3 class="font-semibold">1.0.0 <span class="text-xs font-normal" style="color: var(--dk-muted);">— 2026-11-20</span></h3><p class="text-sm mt-2" style="color: var(--dk-muted);">เปิดตัวครั้งแรก: โปรเจกต์ดีไซน์ครบในโฟลเดอร์เดียว, wireframe มี device filter + หมุดความเห็น, mockup คลิกได้, dev diagram, ระบบสีตรวจ WCAG และการตรวจความสอดคล้องด้วย verify.py</p></div>
+</section>
+
+<!-- ════════ CHANGELOG (rendered from CHANGELOG.md) ════════ -->
+<section id="changelog-section" class="sunken divider">
+  <div class="max-w-6xl mx-auto px-4 py-14">
+    <h2 class="text-2xl font-semibold ink">Changelog</h2>
+    <p class="text-sm muted mt-2" data-lang="th">ข้อมูลจาก CHANGELOG.md (ภาษาอังกฤษ)</p>
+    <div id="changelog" class="mt-6 space-y-4">
+      <p class="muted text-sm"><a class="link" href="https://github.com/KPV2004/design-kit/blob/main/CHANGELOG.md">CHANGELOG.md on GitHub</a></p>
     </div>
   </div>
 </section>
+</main>
 
 <!-- ════════ FOOTER ════════ -->
-<footer class="border-t mt-8" style="border-color: var(--dk-border);">
-  <div class="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-center gap-4 text-sm" style="color: var(--dk-muted);">
+<footer class="divider">
+  <div class="max-w-6xl mx-auto px-4 py-8 flex flex-wrap items-center gap-4 text-sm muted">
     <img src="icon.png" alt="" width="24" height="24" class="rounded">
-    <span><b style="color: var(--dk-ink);">Design Kit</b> — MIT license · by <a class="brand-text underline" href="https://github.com/KPV2004">KPV2004</a></span>
-    <span class="ml-auto"><a class="brand-text underline" href="https://github.com/KPV2004/design-kit">GitHub repo</a> · <a class="brand-text underline" href="https://github.com/KPV2004/design-kit/releases/latest">Releases</a> · <a class="brand-text underline" href="https://github.com/KPV2004/design-kit/issues">Issues</a></span>
+    <span><b class="ink">Design Kit</b> v<span data-version>1.2.1</span> — MIT · <a class="link" href="https://github.com/KPV2004">KPV2004</a></span>
+    <span class="ml-auto flex gap-4"><a class="link" href="https://github.com/KPV2004/design-kit">GitHub</a><a class="link" href="https://github.com/KPV2004/design-kit/releases/latest">Releases</a><a class="link" href="https://github.com/KPV2004/design-kit/issues">Issues</a></span>
   </div>
 </footer>
 
 <script>
-  /* Language toggle — remembers the choice, defaults to the browser language. */
+  /* Language — remembered, defaults to the browser language */
   function setLang(l) {
     if (l !== 'en' && l !== 'th') l = 'en';
     document.documentElement.dataset.lang = l;
@@ -275,6 +359,56 @@ claude plugin update design-kit@design-kit</code></pre></div>
   let initial = 'en';
   try { initial = localStorage.getItem('dk-lang') || (navigator.language && navigator.language.startsWith('th') ? 'th' : 'en'); } catch {}
   setLang(initial);
+
+  /* Version — one meta tag, written by tools/release.sh */
+  const VERSION = document.querySelector('meta[name="dk-version"]').content;
+  document.querySelectorAll('[data-version]').forEach(e => e.textContent = VERSION);
+  document.querySelectorAll('[data-version-link]').forEach(a => a.href = `https://github.com/KPV2004/design-kit/releases/tag/v${VERSION}`);
+
+  /* Install tabs — ARIA tabs pattern with arrow keys */
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(t, focus) {
+    tabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1;
+      document.getElementById(x.getAttribute('aria-controls')).hidden = !on; });
+    if (focus) t.focus();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectTab(t));
+    t.addEventListener('keydown', e => {
+      const k = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (k) { e.preventDefault(); selectTab(tabs[(i + k + tabs.length) % tabs.length], true); }
+      if (e.key === 'Home') { e.preventDefault(); selectTab(tabs[0], true); }
+      if (e.key === 'End') { e.preventDefault(); selectTab(tabs[tabs.length - 1], true); }
+    });
+  });
+
+  /* Copy buttons on code blocks */
+  document.querySelectorAll('pre').forEach(pre => {
+    const b = document.createElement('button'); b.className = 'copy'; b.type = 'button'; b.textContent = 'Copy';
+    b.setAttribute('aria-label', 'Copy code');
+    b.onclick = async () => { try { await navigator.clipboard.writeText(pre.querySelector('code').innerText); b.textContent = 'Copied'; }
+                              catch { b.textContent = 'Select & copy'; } setTimeout(() => b.textContent = 'Copy', 1500); };
+    pre.classList.add('has-copy'); pre.appendChild(b);
+  });
+
+  /* Active section in the nav */
+  const links = [...document.querySelectorAll('.nav a[href^="#"]')];
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting)
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-40% 0px -55% 0px' });
+  ['demo', 'features', 'install', 'usage', 'update', 'changelog-section'].forEach(id => io.observe(document.getElementById(id)));
+
+  /* Changelog — rendered from CHANGELOG.md (copied next to this page by the docs workflow); 4 latest entries */
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const inline = s => esc(s).replace(/`([^`]+)`/g, '<code class="inline">$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b class="ink">$1</b>');
+  fetch('CHANGELOG.md').then(r => r.ok ? r.text() : Promise.reject()).then(md => {
+    const entries = md.split(/^## /m).slice(1, 5).map(block => {
+      const [head, ...lines] = block.split('\n');
+      const items = lines.filter(l => l.startsWith('- ')).map(l => `<li>${inline(l.slice(2))}</li>`).join('');
+      return `<div class="surface p-5"><h3>${inline(head.trim())}${head.startsWith(VERSION + ' ') ? ' <span class="chip text-xs rounded px-2 py-0.5 ml-1">latest</span>' : ''}</h3><ul class="text-sm mt-3 muted">${items}</ul></div>`;
+    });
+    document.getElementById('changelog').innerHTML = entries.join('') +
+      '<p class="text-sm"><a class="link" href="https://github.com/KPV2004/design-kit/blob/main/CHANGELOG.md">Full changelog →</a></p>';
+  }).catch(() => {});
 </script>
 </body>
 </html>

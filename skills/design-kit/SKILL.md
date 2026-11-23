@@ -55,6 +55,7 @@ Check the conversation, the uploads / working directory for an existing design.m
 
 - **Found** → **Updating an existing design**. Reuse tokens, icons, and IDs; never start over.
 - **A "Wireframe feedback — …" export** → **Applying wireframe feedback**.
+- **Stale engine** — `verify.py` warns that `_engine/` is older than the tools (or has no VERSION stamp) → run `python _tools/update_engine.py <skill>` from the project folder (copy `update_engine.py` from `<skill>/scripts/` first if the project predates it), then verify. It never touches content files.
 - **Old format** (single-file HTML with inline engine, `*-wireframes.html` names, no AGENTS.md) → offer to migrate as part of the change: create the folder from `assets/project/`, move each screen's markup into the new content files with markers, keep IDs and content unchanged, then verify.
 
 ## Workflow (new design)

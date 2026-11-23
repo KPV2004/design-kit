@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!--
+  WIREFRAMES — content only. See AGENTS.md before editing.
+  Engine (toolbar, zoom, comments, diagrams): _engine/wireframe.js + .css — never edit per project.
+  Diagrams: generated from ux-spec.md by `python _tools/sync_diagrams.py` — never edit here.
+
+  SCREENS (in order): login · po-list · po-detail · po-form · not-found
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Procura — Wireframes</title>
+<!-- Wireframe only: CDN scripts are not for production use -->
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"IBM Plex Sans Thai"', 'Tahoma', 'system-ui', 'sans-serif'] } } } };
+  /* ===== CONFIG ===== version must equal design.md version */
+  const WF = { app: 'Procura', version: '1.0' };
+</script>
+<link rel="stylesheet" href="_engine/wireframe.css">
+<script src="_engine/wireframe.js"></script>
+</head>
+<body>
+
+<!-- DIAGRAMS:START -->
+<script type="text/plain" class="diagram" data-title="User flow">
+flowchart LR
+  login[Sign in] -->|success| po-list[Purchase orders]
+  login -->|wrong password| login
+  po-list -->|New order| po-form[New purchase order]
+  po-list -->|open row| po-detail[PO detail]
+  po-form -->|Submit ok| po-detail
+  po-form -->|Cancel| po-list
+  po-detail -->|Approve / Reject| po-list
+  po-list -->|unknown URL| not-found[Page not found]
+  not-found -->|Back to orders| po-list
+</script>
+<script type="text/plain" class="diagram" data-title="Data model (ER)">
+erDiagram
+  USER ||--o{ PURCHASE_ORDER : requests
+  USER ||--o{ PURCHASE_ORDER : decides
+  SUPPLIER ||--o{ PURCHASE_ORDER : supplies
+  PURCHASE_ORDER ||--|{ PO_LINE : contains
+  PURCHASE_ORDER {
+    string po_no
+    string status
+    decimal amount
+    date needed_by
+    string reject_reason
+  }
+</script>
+<script type="text/plain" class="diagram" data-title="PO status (state)">
+stateDiagram-v2
+  [*] --> draft
+  draft --> pending : submit
+  pending --> approved : approve
+  pending --> rejected : reject
+  rejected --> pending : resubmit
+  approved --> [*]
+</script>
+<script type="text/plain" class="diagram" data-title="Approve purchase order (sequence)">
+sequenceDiagram
+  actor A as Approver
+  participant UI as po-detail
+  participant API
+  A->>UI: Approve
+  UI->>API: POST /purchase-orders/{id}/approve
+  alt ok
+    API-->>UI: 200 status approved
+    UI-->>A: toast, back to po-list
+  else already decided
+    API-->>UI: 409
+    UI-->>A: alert, reload detail
+  end
+</script>
+<!-- DIAGRAMS:END -->
+
+<!--
+  SCREEN FORMAT — one block per screen, in inventory order:
+  <!== SCREEN: id ==> ... <template id data-title data-module data-device data-notes> ... </template> <!== /SCREEN: id ==>
+    data-device: desktop | mobile | responsive
+    frames: .frame-desktop (1280) · .frame-tablet (768) · .frame-mobile (390) — responsive screens put all frames
+            they need in the SAME template; the toolbar filter shows All / Desktop / Tablet / Mobile
+    data-notes:  one entry per .anno marker, separated by |
+  Building blocks (full kit with copyable markup: toolbar → Components):
+    layout   .wf-box .wf-card .wf-fill .wf-divider · text .wf-h1 .wf-h2 .wf-text .wf-muted .wf-line(.sm|.lg)
+    media    .wf-img .wf-icon(.lg|.round) .wf-avatar
+    actions  .wf-btn(.primary|.ghost|.danger|.sm|.lg|.loading|:disabled) .wf-icon-btn .wf-fab
+    forms    .wf-label(.wf-req) .wf-input(.focus|.error|.disabled) .wf-select .wf-search .wf-textarea .wf-help .wf-error
+             .wf-check .wf-radio .wf-toggle .wf-chip (.on)
+    data     .wf-table(.num, tr.sel) .wf-badge(.solid|.dashed) .wf-stat .wf-chart(.line|.pie) .wf-progress .wf-list
+    nav      .wf-topbar .wf-sidebar .wf-nav-item .wf-tabs .wf-tab .wf-breadcrumb .wf-pagination .wf-stepper .wf-appbar .wf-tabbar (.active)
+    overlay  .wf-overlay(.bottom) .wf-modal .wf-sheet .wf-menu .wf-banner(.error) .wf-toast .wf-tooltip
+    states   .wf-skeleton .wf-spinner .wf-empty · markers .anno
+  Don't invent new wf-* classes — compose from these plus Tailwind layout utilities (verify.py warns on unknown ones).
+  Navigation: onclick="showScreen('id')"
+-->
+
+<!-- ════════ SCREEN: login ════════ -->
+<template id="login" data-title="Sign in" data-module="Auth" data-device="responsive"
+          data-notes="Last username is remembered on this device|Forgot password opens the IT self-service portal in a new tab">
+  <div class="frame-desktop flex items-center justify-center bg-slate-50" data-label="Desktop 1280">
+    <div class="wf-card w-96 space-y-4 p-8">
+      <div class="wf-img h-10 w-32"></div>
+      <div class="wf-h1">Sign in to Procura</div>
+      <div class="wf-banner error"><span class="wf-icon round"></span>Username or password is incorrect.</div>
+      <div><div class="wf-label wf-req">Username <span class="anno">1</span></div><div class="wf-input">somchai.k</div></div>
+      <div><div class="wf-label wf-req">Password</div><div class="wf-input focus"></div></div>
+      <button class="wf-btn primary lg w-full" onclick="showScreen('po-list')">Sign in</button>
+      <p class="text-center"><button class="wf-btn ghost">Forgot password?</button> <span class="anno">2</span></p>
+    </div>
+  </div>
+  <div class="frame-mobile p-5 space-y-4" data-label="Mobile 390">
+    <div class="wf-img h-10 w-28"></div>
+    <div class="wf-h1">Sign in to Procura</div>
+    <div class="wf-banner error"><span class="wf-icon round"></span>Username or password is incorrect.</div>
+    <div><div class="wf-label wf-req">Username <span class="anno">1</span></div><div class="wf-input">somchai.k</div></div>
+    <div><div class="wf-label wf-req">Password</div><div class="wf-input focus"></div></div>
+    <button class="wf-btn primary lg w-full" onclick="showScreen('po-list')">Sign in</button>
+    <p class="text-center"><button class="wf-btn ghost">Forgot password?</button> <span class="anno">2</span></p>
+  </div>
+</template>
+<!-- ════════ /SCREEN: login ════════ -->
+
+<!-- ════════ SCREEN: po-list ════════ -->
+<template id="po-list" data-title="Purchase orders" data-module="Purchasing" data-device="responsive"
+          data-notes="Status chips — approvers land on Pending|Amounts right-aligned with tabular figures|Server-side pagination, 50 per page">
+  <div class="frame-desktop flex" data-label="Desktop 1280">
+    <div class="wf-sidebar">
+      <div class="wf-img h-8 mb-3"></div>
+      <div class="wf-nav-item active"><span class="wf-icon"></span>Purchase orders</div>
+      <div class="wf-nav-item"><span class="wf-icon"></span>Suppliers</div>
+      <div class="wf-nav-item"><span class="wf-icon"></span>Reports</div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="wf-topbar"><div class="wf-input wf-search w-80">Search PO no. or supplier</div><span class="ml-auto wf-icon round"></span><span class="wf-avatar">SK</span></div>
+      <div class="p-6 space-y-4">
+        <div class="flex items-center justify-between"><div class="wf-h1">Purchase orders</div><button class="wf-btn primary" onclick="showScreen('po-form')">+ New order</button></div>
+        <div class="flex items-center gap-2"><span class="wf-chip">All</span><span class="wf-chip on">Pending</span><span class="wf-chip">Approved</span><span class="wf-chip">Rejected</span><span class="wf-chip">Draft</span><span class="anno">1</span></div>
+        <div class="relative"><div class="wf-box overflow-hidden">
+            <table class="wf-table">
+              <thead><tr><th>PO no.</th><th>Supplier</th><th>Requester</th><th class="num">Amount (THB)</th><th>Status</th></tr></thead>
+              <tbody>
+              <tr onclick="showScreen('po-detail')" class="cursor-pointer"><td>PO-2611-0042</td><td>Siam Steel Co., Ltd.</td><td>Somchai K.</td><td class="num">128,450.00</td><td><span class="wf-badge ">Pending approval</span></td></tr>
+              <tr onclick="showScreen('po-detail')" class="cursor-pointer"><td>PO-2611-0041</td><td>Bangkok Office Supplies (Head Office, Ratchada branch)</td><td>Nattaya P.</td><td class="num">9,900.00</td><td><span class="wf-badge solid">Approved</span></td></tr>
+              <tr onclick="showScreen('po-detail')" class="cursor-pointer"><td>PO-2611-0040</td><td>Thai Logistics Partners</td><td>Somchai K.</td><td class="num">54,000.00</td><td><span class="wf-badge dashed">Rejected</span></td></tr>
+              <tr onclick="showScreen('po-detail')" class="cursor-pointer"><td>PO-2611-0039</td><td>Chiang Mai Packaging</td><td>Wanchai T.</td><td class="num">2,310.50</td><td><span class="wf-badge ">Pending approval</span></td></tr>
+              </tbody>
+            </table>
+          </div><span class="anno absolute right-28 -top-3">2</span></div>
+        <div class="flex items-center justify-end gap-3"><span class="wf-muted">1–50 of 1,284</span><div class="wf-pagination"><span>‹</span><span class="active">1</span><span>2</span><span>3</span><span>…</span><span>26</span><span>›</span></div><span class="anno">3</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-tablet" data-label="Tablet 768">
+    <div class="wf-appbar"><span class="wf-icon"></span><div class="wf-h2">Purchase orders</div><span class="ml-auto wf-avatar">SK</span></div>
+    <div class="p-5 space-y-4">
+      <div class="flex gap-2"><div class="wf-input wf-search flex-1">Search PO no. or supplier</div><button class="wf-btn primary" onclick="showScreen('po-form')">+ New order</button></div>
+      <div class="flex items-center gap-2"><span class="wf-chip">All</span><span class="wf-chip on">Pending</span><span class="wf-chip">Approved</span><span class="wf-chip">Rejected</span><span class="wf-chip">Draft</span><span class="anno">1</span></div>
+      <div class="wf-box overflow-hidden">
+            <table class="wf-table">
+              <thead><tr><th>PO no.</th><th>Supplier</th><th class="num">Amount (THB)</th><th>Status</th></tr></thead>
+              <tbody>
+              <tr onclick="showScreen('po-detail')" class="cursor-pointer"><td>PO-2611-0042</td><td>Siam Steel Co., Ltd.</td><td class="num">128,450.00</td><td><span class="wf-badge ">Pending approval</span></td></tr>
+              <tr onclick="showScreen('po-detail')" class="cursor-pointer"><td>PO-2611-0041</td><td>Bangkok Office Supplies (Head Office, Ratchada branch)</td><td class="num">9,900.00</td><td><span class="wf-badge solid">Approved</span></td></tr>
+              <tr onclick="showScreen('po-detail')" class="cursor-pointer"><td>PO-2611-0040</td><td>Thai Logistics Partners</td><td class="num">54,000.00</td><td><span class="wf-badge dashed">Rejected</span></td></tr>
+              <tr onclick="showScreen('po-detail')" class="cursor-pointer"><td>PO-2611-0039</td><td>Chiang Mai Packaging</td><td class="num">2,310.50</td><td><span class="wf-badge ">Pending approval</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+      <div class="flex justify-end"><div class="wf-pagination"><span>‹</span><span class="active">1</span><span>2</span><span>…</span><span>26</span><span>›</span></div><span class="anno">3</span></div>
+    </div>
+  </div>
+  <div class="frame-mobile relative" data-label="Mobile 390">
+    <div class="wf-appbar"><span class="wf-icon"></span><div class="wf-h2">Purchase orders</div><span class="ml-auto wf-icon"></span></div>
+    <div class="p-4 space-y-3">
+      <div class="wf-input wf-search">Search</div>
+      <div class="flex gap-2 overflow-hidden"><span class="wf-chip">All</span><span class="wf-chip on">Pending</span><span class="wf-chip">Approved</span><span class="wf-chip">Rejected</span><span class="anno">1</span></div>
+      <div class="wf-card p-3 space-y-1" onclick="showScreen('po-detail')"><div class="flex justify-between"><b class="wf-text">PO-2611-0042</b><span class="wf-badge ">Pending approval</span></div><div class="wf-muted truncate">Siam Steel Co., Ltd.</div><div class="wf-text text-right tabular-nums">128,450.00 THB</div></div>
+      <div class="wf-card p-3 space-y-1" onclick="showScreen('po-detail')"><div class="flex justify-between"><b class="wf-text">PO-2611-0041</b><span class="wf-badge solid">Approved</span></div><div class="wf-muted truncate">Bangkok Office Supplies (Head Office, Ratchada branch)</div><div class="wf-text text-right tabular-nums">9,900.00 THB</div></div>
+      <div class="wf-card p-3 space-y-1" onclick="showScreen('po-detail')"><div class="flex justify-between"><b class="wf-text">PO-2611-0040</b><span class="wf-badge dashed">Rejected</span></div><div class="wf-muted truncate">Thai Logistics Partners</div><div class="wf-text text-right tabular-nums">54,000.00 THB</div></div>
+      <button class="wf-btn w-full">Load more</button><span class="anno">3</span>
+    </div>
+    <div class="wf-fab" onclick="showScreen('po-form')" style="bottom:24px">+</div>
+  </div>
+</template>
+<!-- ════════ /SCREEN: po-list ════════ -->
+
+<!-- ════════ SCREEN: po-detail ════════ -->
+<template id="po-detail" data-title="Purchase order detail" data-module="Purchasing" data-device="responsive"
+          data-notes="Amount, supplier and status always visible together|Reject requires a reason shown to the requester">
+  <div class="frame-desktop flex" data-label="Desktop 1280">
+    <div class="wf-sidebar">
+      <div class="wf-img h-8 mb-3"></div>
+      <div class="wf-nav-item active"><span class="wf-icon"></span>Purchase orders</div>
+      <div class="wf-nav-item"><span class="wf-icon"></span>Suppliers</div>
+      <div class="wf-nav-item"><span class="wf-icon"></span>Reports</div>
+    </div>
+    <div class="flex-1 min-w-0 relative">
+      <div class="wf-topbar"><div class="wf-input wf-search w-80">Search PO no. or supplier</div><span class="ml-auto wf-icon round"></span><span class="wf-avatar">SK</span></div>
+      <div class="p-6 space-y-4">
+        <nav class="wf-breadcrumb"><span>Purchase orders</span><span>PO-2611-0042</span></nav>
+        <div class="flex items-start justify-between">
+          <div class="space-y-1"><div class="flex items-center gap-3"><div class="wf-h1">PO-2611-0042</div><span class="wf-badge">Pending approval</span></div>
+            <div class="wf-text">Siam Steel Co., Ltd. · requested by Somchai K. on 21/11/2026</div></div>
+          <div class="flex gap-2"><button class="wf-btn danger">Reject</button><button class="wf-btn primary" onclick="showScreen('po-list')">Approve</button><span class="anno">2</span></div>
+        </div>
+        <div class="grid grid-cols-3 gap-4"><div class="wf-stat"><span class="wf-muted">Amount</span><b>128,450.00 THB</b></div><div class="wf-stat"><span class="wf-muted">Needed by</span><b>05/12/2026</b></div><div class="wf-stat"><span class="wf-muted">Cost center</span><b>CC-210 Plant</b></div></div><span class="anno">1</span>
+        <div class="wf-tabs"><div class="wf-tab active">Details</div><div class="wf-tab">Line items (4)</div><div class="wf-tab">History</div></div>
+        <table class="wf-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Total</th></tr></thead>
+          <tbody><tr><td>Steel sheet 2mm 4x8 ft</td><td class="num">120</td><td class="num">850.00</td><td class="num">102,000.00</td></tr>
+          <tr><td><div class="wf-line w-40"></div></td><td class="num">10</td><td class="num">2,645.00</td><td class="num">26,450.00</td></tr></tbody></table>
+      </div>
+      <div class="wf-overlay"><div class="wf-modal space-y-3">
+        <div class="wf-h2">Reject PO-2611-0042?</div>
+        <p class="wf-text">Somchai K. will see your reason and can edit and resubmit.</p>
+        <div><div class="wf-label wf-req">Reason</div><div class="wf-input wf-textarea error"></div><div class="wf-error">Tell the requester why (at least 5 characters).</div></div>
+        <div class="flex justify-end gap-2"><button class="wf-btn">Cancel</button><button class="wf-btn danger">Reject order</button></div>
+      </div></div>
+    </div>
+  </div>
+  <div class="frame-mobile relative" data-label="Mobile 390">
+    <div class="wf-appbar"><span class="wf-icon" onclick="showScreen('po-list')"></span><div class="wf-h2">PO-2611-0042</div></div>
+    <div class="p-4 space-y-3">
+      <span class="wf-badge">Pending approval</span>
+      <div class="wf-stat"><span class="wf-muted">Amount</span><b>128,450.00 THB</b><span class="wf-muted">Siam Steel Co., Ltd.</span></div><span class="anno">1</span>
+      <div class="wf-tabs"><div class="wf-tab active">Details</div><div class="wf-tab">Items (4)</div><div class="wf-tab">History</div></div>
+      <div class="wf-list"><div><span class="wf-muted w-24">Needed by</span><span class="wf-text">05/12/2026</span></div><div><span class="wf-muted w-24">Cost center</span><span class="wf-text">CC-210 Plant</span></div><div><span class="wf-muted w-24">Requester</span><span class="wf-text">Somchai K.</span></div></div>
+    </div>
+    <div class="absolute left-0 right-0 bottom-0 p-4 flex gap-2 border-t-2 border-slate-300 bg-white" style="border-radius:0 0 30px 30px"><button class="wf-btn danger lg flex-1">Reject</button><button class="wf-btn primary lg flex-1" onclick="showScreen('po-list')">Approve</button><span class="anno">2</span></div>
+  </div>
+</template>
+<!-- ════════ /SCREEN: po-detail ════════ -->
+
+<!-- ════════ SCREEN: po-form ════════ -->
+<template id="po-form" data-title="New purchase order" data-module="Purchasing" data-device="responsive"
+          data-notes="Error text below the field, wording from the Fields table">
+  <div class="frame-desktop flex" data-label="Desktop 1280">
+    <div class="wf-sidebar">
+      <div class="wf-img h-8 mb-3"></div>
+      <div class="wf-nav-item active"><span class="wf-icon"></span>Purchase orders</div>
+      <div class="wf-nav-item"><span class="wf-icon"></span>Suppliers</div>
+      <div class="wf-nav-item"><span class="wf-icon"></span>Reports</div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="wf-topbar"><div class="wf-input wf-search w-80">Search PO no. or supplier</div><span class="ml-auto wf-icon round"></span><span class="wf-avatar">SK</span></div>
+      <div class="p-6 max-w-3xl space-y-5">
+        <nav class="wf-breadcrumb"><span>Purchase orders</span><span>New order</span></nav>
+        <div class="wf-h1">New purchase order</div>
+        <div class="wf-stepper"><span class="active" data-step="1">Details</span><span data-step="2">Line items</span><span data-step="3">Review</span></div>
+        <div class="wf-card space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div><div class="wf-label wf-req">Supplier</div><div class="wf-input wf-select focus">Search suppliers</div></div>
+            <div><div class="wf-label wf-req">Cost center</div><div class="wf-input wf-select">CC-210 Plant</div></div>
+            <div><div class="wf-label wf-req">Amount (THB)</div><div class="wf-input error">0</div><div class="wf-error">Enter an amount above 0. <span class="anno">1</span></div></div>
+            <div><div class="wf-label wf-req">Needed by</div><div class="wf-input">05/12/2026</div><div class="wf-help">dd/MM/yyyy</div></div>
+          </div>
+          <div><div class="wf-label">Note to approver</div><div class="wf-input wf-textarea"></div><div class="wf-help">0 / 500</div></div>
+        </div>
+        <div class="flex justify-end gap-2"><button class="wf-btn" onclick="showScreen('po-list')">Cancel</button><button class="wf-btn">Save draft</button><button class="wf-btn primary" onclick="showScreen('po-detail')">Submit for approval</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-mobile relative" data-label="Mobile 390">
+    <div class="wf-appbar"><span class="wf-icon" onclick="showScreen('po-list')"></span><div class="wf-h2">New order</div></div>
+    <div class="p-4 space-y-4">
+      <div><div class="wf-label wf-req">Supplier</div><div class="wf-input wf-select focus">Search suppliers</div></div>
+      <div><div class="wf-label wf-req">Cost center</div><div class="wf-input wf-select">CC-210 Plant</div></div>
+      <div><div class="wf-label wf-req">Amount (THB)</div><div class="wf-input error">0</div><div class="wf-error">Enter an amount above 0. <span class="anno">1</span></div></div>
+      <div><div class="wf-label wf-req">Needed by</div><div class="wf-input">05/12/2026</div></div>
+      <div><div class="wf-label">Note to approver</div><div class="wf-input wf-textarea"></div></div>
+    </div>
+    <div class="absolute left-0 right-0 bottom-0 p-4 flex gap-2 border-t-2 border-slate-300 bg-white" style="border-radius:0 0 30px 30px"><button class="wf-btn lg flex-1">Save draft</button><button class="wf-btn primary lg flex-1" onclick="showScreen('po-detail')">Submit</button></div>
+  </div>
+</template>
+<!-- ════════ /SCREEN: po-form ════════ -->
+
+<!-- ════════ SCREEN: not-found ════════ -->
+<template id="not-found" data-title="Page not found" data-module="System" data-device="responsive" data-notes="">
+  <div class="frame-desktop flex items-center justify-center" data-label="Desktop 1280">
+    <div class="wf-empty w-[28rem]"><div class="wf-h1">We can't find that page</div><p class="wf-text">The link may be old or the order was deleted.</p><button class="wf-btn primary" onclick="showScreen('po-list')">Back to purchase orders</button></div>
+  </div>
+  <div class="frame-mobile flex items-center justify-center p-5" data-label="Mobile 390">
+    <div class="wf-empty"><div class="wf-h1">We can't find that page</div><p class="wf-text">The link may be old or the order was deleted.</p><button class="wf-btn primary lg" onclick="showScreen('po-list')">Back to purchase orders</button></div>
+  </div>
+</template>
+<!-- ════════ /SCREEN: not-found ════════ -->
+
+</body>
+</html>

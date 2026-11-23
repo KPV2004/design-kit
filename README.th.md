@@ -163,21 +163,23 @@ npx skills add KPV2004/design-kit
 
 ### โปรเจกต์ดีไซน์ที่สร้างไว้แล้ว
 
-โปรเจกต์มีสำเนาเครื่องมือของตัวเองใน `<app>-design/_tools/` — ไม่อัปเดตตามอัตโนมัติ ให้ copy สคริปต์ใหม่ทับ:
+โปรเจกต์มีสำเนา engine (`_engine/`) และเครื่องมือ (`_tools/`) ของตัวเอง — ไม่อัปเดตตามอัตโนมัติ `verify.py` จะเตือนเมื่อ engine เก่ากว่าเครื่องมือ ให้รันจากในโฟลเดอร์โปรเจกต์:
 
 ```bash
-cp skills/design-kit/scripts/*.py <app>-design/_tools/
+python _tools/update_engine.py ~/.claude/skills/design-kit   # หรือ path ที่ติดตั้ง skill ไว้
+python _tools/verify.py .
 ```
 
-`_engine/` ก็เหมือนกัน แต่ละโปรเจกต์ถือสำเนาของตัวเอง ถ้า engine เปลี่ยนให้ copy `skills/design-kit/assets/project/_engine/` ทับ ทำขั้นตอนนี้เพื่อให้ได้ชุด component และการแก้ตัวสลับ state จากเวอร์ชันล่าสุด:
-
-```bash
-cp -r skills/design-kit/assets/project/_engine/. <app>-design/_engine/
-```
+สคริปต์จะ copy `_engine/` และ `scripts/` ของ skill ทับสำเนาในโปรเจกต์ ไฟล์ดีไซน์ของคุณไม่ถูกแตะ ถ้าไม่ใส่ path จะค้นหาตำแหน่งติดตั้งที่ใช้กันบ่อยให้ โปรเจกต์ที่สร้างก่อน 1.2.1 ยังไม่มี `update_engine.py` — copy จาก `skills/design-kit/scripts/` ครั้งแรกครั้งเดียว
 
 ### ปล่อยเวอร์ชันใหม่
 
-แก้เลข `version` ใน `.claude-plugin/plugin.json` เพิ่มแถวใน `CHANGELOG.md` แล้ว tag `vX.Y.Z` และ push — workflow จะแนบ zip ไปที่ GitHub Release (รายละเอียดใน [ร่วมพัฒนา](#ร่วมพัฒนา))
+```bash
+./tools/release.sh prepare 1.3.0   # เขียนเลข version ทุกที่ ใส่วันที่ใน CHANGELOG และเปิด release PR
+./tools/release.sh tag 1.3.0       # หลัง merge: push tag v1.3.0 → workflow สร้าง zip ให้
+```
+
+รายละเอียดใน [ร่วมพัฒนา](#ร่วมพัฒนา)
 
 ## วิธีใช้
 
@@ -270,22 +272,40 @@ skills/design-kit/   ตัว skill (ส่วนที่ถูกติดต
   references/            สี, icon, pattern ของ ERP/เว็บ/มือถือ, dev diagram, accessibility
   assets/project/        template โปรเจกต์ (ไฟล์เนื้อหา + _engine/)
   scripts/               verify.py, sync_diagrams.py, export_tokens.py
-tools/build-skill.sh     สร้าง dist/design-kit.zip สำหรับ claude.ai
-.github/workflows/       release: push tag v* แล้วแนบไฟล์ zip ใน GitHub Release ให้อัตโนมัติ
+examples/procura-design/ โปรเจกต์ดีไซน์เต็มรูปแบบที่สร้างด้วย skill — ใช้เป็นชุดทดสอบและ live demo บนหน้า docs
+tests/                   unit test (สคริปต์) และ browser test (engine, contrast ทุก theme)
+tools/
+  check.sh               ทุกอย่างที่ CI รัน
+  release.sh             เตรียม / tag release
+  build-skill.sh         สร้าง dist/design-kit.zip สำหรับ claude.ai
+docs-site/               หน้าเว็บ GitHub Pages (kpv2004.github.io/design-kit)
+.github/workflows/       ci (ทุก PR) · release (tag vX.Y.Z → zip) · docs (Pages)
 ```
 
 ## ร่วมพัฒนา
 
 ยินดีรับ issue และ pull request ถ้า fork ไปเผยแพร่เอง ให้รัน `./tools/set-owner.sh <github-user> "<ชื่อคุณ>"` ครั้งเดียวเพื่อใส่ลิงก์ติดตั้งและข้อมูลใน manifest
 
-ก่อนเปิด PR ให้รัน:
+ก่อนเปิด PR ให้รันชุดเดียวกับที่ CI รัน:
 
 ```bash
-claude plugin validate .            # ตรวจ manifest และ marketplace
-./tools/build-skill.sh              # ตรวจว่าสร้าง zip ได้
+pip install playwright && playwright install chromium   # ครั้งแรกครั้งเดียว
+./tools/check.sh                                        # หรือ --fast เพื่อข้าม browser test
+claude plugin validate .                                # ตรวจ manifest และ marketplace
 ```
 
-ถ้าแก้ `_engine/` ให้เปิด `skills/design-kit/assets/project/wireframes.html` และ `mockup.html` ในเบราว์เซอร์และตรวจว่าไม่มี error ใน console การออกเวอร์ชันใหม่: เปลี่ยน `version` ใน `.claude-plugin/plugin.json` อัปเดต `CHANGELOG.md` แล้ว push tag `vX.Y.Z` ระบบจะเช็กว่า tag ตรงกับเวอร์ชันแล้วสร้างไฟล์ zip ให้
+`check.sh` รัน unit test, `verify.py` กับ `examples/procura-design`, browser test กับ template และตัวอย่าง (ไม่มี JS error, ตัวสลับ State แสดงทีละแบบ, ตัวอักษรทุกจุด ≥ 4.5:1 ทุก theme ทั้งจอ desktop และมือถือ) แล้ว build zip ถ้าแก้ `_engine/` หรือ `scripts/` ให้อัปเดตตัวอย่างด้วย `cd examples/procura-design && python3 _tools/update_engine.py ../../skills/design-kit` — CI จะไม่ผ่านถ้าสำเนาไม่ตรงกัน และเพิ่มบรรทัดใต้ `## Unreleased` ใน `CHANGELOG.md`
+
+**การออก release** ใช้ 2 คำสั่ง ให้เข้ากับการทำงานผ่าน PR:
+
+```bash
+./tools/release.sh prepare 1.3.0   # บน main ที่อัปเดตล่าสุด
+# merge release PR บน GitHub แล้ว:
+git switch main && git pull
+./tools/release.sh tag 1.3.0
+```
+
+`prepare` จะไม่ยอมรับเลขที่ไม่ใช่รูปแบบ `X.Y.Z` หรือไม่มากกว่าเวอร์ชันปัจจุบัน แล้วเขียนเลขลง `plugin.json`, `_engine/VERSION`, `verify.py` และหน้า docs ใส่วันที่ให้ `## Unreleased` รันการตรวจ และเปิด PR ส่วน `tag` จะสร้าง tag เฉพาะเมื่อ `main` เป็นเลขนั้นแล้ว และ Release workflow รับเฉพาะ tag รูปแบบ `vX.Y.Z`
 
 ## License
 
