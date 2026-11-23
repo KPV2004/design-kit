@@ -48,7 +48,7 @@
       'danger-50': '#450a0a', 'success-50': '#052e16', 'warning-50': '#451a03', 'info-50': '#082f49',
     },
     'Corporate Blue': { 'brand-600': '#2563eb', 'brand-700': '#1d4ed8', 'brand-800': '#1e40af' },
-    'Industrial Teal': { 'brand-600': '#0d9488', 'brand-700': '#0f766e', 'brand-800': '#115e59' },
+    'Industrial Teal': { 'brand-600': '#0f766e', 'brand-700': '#115e59', 'brand-800': '#134e4a' },
     'Neutral Mono': { 'brand-600': '#52525b', 'brand-700': '#3f3f46', 'brand-800': '#27272a' },
   };
   // Icon map — copy from design.md §6. Every <iconify-icon> in the screens must use a name listed here.
@@ -128,10 +128,15 @@
     Every id ends with ":mock" (pairs with the wireframe screen id).
     data-device: responsive (one screen, Tailwind breakpoints; check with the Mobile toggle) | mobile (native app, locked to phone frame)
     data-notes:  one entry per .anno marker, separated by |   ·   data-hint: reviewer instructions (never put them in the screen)
+                 a marker on an element that exists only at one width: <span class="anno" data-device="desktop">2</span>
     State variants: <div data-state="default|empty|loading|error">
   Components: use the mk-* kit (_engine/mockup.css — mk-btn mk-btn-primary, mk-input, mk-table, mk-badge-success,
          mk-alert-danger, mk-modal …; gallery with copyable markup on design-system:mock) before hand-rolling Tailwind.
          Layout and spacing stay Tailwind utilities; utilities override kit defaults (mk-btn w-full).
+  Keyboard: mark widgets with ARIA and the engine wires the WAI-ARIA keyboard patterns — role=tablist/tab (+aria-controls),
+         button[aria-haspopup=menu][aria-controls] + role=menu/menuitem, role=switch, .mk-chip[aria-pressed] in [data-select=single];
+         dialogs: <div class="mk-scrim hidden" id="x"><div class="mk-modal" role="dialog" aria-modal="true">… opened with
+         openDialog('x') (focus moves in, Tab trapped, Esc closes, focus returns) and closed with closeDialog('x').
   Rules: theme-aware classes (bg-surface, bg-page, text-body, text-muted, border-input) + token scales
          (bg-brand-600, text-neutral-500) · icons only from `icons` · no emoji · navigation: onclick="showScreen('id:mock')"
   Never create m-* copies for responsive web.

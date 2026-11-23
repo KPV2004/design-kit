@@ -83,6 +83,37 @@ class EngineVersion(unittest.TestCase):
         self.assertLess(verify.vtuple('1.9.0'), verify.vtuple('1.10.0'))
 
 
+class UsabilityPlan(unittest.TestCase):
+    TASK = "### T{n} Task {n}\n- **Scenario:** \"Do it\"\n- **Screens:** [{sid}]\n- **Success:** done\n\n"
+
+    def run_check(self, body):
+        verify.errors.clear(); verify.warns.clear()
+        with tempfile.TemporaryDirectory() as d:
+            if body is not None:
+                (Path(d) / 'usability-test.md').write_text('# Plan\n\n## Tasks\n' + body + '## Measures\n')
+            verify.usability_checks(Path(d), {'login', 'po-list'})
+        return list(verify.errors), list(verify.warns)
+
+    def test_five_valid_tasks_pass(self):
+        body = ''.join(self.TASK.format(n=n, sid='po-list') for n in range(1, 6))
+        self.assertEqual(self.run_check(body), ([], []))
+
+    def test_too_few_tasks(self):
+        errs, _ = self.run_check(''.join(self.TASK.format(n=n, sid='login') for n in range(1, 4)))
+        self.assertTrue(any('3 task(s)' in e for e in errs))
+
+    def test_unknown_screen_and_missing_success(self):
+        body = ''.join(self.TASK.format(n=n, sid='login') for n in range(1, 5))
+        body += "### T5 Broken\n- **Screens:** [ghost-screen]\n\n"
+        errs, _ = self.run_check(body)
+        self.assertTrue(any('ghost-screen' in e for e in errs))
+        self.assertTrue(any('no **Success:**' in e for e in errs))
+
+    def test_missing_file_warns(self):
+        _, warns = self.run_check(None)
+        self.assertTrue(any('usability-test.md' in w for w in warns))
+
+
 class VersionsInSync(unittest.TestCase):
     """plugin.json is the source of truth; tools/release.sh writes the other two."""
     def test_all_versions_match(self):

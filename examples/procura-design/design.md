@@ -115,9 +115,9 @@ Dark-theme badges and alerts use text-body for text and keep the status hue in t
 | Corporate Blue | brand-600 | #2563eb |
 | Corporate Blue | brand-700 | #1d4ed8 |
 | Corporate Blue | brand-800 | #1e40af |
-| Industrial Teal | brand-600 | #0d9488 |
-| Industrial Teal | brand-700 | #0f766e |
-| Industrial Teal | brand-800 | #115e59 |
+| Industrial Teal | brand-600 | #0f766e |
+| Industrial Teal | brand-700 | #115e59 |
+| Industrial Teal | brand-800 | #134e4a |
 | Neutral Mono | brand-600 | #52525b |
 | Neutral Mono | brand-700 | #3f3f46 |
 | Neutral Mono | brand-800 | #27272a |

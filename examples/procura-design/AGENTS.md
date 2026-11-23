@@ -14,6 +14,7 @@
 | `_engine/` | Toolbar, zoom, comments, device frames — shared code | **Never** |
 | `_tools/` | `verify.py`, `sync_diagrams.py`, `export_tokens.py` | Never |
 | `tokens/` | Generated from design.md for developers | Never by hand — regenerate |
+| `usability-test.md` | Test plan for the prototype: goals, participants, 5 tasks with screens + success criteria, measures, results | Yes |
 | `feedback/` | Exported review comments (`*-wireframe-feedback.md`) | Read, then archive |
 
 ## How the files connect
@@ -36,14 +37,15 @@
    | Icon | design.md §6 + mock `icons` + every usage |
    | New / removed screen | design.md §7, wireframes, ux-spec (screens + user flow + states row), mock (`<id>:mock`) if on main flow, both `SCREENS` lines, every `showScreen()` link |
    | Layout | wireframe + mock + spec layout/notes |
-   | Theme variant | design.md §2.9 + mock `themes` (keep brand-700 AA with white text) |
+   | Theme variant | design.md §2.9 + mock `themes` (brand-700 AA with white text; brand-600 ≥ 4.5:1 on white — verify checks every theme) |
    | Field / validation | spec fields table + copy deck + ER + API contract + screens |
    | Status / transition | design.md status mapping + state diagram + badges in screens |
    | Behavior / interaction | spec interactions table + state matrix (+ screens if a state variant is visible) |
+   | New / removed / renamed screen on a tested flow | usability-test.md task **Screens:** lists |
    | Dark-mode token | design.md §2.4 Dark column + contrast checks + mockup `tokens` + re-export `tokens/` |
 3. Edit inside the screen markers with targeted replacements; don't reformat untouched screens.
 4. Components: wireframes compose from the `wf-*` kit (toolbar → Components), the mock from the `mk-*` kit (gallery on `design-system:mock`). Don't invent new `wf-*`/`mk-*` names — verify.py warns.
-5. Mock: screen ids end with `:mock`; theme-aware classes (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`) for surfaces that must follow the theme; token classes only (`bg-brand-600`); icons only from `icons`; no emoji; `data-notes` count = `.anno` markers; reviewer hints in `data-hint`.
+5. Mock: screen ids end with `:mock`; theme-aware classes (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`) for surfaces that must follow the theme; token classes only (`bg-brand-600`); icons only from `icons`; no emoji; `data-notes` count = `.anno` markers (a marker on a desktop- or mobile-only element gets `data-device="desktop|mobile"`); reviewer hints in `data-hint`; widgets use ARIA roles (`role=tablist/tab`, `aria-haspopup=menu`, `role=switch`) and dialogs open with `openDialog('id')` — the engine adds the keyboard behavior.
 6. Responsive web: one screen ID whose template holds `.frame-desktop` / `.frame-tablet` (only if the layout differs) / `.frame-mobile` — never `m-*` copies.
 7. Bump the version in design.md, ux-spec.md, `WF.version` (wireframes.html) and this file; add a changelog row.
 
@@ -53,6 +55,7 @@
 python _tools/sync_diagrams.py ux-spec.md wireframes.html   # after any diagram change
 python _tools/export_tokens.py design.md tokens/            # after any color change
 python _tools/verify.py .                                   # always, before finishing — fix every ERROR
+python _tools/update_engine.py <path-to-skills/design-kit>  # when verify says _engine/ is out of date
 ```
 
 ## Applying review feedback

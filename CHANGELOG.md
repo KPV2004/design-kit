@@ -1,6 +1,19 @@
 # Changelog
 
 ## Unreleased
+
+**Breaking** — projects that passed `verify.py` before may now fail it:
+- `verify.py` errors on any text below 4.5:1 on any mock screen in any theme (it used to check none). The old **Industrial Teal** preset fails: its `brand-600` `#0d9488` is 3.74:1 on white — update §2.9 and `const themes` to `#0f766e` / `#115e59` / `#134e4a`.
+- `verify.py` warns when `usability-test.md` is missing and errors when it has fewer than 5 tasks, a task without `**Success:**`, or screens not in the inventory.
+
+Added:
+- **Keyboard behavior in the mock engine** (WAI-ARIA patterns, wired by role): tabs with ←/→/Home/End and `aria-controls` panels; `openDialog('id')` / `closeDialog('id')` with focus moved in, Tab trapped, Esc to close and focus returned; menu buttons (`aria-haspopup=menu`) with ↑/↓/Home/End/Esc; `role=switch`; single-select chips (`data-select="single"`). The component gallery demonstrates each, and browser tests cover them.
+- **`usability-test.md`** deliverable: goals, participants + screener, setup, five tasks (scenario, screens, success, watch-for), measures (success, time, errors, SEQ, SUS), severity scale, results table. Workflow step 9 in SKILL.md; Procura example included.
+- **Device-specific markers**: `<span class="anno" data-device="desktop">` — the visibility check skips them at other widths (no more warnings for desktop-only elements).
+- Color presets in `references/color-system.md` now list a `brand-600` that is ≥ 4.5:1 on white (Teal `#0f766e`, Green `#15803d`, Orange `#c2410c`) with its ratio.
+
+Fixed:
+- The contrast check (tests and verify) skipped anything inside a `.hidden` class, including `hidden md:block` tables that are visible on desktop.
 - **CI**: every PR runs `./tools/check.sh` — unit tests for the scripts, `verify.py` on `examples/procura-design`, browser tests on the template and the example (no JS errors, the State switcher shows exactly one variant, text ≥ 4.5:1 in every theme at desktop and mobile widths) and the zip build. The tests fail on each bug fixed in 1.2.1.
 - **`examples/procura-design`**: a full design project (purchase-order approval, 5 screens) made with the skill — the CI fixture and the docs site's live demo.
 - **Engine version stamp**: `_engine/VERSION`; `verify.py` warns when a project's engine is older than its tools or unstamped. New `_tools/update_engine.py` refreshes `_engine/` and `_tools/` from the installed skill without touching design files.

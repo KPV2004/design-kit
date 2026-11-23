@@ -29,6 +29,7 @@ Every design is delivered as one folder, built from `assets/project/`:
 ├── AGENTS.md          AI entry point: file roles, what may be edited, commands   (CLAUDE.md imports it)
 ├── design.md          source of truth: colors, typography, icons (§6), components, screen inventory (§7), changelog
 ├── ux-spec.md         behavior, validation + exact error text, ALL diagrams (Mermaid), API contract, risks
+├── usability-test.md  test plan for the prototype: 5 tasks with screens + success criteria, measures, results
 ├── wireframes.html    content only: WF config + diagrams (generated) + one <template> per screen
 ├── mock.html          content only: tokens + usageTokens + themes + icons config + one <section id="id:mock"> per screen
 ├── _engine/           shared review UI (toolbar, zoom, comments, device frames) — never edited per project
@@ -117,8 +118,8 @@ Build both files in the same pass — for each inventory screen, write the wiref
 - Mock: one marked `<section class="screen" id="<id>:mock">` per screen on the primary flow plus one example of each pattern; keep `design-system:mock` last; update the mock's `SCREENS` line and the inventory Mockup column. **Every mock id ends with `:mock`**, pairing it with the wireframe screen of the same base id; navigation uses `showScreen('id:mock')`.
 - Mock config: design.md's scales into `const tokens`, §2.4 resolved into `const usageTokens`, §2.9 variants into `const themes` (Default plus Dark and any palette presets — keep `brand-700` dark enough that white text on it stays AA in every theme), and the §6 icon map into `const icons`.
 - Mock components: use the **`mk-*` kit** (`mk-btn mk-btn-primary`, `mk-field`/`mk-input` with `aria-invalid`, `mk-table`, `mk-badge-success`, `mk-tabs`, `mk-alert-danger`, `mk-modal`, `mk-skeleton`, `mk-empty`…) — it already carries hover/focus/disabled/loading/error states, 40px (44px on touch) targets, reduced-motion handling and AA-safe dark variants. The gallery on `design-system:mock` shows every component with copyable markup. Tailwind stays for layout and spacing; hand-roll only what the kit lacks, and add it to design.md §5.
-- Mock classes: theme-aware surfaces (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`, `border-default`) so themes actually restyle the screens; token classes only (`bg-brand-600`); icons only as `<iconify-icon icon="…">` from the map; **no emoji**; icon + label for important actions.
-- `data-notes` explains each `.anno` marker (shown in the sidebar); reviewer instructions go in `data-hint`, never inside the screen. Markers must be visible at desktop width.
+- Mock classes: theme-aware surfaces (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`, `border-default`) so themes actually restyle the screens; token classes only (`bg-brand-600`); icons only as `<iconify-icon icon="…">` from the map; **no emoji**; icon + label for important actions. Interactive widgets carry ARIA roles (`role=tablist/tab`, `aria-haspopup=menu` + `role=menu`, `role=switch`) and dialogs open with `openDialog('id')` — the engine supplies the keyboard behavior (arrow keys, focus trap, Esc), so the mock is keyboard-testable.
+- `data-notes` explains each `.anno` marker (shown in the sidebar); a marker on an element that exists only at one width gets `data-device="desktop"` or `"mobile"`; reviewer instructions go in `data-hint`, never inside the screen. Markers must be visible at desktop width.
 - `data-state` variants (empty / loading / error) on data screens. Realistic sample data in the deliverable language (English by default; for localized apps show the app's real locales — names, codes, THB with separators, dd/MM/yyyy); hard cases visible (long names, many rows, a validation error).
 - Check responsive screens with the Mobile toggle; check every theme with the Theme dropdown.
 - The engines already provide: device filter, overview grid, zoom/pan, 💬 pinned comments (wireframes), device preview, state switcher, **theme picker** (mock toolbar — Default / Dark / presets from §2.9, remembered per browser), notes sidebar, feedback export.
@@ -127,7 +128,11 @@ Build both files in the same pass — for each inventory screen, write the wiref
 
 Fill the skeleton — it is the file a front-end dev lives in, so it must stand alone (see *The spec must stand alone* above): Summary · Assumptions · User flow · Screens (`### [id]`, several IDs may share a heading — each with **Layout incl. every breakpoint rule** and a **Behavior** list: autofocus, keyboard type, what Save success/failure does — pop vs navigate — optimistic updates, auto-save) · **States matrix** (every data screen gets a row; empty/loading/error/success/permission; "n/a" beats silence) · **Fields & validation** (exact error text, copied from the app's code when it exists — developers paste it verbatim) · **Interactions & behavior** table (triggers → outcomes, incl. quirks like auto-save or read-only modes) · **Copy deck** (every UI string per locale — EN/TH columns for localized apps) · **Dev diagrams** (ER, one state diagram per status-bearing entity, one sequence per main action, integration if other systems) · **API contract** (method, path, used-by screen, request body, response, errors — from the real API client, never invented) · Accessibility · Risks. Every diagram is a ```mermaid block so it renders inline in GitHub/Obsidian/VS Code. Names of statuses, endpoints and fields must match across diagrams, fields table, copy deck, and API contract.
 
-### 9. Sync, export, verify
+### 9. Plan the usability test (`usability-test.md`)
+
+Fill the template: goals tied to the spec's success metric and design.md §0 assumptions, participants (5 per user group) with a screener, setup (device matching the device model, starting screen), **five tasks** from warm-up to hardest — each a goal in the user's words (never name the button), the `**Screens:** [id] → [id]` it touches, an observable `**Success:**` end state, and what to watch for; include one task that hits a validation error and recovers with the spec's exact error text. Keep the measures table (success, time, errors, SEQ, SUS) and an empty results table. `verify.py` checks there are ≥ 5 tasks, each with screens from the inventory and a success criterion.
+
+### 10. Sync, export, verify
 
 ```bash
 cd <out>/<app>-design
@@ -136,9 +141,9 @@ python _tools/export_tokens.py design.md tokens/
 python _tools/verify.py .
 ```
 
-`verify.py` checks structure (engine present, SCREENS lines, screen markers), inventory ↔ wireframes ↔ spec ↔ mock coverage (`:mock` id pairing), `m-*` duplicates, unknown `wf-*` / `mk-*` classes (not in the component kits), broken `showScreen` links, notes vs markers, tokens, usage tokens and theme variants in sync with design.md, raw hex classes, emoji, unknown/mixed/non-existent icons, diagram sync + Mermaid syntax + required diagram types, versions, empty spec tables (states, fields, interactions, copy deck, API contract), dark-mode/platform-mapping presence when the header promises them, JS errors, annotation visibility. **Fix every ERROR**; fix warnings or state why not.
+`verify.py` checks structure (engine present, SCREENS lines, screen markers), inventory ↔ wireframes ↔ spec ↔ mock coverage (`:mock` id pairing), `m-*` duplicates, unknown `wf-*` / `mk-*` classes (not in the component kits), broken `showScreen` links, notes vs markers, tokens, usage tokens and theme variants in sync with design.md, raw hex classes, emoji, unknown/mixed/non-existent icons, diagram sync + Mermaid syntax + required diagram types, versions, empty spec tables (states, fields, interactions, copy deck, API contract), usability-test tasks (≥ 5, screens from the inventory, success criteria), text contrast ≥ 4.5:1 on every mock screen in every theme, dark-mode/platform-mapping presence when the header promises them, JS errors, annotation visibility. **Fix every ERROR**; fix warnings or state why not.
 
-### 10. Deliver
+### 11. Deliver
 
 claude.ai: zip the folder (`cd <out> && zip -r <app>-design.zip <app>-design`) and present the zip plus `design.md`; tell the user to unzip and open `wireframes.html` / `mock.html` from the folder — the HTML files need `_engine/` next to them. Claude Code: give the folder path. In chat, keep it short: **implementation risks first**, then key decisions, screen count by module, open questions, one next step.
 

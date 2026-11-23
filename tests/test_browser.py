@@ -24,28 +24,53 @@ PROJECTS = {
 }
 failures = []
 
-# Contrast of each element's own text vs the first opaque background behind it.
-CONTRAST_JS = """(sel) => {
-  const ch = s => s.match(/[\\d.]+/g).map(Number);
-  const lum = ([r, g, b]) => [r, g, b].map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; })
-                                      .reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0);
-  const bgOf = el => { for (let e = el; e; e = e.parentElement) { const v = ch(getComputedStyle(e).backgroundColor);
-                       if (v.length < 4 || v[3] > 0.5) return v; } return [255, 255, 255]; };
-  const out = [];
-  document.querySelectorAll(sel + ' *').forEach(el => {
-    if (!el.offsetParent || el.closest('[disabled], .anno, [data-state]:not(.show), pre, .hidden, #swatches')) return;
-    if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return;
-    const [a, b] = [lum(ch(getComputedStyle(el).color)), lum(bgOf(el))].sort((x, y) => y - x);
-    const r = (a + 0.05) / (b + 0.05);
-    if (r < 4.5) out.push(`${el.tagName.toLowerCase()}.${(el.className || '').toString().split(' ').slice(0, 3).join('.')} "${el.textContent.trim().slice(0, 24)}" ${r.toFixed(2)}:1`);
-  });
-  return [...new Set(out)];
-}"""
+# Same contrast check verify.py runs, so the tests and the tool can't drift apart.
+sys.path.insert(0, str(ROOT / 'skills/design-kit/scripts'))
+from verify import CONTRAST_JS  # noqa: E402
 
 
 def fail(msg):
     failures.append(msg)
     print('FAIL', msg)
+
+
+def keyboard_checks(pg, name):
+    def check(cond, what):
+        if not cond:
+            fail(f'{name} keyboard: {what}')
+    active = lambda: pg.evaluate("document.activeElement.id || document.activeElement.textContent.trim()")
+    # Tabs: arrow keys move selection and show the matching panel
+    pg.focus('#g-tab-1'); pg.keyboard.press('ArrowRight')
+    check(active() == 'g-tab-2', 'ArrowRight on a tab does not move focus to the next tab')
+    check(pg.get_attribute('#g-tab-2', 'aria-selected') == 'true', 'focused tab is not selected')
+    check(pg.is_visible('#g-panel-2') and not pg.is_visible('#g-panel-1'), 'tab panels do not follow the selected tab')
+    pg.keyboard.press('End'); check(active() == 'g-tab-3', 'End does not jump to the last tab')
+    # Menu: Enter opens and focuses the first item, arrows move, Esc closes and returns focus
+    btn = '[aria-controls="g-menu"]'
+    check(not pg.is_visible('#g-menu'), 'menu is open before it is triggered')
+    pg.focus(btn); pg.keyboard.press('Enter')
+    check(pg.is_visible('#g-menu') and pg.get_attribute(btn, 'aria-expanded') == 'true', 'Enter does not open the menu')
+    check('Edit' in active(), 'opening the menu does not focus the first item')
+    pg.keyboard.press('ArrowDown'); check('Delete' in active(), 'ArrowDown does not move to the next menu item')
+    pg.keyboard.press('Escape')
+    check(not pg.is_visible('#g-menu') and pg.evaluate(f"document.activeElement.matches('{btn}')"), 'Esc does not close the menu and return focus')
+    # Dialog: openDialog moves focus in, Tab is trapped, Esc closes and returns focus to the opener
+    opener = 'button:has-text("Delete order") >> nth=0'
+    pg.click(opener)
+    check(pg.evaluate("!!document.activeElement.closest('#g-dlg-wrap')"), 'openDialog does not move focus into the dialog')
+    for _ in range(4):
+        pg.keyboard.press('Tab')
+    check(pg.evaluate("!!document.activeElement.closest('#g-dlg-wrap')"), 'Tab escapes the open dialog')
+    pg.keyboard.press('Escape')
+    check(not pg.is_visible('#g-dlg-wrap'), 'Esc does not close the dialog')
+    check(pg.evaluate("document.activeElement.textContent.includes('Delete order')"), 'closing the dialog does not return focus to its opener')
+    # Switch and single-select chips
+    sw = '#component-gallery [role="switch"]'
+    before = pg.get_attribute(sw, 'aria-checked'); pg.click(sw)
+    check(pg.get_attribute(sw, 'aria-checked') != before, 'clicking a switch does not toggle aria-checked')
+    pg.click('#component-gallery .mk-chip:has-text("Approved")')
+    check(pg.evaluate("[...document.querySelectorAll('#component-gallery [data-select=single] .mk-chip[aria-pressed=true]')].map(c => c.textContent)") == ['Approved'],
+          'single-select chips allow more than one pressed chip')
 
 
 def main():
@@ -94,6 +119,13 @@ def main():
                     if shown != expect:
                         fail(f'{name} {sid}: State "{opt}" shows {shown}, expected {expect}')
                 pg.select_option('#state-select', 'default')
+            pg.close()
+
+            # Keyboard: WAI-ARIA patterns wired by the engine (component gallery on the design-system page)
+            pg = page()
+            pg.goto(f'{uri}/mock.html?frame=1#design-system:mock')
+            pg.wait_for_timeout(2000)
+            keyboard_checks(pg, name)
             pg.close()
 
             # Contrast: every mock screen, every theme, desktop + mobile
