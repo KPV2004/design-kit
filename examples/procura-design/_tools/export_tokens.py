@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-"""Export color tokens from design.md for developers.
+"""Export design tokens from design.md for developers.
 
 Usage: python export_tokens.py <design.md> <out_dir>
 
+Reads colors (§2) and, when present, the §4 motion / breakpoint / z-index tables.
+
 Writes:
   tokens.css          CSS custom properties (--color-brand-600, --bg-page ...)
-                      plus a [data-theme="dark"] block when §2.4 has a Dark column
-  tailwind.config.js  theme.extend.colors with the same names as design.md
+                      plus a [data-theme="dark"] block when §2.4 has a Dark column,
+                      --duration-* / --ease-* (0ms under prefers-reduced-motion),
+                      --breakpoint-* and --z-*
+  tailwind.config.js  theme.extend.colors with the same names as design.md, plus
+                      theme.screens, extend.transitionDuration,
+                      extend.transitionTimingFunction and extend.zIndex
   tokens.json         flat {name: hex} map for any other stack, plus the §2.4 dark
-                      values and the §2.8 platform mapping (e.g. Flutter constants)
+                      values, the §2.8 platform mapping (e.g. Flutter constants) and
+                      "motion" {duration: {name: ms}, easing: {name: css}},
+                      "breakpoints" {name: px}, "zIndex" {name: int}
 """
 import json
 import re
@@ -59,6 +67,117 @@ def platform_mapping(design):
     return {}
 
 
+TIME = re.compile(r'(\d+(?:\.\d+)?)\s*(ms|s)')
+EASING = re.compile(r'cubic-bezier\(\s*-?[\d.]+\s*(?:,\s*-?[\d.]+\s*){3}\)|linear|ease(?:-in|-out|-in-out)?'
+                    r'|steps\(\s*\d+\s*(?:,\s*[a-z-]+\s*)?\)')
+NAME = re.compile(r'[a-z][a-z0-9-]*')
+
+
+# §4 sub-headings, matched on the whole heading text (case-insensitive) after an optional
+# section number — "### 4.1 Motion tokens" yes; "## 4. Spacing, …, motion" or "### Motion notes" no.
+SECTION_NAMES = {
+    'motion': ('motion tokens', 'motion'),
+    'breakpoints': ('breakpoints',),
+    'z-index': ('z-index (layers)', 'z-index', 'z-index tokens', 'layers'),
+}
+CANONICAL = {'motion': '### 4.1 Motion tokens', 'breakpoints': '### 4.2 Breakpoints',
+             'z-index': '### 4.3 Z-index (layers)'}
+H3 = re.compile(r'^###[ \t]+(.+?)[ \t]*#*[ \t]*$', re.M)
+NUMBER = re.compile(r'^\d+(?:\.\d+)*\.?[ \t]+')
+NEAR = re.compile(r'motion|breakpoint|z-index|layers', re.I)
+
+
+def _tables(body):
+    """Tables in a heading body as lists of cell rows (header first, separator rows dropped)."""
+    tables, cur = [], None
+    for line in body.splitlines():
+        if line.lstrip().startswith('|'):
+            cells = [c.strip().strip('`') for c in line.strip().strip('|').split('|')]
+            if cur is None:
+                cur = []
+                tables.append(cur)
+            if not all(set(c) <= {'-', ':', ' '} and c for c in cells):
+                cur.append(cells)
+        else:
+            cur = None
+    return [t for t in tables if t]
+
+
+def _h3_sections(design):
+    """(heading line, name without number, body up to the next heading) for every ### heading."""
+    for m in H3.finditer(design):
+        yield m.group(0).strip(), NUMBER.sub('', m.group(1)).strip().lower(), design[m.end():].split('\n#', 1)[0]
+
+
+def _key_of(name):
+    return next((k for k, names in SECTION_NAMES.items() if name in names), None)
+
+
+def section_rows(design, key):
+    """(token, value) rows of the first `| Token | … |` table under each `###` heading named
+    SECTION_NAMES[key], plus messages for headings whose tokens cannot be read."""
+    rows, problems = [], []
+    for line, name, body in _h3_sections(design):
+        if _key_of(name) != key:
+            continue
+        table = next((t for t in _tables(body) if t[0][0].lower() == 'token'), None)
+        if table is None:
+            problems.append(f'{line!r} has no | Token | Value | table — none of its tokens are exported')
+            continue
+        data = [(r[0], r[1]) for r in table[1:] if len(r) >= 2]
+        if not data:
+            problems.append(f'{line!r} has an empty Token table')
+        rows += data
+    return rows, problems
+
+
+def near_miss_headings(design):
+    """### headings that hold a Token table and mention motion/breakpoints/z-index/layers but are
+    not one of the exact names — their tokens would silently disappear from tokens/."""
+    out = []
+    for line, name, body in _h3_sections(design):
+        if _key_of(name) is None and NEAR.search(name) \
+                and any(t[0][0].lower() == 'token' for t in _tables(body)):
+            key = 'motion' if 'motion' in name else 'breakpoints' if 'breakpoint' in name else 'z-index'
+            out.append(f'{line!r} looks like a §4 token table but is not read — rename it {CANONICAL[key]!r}')
+    return out
+
+
+def layout_tokens(design):
+    """§4.1 motion, §4.2 breakpoints, §4.3 z-index → (tokens, skipped rows as messages)."""
+    motion, bps, z, skipped = {'duration': {}, 'easing': {}}, {}, {}, near_miss_headings(design)
+    rows = {}
+    for key in SECTION_NAMES:
+        rows[key], problems = section_rows(design, key)
+        skipped += problems
+    for tok, val in rows['motion']:
+        t, e = TIME.fullmatch(val), EASING.fullmatch(val)
+        if NAME.fullmatch(tok) and t:
+            ms = float(t.group(1)) * (1000 if t.group(2) == 's' else 1)
+            motion['duration'][tok.removeprefix('duration-')] = int(ms) if ms.is_integer() else ms
+        elif NAME.fullmatch(tok) and e:
+            motion['easing'][tok.removeprefix('ease-')] = re.sub(r'\s*,\s*', ', ', val)
+        else:
+            skipped.append(f'skipped motion {tok!r} = {val!r}')
+    for tok, val in rows['breakpoints']:
+        m = re.fullmatch(r'(\d+)\s*(?:px)?', val)
+        if NAME.fullmatch(tok) and m:
+            bps[tok.removeprefix('breakpoint-')] = int(m.group(1))
+        else:
+            skipped.append(f'skipped breakpoint {tok!r} = {val!r}')
+    for tok, val in rows['z-index']:
+        if NAME.fullmatch(tok) and re.fullmatch(r'-?\d+', val):
+            z[tok.removeprefix('z-')] = int(val)
+        else:
+            skipped.append(f'skipped z-index {tok!r} = {val!r}')
+    if list(bps.values()) != sorted(bps.values()):
+        skipped.append('breakpoints are not ascending — mobile-first min-widths must grow')
+    bps = dict(sorted(bps.items(), key=lambda kv: kv[1]))
+    if not motion['duration'] and not motion['easing']:
+        motion = {}
+    return {'motion': motion, 'breakpoints': bps, 'zIndex': z}, skipped
+
+
 def resolve(val, scales):
     if val.startswith('#'):
         return val
@@ -76,8 +195,15 @@ def main(design_path, out_dir):
     out.mkdir(parents=True, exist_ok=True)
     scales, usage, dark = parse(design)
     platform = platform_mapping(design)
+    layout, skipped = layout_tokens(design)
+    motion, bps, zidx = layout['motion'], layout['breakpoints'], layout['zIndex']
     if not scales:
         sys.exit('No color tokens found in design.md')
+    for msg in skipped:
+        print(f'WARN {msg} — see design.md §4 formats', file=sys.stderr)
+
+    def ms(v):
+        return f'{v}ms'
 
     def css_ref(val):
         """value → CSS (var(--) for scale refs, hex otherwise); None when unresolvable."""
@@ -102,14 +228,42 @@ def main(design_path, out_dir):
             if r:
                 css.append(f'  --{tok}: {r};')
         css.append('}')
+    if motion or bps or zidx:
+        css.append(':root {')
+        css += [f'  --duration-{n}: {ms(v)};' for n, v in motion.get('duration', {}).items()]
+        css += [f'  --ease-{n}: {v};' for n, v in motion.get('easing', {}).items()]
+        if bps:
+            css.append('  /* custom properties do not work inside @media — use for JS (matchMedia) or container math */')
+        css += [f'  --breakpoint-{n}: {v}px;' for n, v in bps.items()]
+        css += [f'  --z-{n}: {v};' for n, v in zidx.items()]
+        css.append('}')
+    if motion.get('duration'):
+        css.append('@media (prefers-reduced-motion: reduce) {')
+        css.append('  :root {')
+        css += [f'    --duration-{n}: 0ms;' for n in motion['duration']]
+        css.append('  }')
+        css.append('}')
     (out / 'tokens.css').write_text('\n'.join(css) + '\n', encoding='utf-8')
 
     colors = {n: {str(s): h for s, h in st.items()} for n, st in scales.items()}
+
+    def js_obj(d, ind):
+        return json.dumps(d, indent=ind)[:-1] + ' ' * (ind - 2) + '}'
+
+    extend = [f'      colors: {js_obj(colors, 8)},\n']
+    if motion.get('duration'):
+        extend.append(f'      transitionDuration: {js_obj({n: ms(v) for n, v in motion["duration"].items()}, 8)},\n')
+    if motion.get('easing'):
+        extend.append(f'      transitionTimingFunction: {js_obj(motion["easing"], 8)},\n')
+    if zidx:
+        extend.append(f'      zIndex: {js_obj({n: str(v) for n, v in zidx.items()}, 8)},\n')
+    screens = (f'    // design.md §4.2 replaces Tailwind\'s default screens\n'
+               f'    screens: {js_obj({n: f"{v}px" for n, v in bps.items()}, 6)},\n') if bps else ''
     (out / 'tailwind.config.js').write_text(
         '/** Generated from design.md — edit design.md, then re-run export_tokens.py */\n'
-        'module.exports = {\n  theme: {\n    extend: {\n'
+        'module.exports = {\n  theme: {\n' + screens + '    extend: {\n'
         "      fontFamily: { sans: ['\"IBM Plex Sans Thai\"', 'Tahoma', 'system-ui', 'sans-serif'] },\n"
-        f'      colors: {json.dumps(colors, indent=8)[:-1]}      }},\n'
+        + ''.join(extend) +
         '    },\n  },\n};\n', encoding='utf-8')
 
     flat = {f'{n}-{s}': h for n, st in scales.items() for s, h in st.items()}
@@ -118,8 +272,10 @@ def main(design_path, out_dir):
         flat['dark'] = {t: resolve(v, scales) for t, v in dark.items() if resolve(v, scales)}
     if platform:
         flat['platform'] = platform
+    flat.update({k: v for k, v in layout.items() if v})
     (out / 'tokens.json').write_text(json.dumps(flat, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
-    extra = [k for k, v in (('dark tokens', dark), ('platform mappings', platform)) if v]
+    extra = [k for k, v in (('dark tokens', dark), ('platform mappings', platform), ('motion', motion),
+                            ('breakpoints', bps), ('z-index', zidx)) if v]
     print(f'Exported {len(flat)} tokens'
           + (f' + {", ".join(extra)}' if extra else '')
           + f' → tokens.css, tailwind.config.js, tokens.json in {out}')

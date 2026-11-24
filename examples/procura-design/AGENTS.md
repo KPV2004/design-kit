@@ -1,7 +1,7 @@
 # Procura — Design project · AI guide
 
 > Read this first. It tells you what each file is, which parts you may edit, and how to check your work.
-> Version: 1.0 (must equal design.md) · Device model: Responsive web · Icon set: Phosphor `ph:` · Language: English by default (UI copy follows the app's locales — see the spec's copy deck)
+> Version: 1.2 (must equal design.md) · Device model: Responsive web · Icon set: Phosphor `ph:` · Language: English by default (UI copy follows the app's locales — see the spec's copy deck)
 
 ## Files
 

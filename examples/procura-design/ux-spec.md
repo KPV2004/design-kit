@@ -1,5 +1,5 @@
 # Procura — UX Spec
-> Version 1.0 — matches design.md 1.0
+> Version 1.2 — matches design.md 1.2
 > **This spec must stand alone.** A developer implements from it without reopening app code.
 
 ## Summary
@@ -8,6 +8,32 @@ Procura lets requesters raise purchase orders (POs) and approvers approve or rej
 ## Assumptions & open questions
 - Approval limit 500,000 THB per approver; above that a second approver is needed (out of scope v1 — shown as an info alert only).
 - Open: should rejected POs be editable and resubmitted, or cloned? v1 assumes **edit and resubmit**.
+
+## Users & jobs
+Assumed from design.md §0 — not yet confirmed by interviews.
+
+### Personas
+| Persona | Role | Context | Goals | Pain points |
+|---|---|---|---|---|
+| desk-requester | requester | raises 5–10 POs a week at a desk, from supplier quotes | submit a correct PO first time | rejected POs come back without a clear reason |
+| mobile-approver | approver | department head; approves between meetings, mostly on a phone | clear the pending queue in minutes | has to open each PO to see amount and supplier |
+
+### Jobs to be done
+| ID | Persona | When | I want to | So I can | Screen |
+|---|---|---|---|---|---|
+| JTBD-01 | desk-requester | a supplier quote arrives | raise a PO from it quickly | order before the price changes | po-form |
+| JTBD-02 | desk-requester | my PO was rejected | see why and fix it | resubmit the same day | po-detail |
+| JTBD-03 | mobile-approver | POs are waiting for me | decide from my phone | keep purchasing moving | po-list, po-detail |
+| JTBD-04 | desk-requester | a supplier asks about an earlier order | find it by number or supplier | answer the same day | po-list |
+
+### Journey
+| Stage | Persona | Action | Screen | Pain point | Opportunity |
+|---|---|---|---|---|---|
+| Notice | mobile-approver | gets a push "PO-1042 needs approval" | — | no amount in the notification | amount and supplier in the push body |
+| Open | mobile-approver | taps the push, signs in if needed | login | session expired on the phone | remember the username on this device |
+| Review | mobile-approver | reads amount, supplier and lines | po-detail | long line lists on a phone | header shows amount, supplier, status together |
+| Decide | mobile-approver | approves or rejects with a reason | po-detail | — | sticky Approve / Reject bar on mobile |
+| Follow up | desk-requester | gets the result and fixes a rejected PO | po-detail | — | reject reason shown at the top |
 
 ## User flow
 ```mermaid
@@ -23,6 +49,28 @@ flowchart LR
   not-found -->|Back to orders| po-list
 ```
 
+## Roles & permissions
+### Roles
+| Role | Description |
+|---|---|
+| guest | not signed in — sign-in and system screens only |
+| requester | raises purchase orders; edits own orders while draft or rejected |
+| approver | approves or rejects pending orders up to 500,000 THB |
+
+### Permission matrix
+| Role | Screen | View | Create | Edit | Approve | Delete |
+|---|---|---|---|---|---|---|
+| * | not-found | ✅ | — | — | — | — |
+| guest | login | ✅ | — | — | — | — |
+| requester | po-list | ✅ (own orders) | — | — | — | — |
+| requester | po-detail | ✅ (own orders) | — | ✅ (while draft or rejected) | — | — |
+| requester | po-form | ✅ | ✅ | — | — | — |
+| approver | po-list | ✅ | — | — | — | — |
+| approver | po-detail | ✅ | — | — | ✅ (while pending, ≤ 500,000 THB) | — |
+| approver | po-form | — | — | — | — | — |
+
+Delete is not offered in v1 — rejected orders are edited and resubmitted. Signed-in users opening `login` are redirected to `po-list`.
+
 ## Screens
 
 ### [login] Sign in
@@ -37,7 +85,7 @@ flowchart LR
 
 ### [po-list] Purchase orders
 - **Purpose:** find a PO and act on it; approvers land on "Pending" by default.
-- **Layout:** ≥1024 sidebar 240px + table; 768–1023 sidebar collapses to the top app bar, table keeps 4 columns (Owner hidden); <768 rows become cards (PO no. + status on line 1, supplier on line 2, amount right-aligned). Filter chips scroll horizontally on mobile.
+- **Layout:** from `lg` sidebar 240px + table; `md` to `lg` sidebar collapses to the top app bar, table keeps 4 columns (Owner hidden); below `md` rows become cards (PO no. + status on line 1, supplier on line 2, amount right-aligned). Filter chips scroll horizontally on mobile.
 - **Key components:** search field, status chips, table/cards, badges, pagination.
 - **Behavior:**
   - Search filters by PO no. or supplier after 300 ms debounce; Enter searches immediately.
@@ -67,6 +115,20 @@ flowchart LR
 - **Purpose:** recover from a bad link.
 - **Layout:** centered message + one primary button.
 - **Annotations:** none.
+
+## Acceptance criteria
+| ID | Screen | Req ID | Given | When | Then |
+|---|---|---|---|---|---|
+| AC-01 | login | R1 | a user on Sign in | they enter a valid username and password and press Sign in | Purchase orders opens |
+| AC-02 | login | R1 | a user on Sign in | they press Sign in with a wrong password | "Username or password is incorrect." shows above the form, the password is cleared and focused |
+| AC-03 | po-list | R2 | an approver with 3 pending orders | they open Purchase orders | the Pending chip is selected and 3 rows show |
+| AC-04 | po-list | R2 | a requester with no orders | they open Purchase orders | "No purchase orders yet" shows with a New order button |
+| AC-05 | po-form, po-detail | R3 | a requester on New purchase order with every field valid | they press Submit for approval | PO detail opens with status Pending and the toast "Submitted for approval" |
+| AC-06 | po-form | R3 | a requester enters amount 0 | they press Submit for approval | "Enter an amount above 0." shows under Amount, nothing is saved and focus moves to Amount |
+| AC-07 | po-detail, po-list | R4 | an approver on a pending order | they press Approve | Purchase orders opens, the toast "PO-… approved" shows and the row status is Approved |
+| AC-08 | po-detail | R4 | an approver in the reject dialog with a 3-character reason | they press Reject order | "Tell the requester why (at least 5 characters)." shows and the dialog stays open |
+| AC-09 | po-detail | R4 | a requester opens their own pending order | the detail loads | Approve and Reject are not shown |
+| AC-10 | not-found | — | a signed-in user | they open an unknown URL | "We can't find that page" shows; Back to orders opens Purchase orders |
 
 ## States
 | Screen | Empty | Loading | Error | Success | Permission |
@@ -112,6 +174,77 @@ flowchart LR
 | detail.reject.title | po-detail | Reject {poNo}? | ไม่อนุมัติ {poNo}? | |
 | form.submit | po-form | Submit for approval | ส่งขออนุมัติ | |
 | notfound.title | not-found | We can't find that page | ไม่พบหน้านี้ | |
+
+## Formats & locale
+UI language English; amounts in THB; dates Gregorian.
+| Type | Locale | Pattern | Example | Notes |
+|---|---|---|---|---|
+| date | en-GB | dd/MM/yyyy | 24/11/2026 | needed_by; API sends ISO 8601 `2026-11-24` |
+| time | en-GB | HH:mm (24 h) | 14:05 | history tab |
+| datetime | en-GB | dd/MM/yyyy HH:mm | 24/11/2026 14:05 | history tab |
+| timezone | all | Asia/Bangkok, stored in UTC | — | zone not shown — all users in Thailand |
+| number | en-GB | #,##0 | 1,250 | line quantities, tabular-nums |
+| currency | en-GB | #,##0.00 THB | 48,500.00 THB | right-aligned; tables omit "THB" in cells, column header says "Amount (THB)" |
+| plural | en | one / other | 1 order · 12 orders | result count |
+
+## Notifications
+Locales: en, th
+
+### Notification triggers
+| ID | Trigger | Recipient | Channels | Category | Screen | Variables |
+|---|---|---|---|---|---|---|
+| NT-01 | po_submitted | approver | push, email | transactional | po-detail | po_no: string, amount: money, supplier_name: string, action_url: url |
+| NT-02 | po_approved | requester | in-app, email | transactional | po-detail | po_no: string, approver_name: string, action_url: url |
+| NT-03 | po_rejected | requester | in-app, email | transactional | po-detail | po_no: string, reject_reason: string, action_url: url |
+
+### Notification copy
+| ID | Channel | Locale | Subject / Title | Body |
+|---|---|---|---|---|
+| NT-01 | push | en | {{po_no}} needs approval | {{amount}} · {{supplier_name}} |
+| NT-01 | push | th | {{po_no}} รออนุมัติ | {{amount}} · {{supplier_name}} |
+| NT-01 | email | en | {{po_no}} needs your approval | {{supplier_name}}, {{amount}}. Review it: {{action_url}} |
+| NT-01 | email | th | {{po_no}} รอคุณอนุมัติ | {{supplier_name}} ยอด {{amount}} ตรวจสอบ: {{action_url}} |
+| NT-02 | in-app | en | {{po_no}} approved | Approved by {{approver_name}}. |
+| NT-02 | in-app | th | อนุมัติ {{po_no}} แล้ว | อนุมัติโดย {{approver_name}} |
+| NT-02 | email | en | {{po_no}} was approved | Approved by {{approver_name}}. Open it: {{action_url}} |
+| NT-02 | email | th | อนุมัติ {{po_no}} แล้ว | อนุมัติโดย {{approver_name}} เปิดดู: {{action_url}} |
+| NT-03 | in-app | en | {{po_no}} was rejected | Reason: {{reject_reason}} |
+| NT-03 | in-app | th | ไม่อนุมัติ {{po_no}} | เหตุผล: {{reject_reason}} |
+| NT-03 | email | en | {{po_no}} was rejected — action needed | Reason: {{reject_reason}}. Edit and resubmit: {{action_url}} |
+| NT-03 | email | th | ไม่อนุมัติ {{po_no}} — กรุณาแก้ไข | เหตุผล: {{reject_reason}} แก้ไขและส่งใหม่: {{action_url}} |
+
+### Channel limits
+| Channel | Field | Locale | Max chars |
+|---|---|---|---|
+| email | Subject / Title | all | 60 |
+| push | Subject / Title | all | 40 |
+| push | Body | all | 120 |
+| in-app | Subject / Title | all | 60 |
+| in-app | Body | all | 200 |
+
+The push body carries amount and supplier but no line items or prices per line — it shows on the lock screen.
+
+## Analytics events
+Measures the Summary's success metric (time from submit to decision) and mobile approval completion.
+
+### Common properties
+| Property | Type | Notes |
+|---|---|---|
+| user_id | string | internal ID |
+| role | enum(requester/approver) | |
+| platform | enum(web/ios/android) | web only in v1 |
+| locale | enum(en/th) | |
+
+### Events
+| Event | Trigger | Screen | Source | Properties | Req ID |
+|---|---|---|---|---|---|
+| screen_viewed | the screen has rendered | * | client | screen_id: string | — |
+| user_signed_in | POST /auth/login returns 200 | login | server | — | R1 |
+| po_list_filtered | a status chip changes or a search runs | po-list | client | status: enum(all/pending/approved/rejected), result_count: integer, has_query: boolean | R2 |
+| po_submitted | POST /purchase-orders with submit returns 201 | po-form | server | po_id: string, amount: number, currency: string, line_count: integer | R3 |
+| po_approved | POST /purchase-orders/{id}/approve returns 200 | po-detail | server | po_id: string, amount: number, currency: string, minutes_since_submit: integer | R4 |
+| po_rejected | POST /purchase-orders/{id}/reject returns 200 | po-detail | server | po_id: string, minutes_since_submit: integer, reason_length: integer | R4 |
+| notification_opened | a notification link opens Procura | po-detail | client | notification_id: string, channel: enum(email/push/in-app) | R4 |
 
 ## Dev diagrams
 ### Data model (ER)
@@ -168,11 +301,23 @@ sequenceDiagram
 | POST | /purchase-orders/{id}/approve | po-detail | — | 200 → purchase order | 409 → "Another approver already decided this order." |
 | POST | /purchase-orders/{id}/reject | po-detail | `{ reject_reason }` | 200 → purchase order | 409 → same as approve |
 
-## Accessibility notes
+## Accessibility
+| Screen | Announce (aria-live) | Focus on open | Focus return | Tab order |
+|---|---|---|---|---|
+| login | assertive: "Username or password is incorrect." | Username field | after a failed sign-in: Password field | username → password → Sign in → Forgot password |
+| po-list | polite: "12 orders" after a search or chip change | h1 "Purchase orders" | back from po-detail: the row that was opened | side nav → search → status chips → New order → table rows → pagination |
+| po-detail | polite: "PO-… approved" toast · assertive: "Another approver already decided this order." | h1 PO number | reject dialog closes → Reject button | breadcrumb → Approve → Reject → tabs → tab panel |
+| po-form | assertive: error summary on a failed submit | Supplier picker | after a failed submit: first invalid field · discard confirm closes → Cancel | supplier → cost center → amount → needed by → note → Cancel → Save draft → Submit |
+| not-found | n/a | h1 "We can't find that page" | n/a | Back to orders |
+
+### Global
 - Status badges carry text + dot; never color alone. Table rows are links with visible focus.
-- Reject dialog traps focus, Esc closes, focus returns to the Reject button.
-- Mobile sticky action bar buttons are 44px tall.
+- Reject dialog traps focus and Esc closes it.
+- Targets: 40px controls, 44px on touch (mobile sticky action bar) — above the 24×24 px WCAG 2.2 minimum.
+- Usable at 200% zoom; at 320px width the card list reflows without horizontal scroll.
+- The sticky form footer and mobile action bar never cover the focused field (scroll padding = bar height).
+- Honour `prefers-reduced-motion` (motion tokens export as 0ms).
 
 ## Risks for implementation
 - Concurrent decisions by two approvers → handled by 409; needs server-side status check.
-- Table-to-card switch at 768px must keep row order and keyboard access.
+- Table-to-card switch at `md` (768px) must keep row order and keyboard access.

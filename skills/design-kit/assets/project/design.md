@@ -59,7 +59,17 @@ If design.md says **Dark mode: yes** (or the existing app has a dark theme — m
 |---|---|---|
 
 ### 2.6 Chart palette
-chart-1 … chart-8 with hex.
+Only if the app has charts. Use in order; `chart-1` is the main series. Each must reach 3:1 against the page background in every theme. Status charts use §2.5 status colors instead.
+| Token | Hex | Usage |
+|---|---|---|
+| chart-1 | | Main series |
+| chart-2 | | |
+| chart-3 | | |
+| chart-4 | | |
+| chart-5 | | |
+| chart-6 | | |
+| chart-7 | | |
+| chart-8 | | |
 
 ### 2.7 Contrast checks
 | Pair | Ratio | Pass |
@@ -115,11 +125,45 @@ Named looks the reviewer can switch between in mock.html. Each row overrides one
 
 Font: [choose per app — e.g. IBM Plex Sans Thai for Thai UIs, Inter elsewhere]; fallback Tahoma, system-ui. Thai needs line-height ≥ 1.6.
 
-## 4. Spacing, radius, elevation
+## 4. Spacing, radius, elevation, motion, layers
 - Spacing scale (px): 4, 8, 12, 16, 24, 32, 48
 - Radius: sm 4 · md 6 · lg 8 · xl 12 · full
 - Shadow: sm (cards), md (dropdowns), lg (modals)
-- Layout: container width, sidebar width, grid columns, breakpoints
+- Layout: container width, sidebar width, grid columns (breakpoints in §4.2)
+
+The three tables below are exported by `export_tokens.py` to `tokens/` — keep the column order, one token per row, and the value formats shown. Rows with another value format are skipped with a warning.
+
+### 4.1 Motion tokens
+Durations in `ms` (or `s`); easings as `cubic-bezier(x1, y1, x2, y2)`, `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out` or `steps(n)`. Name durations `duration-*` and easings `ease-*`. Under `prefers-reduced-motion: reduce` every duration exports as `0ms` — never put essential information in an animation.
+| Token | Value | Usage |
+|---|---|---|
+| duration-fast | 120ms | Hover, focus ring, toggles |
+| duration-base | 200ms | Dropdowns, tabs, toasts in |
+| duration-slow | 320ms | Dialogs, drawers, page-level transitions |
+| ease-standard | cubic-bezier(0.2, 0, 0, 1) | Moves and resizes on screen |
+| ease-enter | cubic-bezier(0, 0, 0.2, 1) | Elements entering (decelerate) |
+| ease-exit | cubic-bezier(0.4, 0, 1, 1) | Elements leaving (accelerate) |
+
+### 4.2 Breakpoints
+Min widths, mobile-first, in `px`, ascending. Same names as the Tailwind screens the mock uses; the spec's layout rules (ux-spec.md) refer to these names.
+| Token | Min width | Usage |
+|---|---|---|
+| sm | 640px | Large phones, landscape |
+| md | 768px | Tablet — table becomes cards below this |
+| lg | 1024px | Laptop — sidebar shown from here |
+| xl | 1280px | Desktop — content max width |
+
+### 4.3 Z-index (layers)
+Integers, ascending from back to front. Use the token, never a raw number.
+| Token | Value | Usage |
+|---|---|---|
+| base | 0 | Page content |
+| sticky | 100 | Sticky headers, table headers |
+| dropdown | 200 | Menus, selects, comboboxes |
+| overlay | 300 | Scrim behind dialogs and drawers |
+| modal | 400 | Dialogs, drawers |
+| toast | 500 | Toasts, snackbars |
+| tooltip | 600 | Tooltips |
 
 ## 5. Components
 For each: anatomy, variants, sizes, states (default/hover/focus/disabled/loading/error), do / don't.
@@ -130,6 +174,18 @@ For each: anatomy, variants, sizes, states (default/hover/focus/disabled/loading
 - Card, Modal/Dialog, Toast, Banner
 - Tabs, Breadcrumb, Sidebar/Top nav, Bottom tab bar (mobile)
 - Empty state, Skeleton
+
+### 5.1 Component mapping
+How each design component maps to the code the developers use. Stack: [from the architecture doc — write `TBD` until it is chosen]. One row per component or variant used in the mock.
+- **Design component**: a `mk-*` class (in backticks) or a hand-rolled component listed above.
+- **Code component**: component + key prop · `TBD` · `custom <Name>` when it must be built.
+- **Source**: library + path, or the project path to create for `custom`; `—` when Code is `TBD`.
+- **Props / variants**: map variants and sizes **and the kit's state attributes** (`aria-busy`, `aria-invalid`, `aria-pressed`, `aria-current`) to the library's real prop — or write that the library sets it itself (e.g. shadcn `FormControl` sets `aria-invalid`). Never name a prop the library doesn't have.
+- **Notes**: library defaults that bypass the tokens, e.g. a hard-coded `z-50` → use `z-modal` / `z-dropdown` from §4.3.
+
+| Design component | Code component | Source | Props / variants | Notes |
+|---|---|---|---|---|
+| `mk-btn mk-btn-primary` | TBD | — | `mk-btn-sm` / default / `mk-btn-lg` → size · `aria-busy` → loading state | |
 
 ## 6. Iconography
 Set: [Phosphor / Tabler / Fluent / Material Symbols] · Iconify prefix `[ph:]` · Style: [Regular] (active: [Fill]) · Sizes: 16 / 20 / 24 · Color: currentColor
@@ -148,6 +204,39 @@ Imagery: [illustration style, or "none — text and icons only"]
 
 ## 7. Screen inventory
 Every screen in the app. IDs match the wireframe and mockup.
-| ID | Screen | Module | Wireframe | Mockup | Notes |
-|---|---|---|---|---|---|
-| login | Sign in | Auth | ✅ | ✅ | |
+Columns are read by name (`verify.py`). **Req ID**: the requirement IDs this screen serves, from the project's requirements doc (e.g. `R3`, `FR-01`, comma-separated), or `—` for system screens (404, error). **Priority**: `MVP` · `P2` · `P3` · `Later`. **Status**: `draft` · `review` · `approved` (developers may build it) · `changed` (was approved, then edited — see the changelog). Values are case-sensitive; no empty cells.
+| ID | Screen | Module | Wireframe | Mockup | Req ID | Priority | Status | Notes |
+|---|---|---|---|---|---|---|---|---|
+| login | Sign in | Auth | ✅ | — | R1 | MVP | draft | |
+| list | Documents | Documents | ✅ | ✅ | R2 | MVP | draft | |
+| detail | Document detail | Documents | ✅ | — | R2 | MVP | draft | |
+| form | New document | Documents | — | ✅ | R3 | MVP | draft | |
+
+## 8. Voice & tone
+How the product speaks — in screens, errors, emails and push. The exact strings live in ux-spec.md (copy deck, notifications); these rules decide how they are written. See `references/content-and-messages.md`.
+
+| Principle | Do | Don't |
+|---|---|---|
+| Plain | "Order approved" | "Your request has been successfully processed" |
+| Specific | "Choose a supplier." | "Invalid input." |
+| Calm about errors | "Couldn't save — check your connection and try again." | "ERROR 500!" |
+
+| Use | Avoid | Why |
+|---|---|---|
+| sign in | log in, login (verb) | one term everywhere |
+
+## 9. Assets
+Every image file the build needs. `Size` is the largest export in px (`WxH`) or `vector`; native apps export @1x/@2x/@3x (iOS) and mdpi–xxxhdpi (Android) from the vector source. `Platform`: `web` · `ios` · `android` · `email` · `all`. `Format`: `svg` · `png` · `ico` · `webp` · `jpg` · `pdf` · `webmanifest` · `xml`. `Status`: `needed` · `draft` · `review` · `approved`. `Screen`: where it appears, or `—`. Standard sizes: `references/assets.md`.
+
+| Asset | Platform | Size | Format | Screen | Source | Status | Notes |
+|---|---|---|---|---|---|---|---|
+| logo | all | vector | svg | — | TBD | needed | light + dark versions |
+| favicon | web | 32x32 | ico | — | TBD | needed | contains 16x16 too |
+| favicon | web | vector | svg | — | TBD | needed | |
+| apple-touch-icon | web | 180x180 | png | — | TBD | needed | |
+| manifest-icon | web | 192x192, 512x512 | png | — | TBD | needed | |
+| maskable-icon | web | 512x512 | png | — | TBD | needed | content inside the 80% safe zone |
+| web-manifest | web | — | webmanifest | — | TBD | needed | name, theme_color / background_color from tokens |
+| og-image | web | 1200x630 | png | — | TBD | needed | link previews |
+| empty-list | web | 240x160 | svg | list | TBD | needed | first-use empty state |
+

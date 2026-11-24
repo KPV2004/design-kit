@@ -1,6 +1,13 @@
 /** Generated from design.md — edit design.md, then re-run export_tokens.py */
 module.exports = {
   theme: {
+    // design.md §4.2 replaces Tailwind's default screens
+    screens: {
+      "sm": "640px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px"
+    },
     extend: {
       fontFamily: { sans: ['"IBM Plex Sans Thai"', 'Tahoma', 'system-ui', 'sans-serif'] },
       colors: {
@@ -48,6 +55,25 @@ module.exports = {
                 "600": "#0284c7",
                 "700": "#0369a1"
         }
+      },
+      transitionDuration: {
+        "fast": "120ms",
+        "base": "200ms",
+        "slow": "320ms"
+      },
+      transitionTimingFunction: {
+        "standard": "cubic-bezier(0.2, 0, 0, 1)",
+        "enter": "cubic-bezier(0, 0, 0.2, 1)",
+        "exit": "cubic-bezier(0.4, 0, 1, 1)"
+      },
+      zIndex: {
+        "base": "0",
+        "sticky": "100",
+        "dropdown": "200",
+        "overlay": "300",
+        "modal": "400",
+        "toast": "500",
+        "tooltip": "600"
       },
     },
   },

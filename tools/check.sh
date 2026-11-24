@@ -9,8 +9,9 @@ step() { printf '\n\033[1m▸ %s\033[0m\n' "$1"; }
 step "Manifests are valid JSON"
 python3 -c "import json; [json.load(open(f)) for f in ('.claude-plugin/plugin.json', '.claude-plugin/marketplace.json')]"
 
-step "Unit tests (parsers, engine version, versions in sync)"
-python3 -m unittest discover -s tests -p 'test_scripts.py'
+step "Unit tests (parsers, verify P1/P2 rules, tokens, versions in sync)"
+# every tests/test_*.py; test_browser.py holds no TestCase (it is a script, run below unless --fast)
+python3 -m unittest discover -s tests
 
 step "examples/procura-design uses the current engine and tools"
 diff -r --exclude=__pycache__ skills/design-kit/assets/project/_engine examples/procura-design/_engine
