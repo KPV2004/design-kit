@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from sync_diagrams import extract as extract_diagrams  # noqa: E402
 
 # design-kit version these tools ship with — tools/release.sh keeps it equal to plugin.json and _engine/VERSION
-KIT_VERSION = '2.0.0'
+KIT_VERSION = '3.0.0'
 
 errors, warns = [], []
 err = errors.append

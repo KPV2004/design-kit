@@ -1,7 +1,6 @@
 # Changelog
 
-## Unreleased
-Target version: 3.0.0 (breaking — not released yet).
+## 3.0.0 — 2026-11-25
 
 ### Breaking
 Projects made with 2.0.0 fail `verify.py` until they add the hand-off tables (the user chose ERROR, not WARN).
