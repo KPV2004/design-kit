@@ -204,7 +204,7 @@ shadcn/ui hard-codes `z-50` in dialog, select and popover — replace with `z-mo
 | `mk-scrim` + `mk-modal` (discard confirm) | `<AlertDialog>` | shadcn/ui `components/ui/alert-dialog` | role `alertdialog`; clicking outside does not close | "Discard this order?" |
 | `mk-alert-danger` | `<Alert variant="destructive">` | shadcn/ui `components/ui/alert` | | |
 | `mk-breadcrumb` | `<Breadcrumb>` | shadcn/ui `components/ui/breadcrumb` | | |
-| `mk-pagination` | `<Pagination>` | shadcn/ui `components/ui/pagination` | | server-side, 50 per page |
+| `mk-pagination` | `<Pagination>` + `<PaginationLink>` | shadcn/ui `components/ui/pagination` | `mk-page[aria-current="page"]` → `<PaginationLink isActive>` (sets `aria-current="page"`) | server-side, 50 per page |
 | `mk-skeleton` | `<Skeleton>` | shadcn/ui `components/ui/skeleton` | | |
 | `mk-empty` | custom `<EmptyState>` | `src/components/empty-state.tsx` | title, body, action | |
 | `mk-card` / `mk-stat` | `<Card>` | shadcn/ui `components/ui/card` | | |

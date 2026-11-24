@@ -28,7 +28,7 @@ Who may do what on each screen. `verify.py` checks every role and screen ID. Rol
 | Role | Screen | View | Create | Edit | Approve | Delete |
 |---|---|---|---|---|---|---|
 | guest | login | ✅ | — | — | — | — |
-| user | list | ✅ | — | — | — | — |
+| user | list, detail | ✅ | — | — | — | — |
 | user | form | ✅ | ✅ | ✅ (own only) | — | — |
 
 ## Screens
@@ -50,7 +50,9 @@ One table for the whole app — QA writes tests from it. Every inventory screen 
 
 | ID | Screen | Req ID | Given | When | Then |
 |---|---|---|---|---|---|
-| AC-01 | form | R2 | the amount is 0 | the user presses Save | "Enter an amount greater than 0." shows under the field and nothing is saved |
+| AC-01 | login, list | R1 | a user with a valid account | they sign in | Documents opens |
+| AC-02 | list, detail | R2 | a user with 3 documents | they open the first row | its detail opens |
+| AC-03 | form | R3 | the amount is 0 | the user presses Save | "Enter an amount greater than 0." shows under the field and nothing is saved |
 
 ## States
 State matrix — every screen that shows data gets a row. Write "n/a" where a state doesn't apply; don't leave states only in annotations.
@@ -129,6 +131,9 @@ One row per inventory screen (`verify.py` checks). No empty cells — write `n/a
 | Screen | Announce (aria-live) | Focus on open | Focus return | Tab order |
 |---|---|---|---|---|
 | login | assertive: sign-in error | email field | n/a | email → password → Sign in → Forgot password |
+| list | polite: result count after filtering | h1 "Documents" | back from detail: the row that was opened | search → filters → New → table rows → pagination |
+| detail | polite: "Saved" toast | h1 document name | dialog closes → the button that opened it | back → actions → content |
+| form | assertive: error summary on a failed save | first field | after a failed save: first invalid field | fields in order → Cancel → Save |
 
 ### Global
 - Target size ≥ 24×24 CSS px (WCAG 2.2 SC 2.5.8); the kit uses 40px, 44px on touch

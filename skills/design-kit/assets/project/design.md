@@ -197,4 +197,7 @@ Every screen in the app. IDs match the wireframe and mockup.
 Columns are read by name (`verify.py`). **Req ID**: the requirement IDs this screen serves, from the project's requirements doc (e.g. `R3`, `FR-01`, comma-separated), or `—` for system screens (404, error). **Priority**: `MVP` · `P2` · `P3` · `Later`. **Status**: `draft` · `review` · `approved` (developers may build it) · `changed` (was approved, then edited — see the changelog). Values are case-sensitive; no empty cells.
 | ID | Screen | Module | Wireframe | Mockup | Req ID | Priority | Status | Notes |
 |---|---|---|---|---|---|---|---|---|
-| login | Sign in | Auth | ✅ | ✅ | R1 | MVP | draft | |
+| login | Sign in | Auth | ✅ | — | R1 | MVP | draft | |
+| list | Documents | Documents | ✅ | ✅ | R2 | MVP | draft | |
+| detail | Document detail | Documents | ✅ | — | R2 | MVP | draft | |
+| form | New document | Documents | — | ✅ | R3 | MVP | draft | |
