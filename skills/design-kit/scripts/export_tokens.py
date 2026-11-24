@@ -73,14 +73,34 @@ EASING = re.compile(r'cubic-bezier\(\s*-?[\d.]+\s*(?:,\s*-?[\d.]+\s*){3}\)|linea
 NAME = re.compile(r'[a-z][a-z0-9-]*')
 
 
-def section_rows(design, title):
-    """(token, value) cells of the tables under every heading whose text contains `title`."""
+# §4 sub-headings, matched on the whole heading text (case-insensitive) after an optional
+# section number — "### 4.1 Motion tokens" yes; "## 4. Spacing, …, motion" or "### Motion notes" no.
+SECTION_NAMES = {
+    'motion': ('motion tokens', 'motion'),
+    'breakpoints': ('breakpoints',),
+    'z-index': ('z-index (layers)', 'z-index', 'z-index tokens', 'layers'),
+}
+
+
+def section_rows(design, key):
+    """(token, value) rows of the `| Token | … |` table under each `###` heading named SECTION_NAMES[key]."""
+    names = '|'.join(re.escape(n) for n in SECTION_NAMES[key])
+    heading = re.compile(r'^###[ \t]+(?:\d+(?:\.\d+)*\.?[ \t]+)?(?:' + names + r')[ \t]*#*[ \t]*$', re.M | re.I)
     rows = []
-    for m in re.finditer(r'^#{2,4}[^\n]*' + re.escape(title) + r'[^\n]*$', design, re.M | re.I):
+    for m in heading.finditer(design):
+        in_table = False
         for line in design[m.end():].split('\n#', 1)[0].splitlines():
+            if not line.lstrip().startswith('|'):
+                if in_table:
+                    break  # only the first Token table under the heading
+                continue
             cells = [c.strip().strip('`') for c in line.strip().strip('|').split('|')]
-            if len(cells) < 2 or not line.lstrip().startswith('|') or set(cells[0]) <= {'-', ':'} \
-                    or cells[0].lower() == 'token':
+            if not in_table:
+                in_table = cells[0].lower() == 'token'
+                if not in_table:
+                    break  # first table is not a token table — read nothing
+                continue
+            if set(cells[0]) <= {'-', ':'} or len(cells) < 2:
                 continue
             rows.append((cells[0], cells[1]))
     return rows
@@ -89,7 +109,7 @@ def section_rows(design, title):
 def layout_tokens(design):
     """§4.1 motion, §4.2 breakpoints, §4.3 z-index → (tokens, skipped rows as messages)."""
     motion, bps, z, skipped = {'duration': {}, 'easing': {}}, {}, {}, []
-    for tok, val in section_rows(design, 'Motion'):
+    for tok, val in section_rows(design, 'motion'):
         t, e = TIME.fullmatch(val), EASING.fullmatch(val)
         if NAME.fullmatch(tok) and t:
             ms = float(t.group(1)) * (1000 if t.group(2) == 's' else 1)
@@ -98,13 +118,13 @@ def layout_tokens(design):
             motion['easing'][tok.removeprefix('ease-')] = re.sub(r'\s*,\s*', ', ', val)
         else:
             skipped.append(f'motion {tok!r} = {val!r}')
-    for tok, val in section_rows(design, 'Breakpoints'):
+    for tok, val in section_rows(design, 'breakpoints'):
         m = re.fullmatch(r'(\d+)\s*(?:px)?', val)
         if NAME.fullmatch(tok) and m:
             bps[tok.removeprefix('breakpoint-')] = int(m.group(1))
         else:
             skipped.append(f'breakpoint {tok!r} = {val!r}')
-    for tok, val in section_rows(design, 'Z-index'):
+    for tok, val in section_rows(design, 'z-index'):
         if NAME.fullmatch(tok) and re.fullmatch(r'-?\d+', val):
             z[tok.removeprefix('z-')] = int(val)
         else:
