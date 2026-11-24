@@ -1,6 +1,6 @@
 # Procura — Design System
 
-> Version: 1.0 · Updated: 2026-11-23 · Product type: Enterprise · Device model: Responsive web · Stack: Tailwind web · Dark mode: yes — light + dark
+> Version: 1.1 · Updated: 2026-11-24 · Product type: Enterprise · Device model: Responsive web · Stack: Tailwind web · Dark mode: yes — light + dark
 > Source of truth for colors, typography, spacing, and components. The wireframes, mockup, and UX spec must use the names defined here.
 
 ## 0. Assumptions
@@ -8,11 +8,14 @@
 - Internal tool for a mid-size Thai company; UI language English, amounts in THB, dates dd/MM/yyyy.
 - Two roles: **Requester** (creates POs) and **Approver** (approves/rejects up to 500,000 THB). Sign-in with company username + password (no SSO in v1).
 - Requesters mostly on desktop; approvers often approve from a phone between meetings.
+- No requirements doc exists for this example, so requirement IDs are assumed: **R1** sign in · **R2** find and track POs · **R3** create and submit a PO · **R4** approve or reject a PO.
+- Stack for the component mapping (§5.1) assumed: React + shadcn/ui.
 
 ## Changelog
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-11-23 | Initial design system |
+| 1.1 | 2026-11-24 | Hand-off tables added: §4.1–4.3 motion / breakpoint / z-index tokens, §5.1 component mapping, §7 Req ID / Priority / Status (all screens) |
 
 ## 1. Design principles
 1. **Approve in one glance** — amount, supplier and status are always visible together; approvers never open a tab to decide.
@@ -133,11 +136,40 @@ Dark-theme badges and alerts use text-body for text and keep the status hue in t
 
 Font: Inter; fallback system-ui. One typeface.
 
-## 4. Spacing, radius, elevation
+## 4. Spacing, radius, elevation, motion, layers
 - Spacing scale (px): 4, 8, 12, 16, 24, 32, 48
 - Radius: md 6 (controls) · lg 8 (cards) · xl 12 (dialogs) · full (badges, chips)
 - Shadow: sm (cards), md (menus), lg (dialogs)
-- Layout: sidebar 240px (≥1024), content max 1280px; breakpoints sm 640 · md 768 · lg 1024
+- Layout: sidebar 240px (from `lg`), content max 1280px (breakpoints in §4.2)
+
+### 4.1 Motion tokens
+| Token | Value | Usage |
+|---|---|---|
+| duration-fast | 120ms | Hover, focus ring, chip toggle |
+| duration-base | 200ms | Menus, tabs, toast in |
+| duration-slow | 320ms | Reject dialog, mobile sheet |
+| ease-standard | cubic-bezier(0.2, 0, 0, 1) | Moves and resizes |
+| ease-enter | cubic-bezier(0, 0, 0.2, 1) | Dialog and toast entering |
+| ease-exit | cubic-bezier(0.4, 0, 1, 1) | Dialog and toast leaving |
+
+### 4.2 Breakpoints
+| Token | Min width | Usage |
+|---|---|---|
+| sm | 640px | Large phones, landscape |
+| md | 768px | Tablet — PO table becomes cards below this |
+| lg | 1024px | Sidebar shown from here |
+| xl | 1280px | Content max width |
+
+### 4.3 Z-index (layers)
+| Token | Value | Usage |
+|---|---|---|
+| base | 0 | Page content |
+| sticky | 100 | Table header, mobile action bar, form footer |
+| dropdown | 200 | Supplier picker, user menu |
+| overlay | 300 | Scrim behind the reject dialog |
+| modal | 400 | Reject dialog, discard confirm |
+| toast | 500 | Approve / submit toasts |
+| tooltip | 600 | Tooltips |
 
 ## 5. Components
 Built from the design-kit component kits — wireframes `wf-*`, mock `mk-*` (states: default/hover/focus/disabled/loading/error are in the kit).
@@ -148,6 +180,34 @@ Built from the design-kit component kits — wireframes `wf-*`, mock `mk-*` (sta
 - Chips — `mk-chip` status filters (`aria-pressed`)
 - Side nav — `mk-nav-item` (`aria-current="page"`); mobile uses a top app bar
 - Tabs, breadcrumb, pagination, alert, dialog (`mk-scrim` + `mk-modal`), toast, skeleton, empty
+
+### 5.1 Component mapping
+Stack: React + shadcn/ui (assumed, §0).
+| Design component | Code component | Source | Props / variants | Notes |
+|---|---|---|---|---|
+| `mk-btn mk-btn-primary` | `<Button variant="default">` | shadcn/ui `components/ui/button` | `mk-btn-sm` / `mk-btn-lg` → size sm / lg · `aria-busy` → loading (disabled + spinner) | one per view |
+| `mk-btn mk-btn-secondary` | `<Button variant="outline">` | shadcn/ui `components/ui/button` | as primary | |
+| `mk-btn mk-btn-ghost` | `<Button variant="ghost">` | shadcn/ui `components/ui/button` | as primary | |
+| `mk-btn mk-btn-danger` | `<Button variant="destructive">` | shadcn/ui `components/ui/button` | as primary | "Reject order" only |
+| `mk-btn mk-btn-icon` | `<Button size="icon">` | shadcn/ui `components/ui/button` | `aria-label` required | |
+| `mk-field` + `mk-label` + `mk-input` + `mk-help` / `mk-error` | `<FormField>` + `<FormLabel>` + `<Input>` + `<FormDescription>` / `<FormMessage>` | shadcn/ui `components/ui/form` | `aria-invalid` → invalid · `mk-req` → required | error text from ux-spec Fields & validation |
+| `mk-select` | `<Select>` | shadcn/ui `components/ui/select` | `aria-invalid` → invalid | cost center |
+| `mk-textarea` | `<Textarea>` | shadcn/ui `components/ui/textarea` | `aria-invalid` → invalid | note, reject reason |
+| `mk-check` | `<Checkbox>` | shadcn/ui `components/ui/checkbox` | | |
+| `mk-table` | `<Table>` | shadcn/ui `components/ui/table` | `.num` → right-aligned, tabular-nums | becomes cards below `md` |
+| `mk-badge-*` | custom `<StatusBadge>` | `src/components/status-badge.tsx` | PO status → variant per §2.5 | text + dot, never color alone |
+| `mk-chip` | `<Toggle>` | shadcn/ui `components/ui/toggle` | `aria-pressed` → pressed | status filters, single-select |
+| `mk-nav-item` | `<NavLink>` | react-router | `aria-current="page"` → active | |
+| `mk-tabs` / `mk-tab` | `<Tabs>` / `<TabsTrigger>` | shadcn/ui `components/ui/tabs` | `aria-selected` → active value | |
+| `mk-scrim` + `mk-modal` | `<Dialog>` | shadcn/ui `components/ui/dialog` | open via trigger; focus return built in | |
+| `mk-alert-danger` | `<Alert variant="destructive">` | shadcn/ui `components/ui/alert` | | |
+| `mk-breadcrumb` | `<Breadcrumb>` | shadcn/ui `components/ui/breadcrumb` | | |
+| `mk-pagination` | `<Pagination>` | shadcn/ui `components/ui/pagination` | | server-side, 50 per page |
+| `mk-skeleton` | `<Skeleton>` | shadcn/ui `components/ui/skeleton` | | |
+| `mk-empty` | custom `<EmptyState>` | `src/components/empty-state.tsx` | title, body, action | |
+| `mk-card` / `mk-stat` | `<Card>` | shadcn/ui `components/ui/card` | | |
+| `mk-avatar` | `<Avatar>` | shadcn/ui `components/ui/avatar` | | |
+| Toast | `<Toaster>` + `toast()` | sonner | announces politely | |
 
 ## 6. Iconography
 Set: Phosphor · Iconify prefix `ph:` · Style: Regular · Sizes: 16 / 20 / 24 · Color: currentColor
@@ -175,10 +235,10 @@ Imagery: none — text and icons only.
 
 ## 7. Screen inventory
 Every screen in the app. IDs match the wireframe and mockup.
-| ID | Screen | Module | Wireframe | Mockup | Notes |
-|---|---|---|---|---|---|
-| login | Sign in | Auth | ✅ | ✅ | |
-| po-list | Purchase orders | Purchasing | ✅ | ✅ | table → cards on mobile |
-| po-detail | Purchase order detail | Purchasing | ✅ | ✅ | approve / reject |
-| po-form | New purchase order | Purchasing | ✅ | ✅ | |
-| not-found | Page not found | System | ✅ | — | |
+| ID | Screen | Module | Wireframe | Mockup | Req ID | Priority | Status | Notes |
+|---|---|---|---|---|---|---|---|---|
+| login | Sign in | Auth | ✅ | ✅ | R1 | MVP | approved | |
+| po-list | Purchase orders | Purchasing | ✅ | ✅ | R2, R4 | MVP | approved | table → cards on mobile |
+| po-detail | Purchase order detail | Purchasing | ✅ | ✅ | R2, R4 | MVP | approved | approve / reject |
+| po-form | New purchase order | Purchasing | ✅ | ✅ | R3 | MVP | approved | |
+| not-found | Page not found | System | ✅ | — | — | MVP | approved | |

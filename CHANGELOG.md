@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+Target version: 3.0.0 (breaking — not released yet).
+
+### Breaking
+Projects made with 2.0.0 fail `verify.py` until they add the hand-off tables (the user chose ERROR, not WARN).
+- design.md §7 inventory needs `Req ID`, `Priority` (`MVP` · `P2` · `P3` · `Later`) and `Status` (`draft` · `review` · `approved` · `changed`) columns, filled on every row. Columns are now read by name, not position.
+- ux-spec.md needs `## Roles & permissions` (`### Roles` + `### Permission matrix`), `## Acceptance criteria` (≥ 1 row per inventory screen) and `## Accessibility` as a per-screen table — `## Accessibility notes` no longer counts.
+
+### Migrating a 2.0.0 project
+1. Copy the new `scripts/*.py` into the project's `_tools/` (or run `update_engine.py`), then run `verify.py` to list what is missing.
+2. design.md: add `Req ID | Priority | Status` to §7 after Mockup; rename §4 to "Spacing, radius, elevation, motion, layers" and add §4.1–4.3 from the template; add §5.1 Component mapping.
+3. ux-spec.md: add `## Roles & permissions` after User flow, `## Acceptance criteria` after Screens, `## Formats & locale` after Copy deck; replace `## Accessibility notes` with `## Accessibility` (table + `### Global`), moving the old bullets.
+4. Re-export tokens, verify to 0 errors, bump the design version (minor) with a changelog row. `examples/procura-design` 1.1 shows the result.
+
+### Added
+- **Hand-off tables** in the templates and `references/handoff-tables.md`: roles & permission matrix, acceptance criteria (Given / When / Then), inventory Req ID / Priority / Status, component mapping (design.md §5.1: `mk-*` → code component, kit ARIA states → props), formats & locale (date, time, timezone, number, currency, plural; CLDR patterns, Thai era).
+- **Accessibility beyond contrast** in `references/states-and-accessibility.md` and the spec's per-screen table: aria-live announcements, focus on open / focus return, tab order, WCAG 2.2 target size and focus-not-obscured, 200% zoom / reflow, dynamic type, error summaries.
+- **Motion, breakpoint and z-index tokens** (design.md §4.1–4.3) exported to `tokens/`; spec layout rules name breakpoints (`md`, `lg`).
+
 ## 2.0.0 — 2026-11-23
 
 ### Breaking

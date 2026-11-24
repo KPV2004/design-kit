@@ -165,6 +165,17 @@ For each: anatomy, variants, sizes, states (default/hover/focus/disabled/loading
 - Tabs, Breadcrumb, Sidebar/Top nav, Bottom tab bar (mobile)
 - Empty state, Skeleton
 
+### 5.1 Component mapping
+How each design component maps to the code the developers use. Stack: [from the architecture doc — write `TBD` until it is chosen]. One row per component or variant used in the mock.
+- **Design component**: a `mk-*` class (in backticks) or a hand-rolled component listed above.
+- **Code component**: component + key prop · `TBD` · `custom <Name>` when it must be built.
+- **Source**: library + path, or the project path to create for `custom`; `—` when Code is `TBD`.
+- **Props / variants**: map variants and sizes **and the kit's state attributes** to props — `aria-busy` → loading, `aria-invalid` → invalid, `aria-pressed` → pressed, `aria-current` → active.
+
+| Design component | Code component | Source | Props / variants | Notes |
+|---|---|---|---|---|
+| `mk-btn mk-btn-primary` | TBD | — | size sm / md / lg · `aria-busy` → loading | |
+
 ## 6. Iconography
 Set: [Phosphor / Tabler / Fluent / Material Symbols] · Iconify prefix `[ph:]` · Style: [Regular] (active: [Fill]) · Sizes: 16 / 20 / 24 · Color: currentColor
 Why this set: [one line — e.g. "Fluent reads instantly to users who live in Office/AX"]
@@ -182,6 +193,7 @@ Imagery: [illustration style, or "none — text and icons only"]
 
 ## 7. Screen inventory
 Every screen in the app. IDs match the wireframe and mockup.
-| ID | Screen | Module | Wireframe | Mockup | Notes |
-|---|---|---|---|---|---|
-| login | Sign in | Auth | ✅ | ✅ | |
+Columns are read by name (`verify.py`). **Req ID**: the requirement IDs this screen serves, from the project's requirements doc (e.g. `R3`, `FR-01`, comma-separated), or `—` for system screens (404, error). **Priority**: `MVP` · `P2` · `P3` · `Later`. **Status**: `draft` · `review` · `approved` (developers may build it) · `changed` (was approved, then edited — see the changelog). Values are case-sensitive; no empty cells.
+| ID | Screen | Module | Wireframe | Mockup | Req ID | Priority | Status | Notes |
+|---|---|---|---|---|---|---|---|---|
+| login | Sign in | Auth | ✅ | ✅ | R1 | MVP | draft | |

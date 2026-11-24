@@ -1,5 +1,5 @@
 # Procura — Usability test plan
-> Version 1.0 — matches design.md 1.0 · Prototype: mock.html
+> Version 1.1 — matches design.md 1.1 · Prototype: mock.html
 > Run before development starts. Five participants find most of the problems a design has; fix, then test again.
 
 ## Goals
