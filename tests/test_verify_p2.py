@@ -361,6 +361,16 @@ class Notifications(unittest.TestCase):
         for part in ('more than one row for this channel', 'Channel "fax"', 'Field "Text"', 'locale "xx"', 'Max chars "many"'):
             self.assertTrue(has(errs, part), part)
 
+    def test_title_exactly_at_limit_passes(self):
+        title = 'PO waiting for approval'  # 23 characters
+        _, warns = run(verify.notifications_checks, NOTIF.replace('| push | Subject / Title | all | 40 |', '| push | Subject / Title | all | 23 |'),
+                       IDS, ROLES, {'po_submitted'})
+        self.assertEqual(len(title), 23)
+        self.assertFalse(has(warns, 'limit'))
+        _, warns = run(verify.notifications_checks, NOTIF.replace('| push | Subject / Title | all | 40 |', '| push | Subject / Title | all | 22 |'),
+                       IDS, ROLES, {'po_submitted'})
+        self.assertTrue(has(warns, 'push/en', 'limit is 22'))
+
     def test_no_limit_row_means_no_length_check(self):
         _, warns = self.check(NOTIF.replace('| email | Subject / Title | all | 60 |\n', '').replace('{{po_number}} needs approval', 'x' * 200))
         self.assertFalse(has(warns, 'limit'))
@@ -429,6 +439,14 @@ class Analytics(unittest.TestCase):
         errs, _ = run(verify.analytics_checks, ANALYTICS.replace('| user_id | string |', '| user_id? | string |'), INV)
         self.assertTrue(has(errs, 'snake_case'))
 
+    def test_boundaries_that_pass(self):
+        # QA SUG-P2-01 (1): 40-character event name and 25 properties including the common ones are allowed
+        name = 'a_' + 'b' * 38
+        self.assertEqual(len(name), 40)
+        self.assertEqual(run(verify.analytics_checks, ANALYTICS.replace('| po_submitted |', f'| {name} |'), INV), ([], []))
+        props = ', '.join(f'p{i}: string' for i in range(23))  # + user_id, platform = 25
+        self.assertEqual(run(verify.analytics_checks, ANALYTICS.replace('screen_id: string', props), INV), ([], []))
+
     def test_property_limit(self):
         props = ', '.join(f'p{i}: string' for i in range(24))
         errs, _ = run(verify.analytics_checks, ANALYTICS.replace('screen_id: string', props), INV)
@@ -476,7 +494,7 @@ class EndToEnd(unittest.TestCase):
             .replace('## Accessibility notes\n', p1.AC + p1.A11Y)
         spec = spec.replace('## User flow', USERS.split('## User flow')[0].replace('new-requester | requester, guest', 'new-requester | buyer')
                             + '## User flow')
-        spec += NOTIF.replace('approver | push', 'buyer | push').split('## Analytics events')[0] + ANALYTICS + CHARTS
+        spec += NOTIF.replace('approver | push', 'buyer | push').split('## Analytics events')[0] + ANALYTICS.replace('has_query?: boolean | R2 |', 'has_query?: boolean | R3 |') + CHARTS
         spec = spec.replace('busy-approver | approver |', 'busy-approver | buyer |')
         design = p1.INVENTORY.replace('| not-found |', '| po-detail | Detail | Purchasing | ✅ | ✅ | R2 | MVP | draft | |\n'
                                       '| po-form | Form | Purchasing | ✅ | ✅ | R3 | MVP | draft | |\n| not-found |') \
@@ -484,6 +502,8 @@ class EndToEnd(unittest.TestCase):
         errs = p1.EndToEnd('run_main').run_main(design, spec)
         p2_errs = [e for e in errs if any(w in e for w in self.P2_WORDS)]
         self.assertEqual(p2_errs, [])
+        p2_warns = [w for w in verify.warns if any(k in w for k in self.P2_WORDS)]  # QA SUG-P2-01 (2)
+        self.assertEqual(p2_warns, [])
 
 
 if __name__ == '__main__':
