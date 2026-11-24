@@ -15,7 +15,7 @@ Exit code 1 on any failure.
 import sys
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+# playwright is imported in main(), so `unittest discover` can import this file on machines without it
 
 ROOT = Path(__file__).resolve().parent.parent
 PROJECTS = {
@@ -74,6 +74,12 @@ def keyboard_checks(pg, name):
 
 
 def main():
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print('playwright is not installed — pip install playwright && playwright install chromium '
+              '(or run ./tools/check.sh --fast to skip the browser tests)')
+        return 1
     with sync_playwright() as p:
         browser = p.chromium.launch()
 
