@@ -201,3 +201,32 @@ Columns are read by name (`verify.py`). **Req ID**: the requirement IDs this scr
 | list | Documents | Documents | ✅ | ✅ | R2 | MVP | draft | |
 | detail | Document detail | Documents | ✅ | — | R2 | MVP | draft | |
 | form | New document | Documents | — | ✅ | R3 | MVP | draft | |
+
+## 8. Voice & tone
+How the product speaks — in screens, errors, emails and push. The exact strings live in ux-spec.md (copy deck, notifications); these rules decide how they are written. See `references/content-and-messages.md`.
+
+| Principle | Do | Don't |
+|---|---|---|
+| Plain | "Order approved" | "Your request has been successfully processed" |
+| Specific | "Choose a supplier." | "Invalid input." |
+| Calm about errors | "Couldn't save — check your connection and try again." | "ERROR 500!" |
+
+| Use | Avoid | Why |
+|---|---|---|
+| sign in | log in, login (verb) | one term everywhere |
+
+## 9. Assets
+Every image file the build needs. `Size` is the largest export in px (`WxH`) or `vector`; native apps export @1x/@2x/@3x (iOS) and mdpi–xxxhdpi (Android) from the vector source. `Platform`: `web` · `ios` · `android` · `email` · `all`. `Format`: `svg` · `png` · `ico` · `webp` · `jpg` · `pdf` · `webmanifest` · `xml`. `Status`: `needed` · `draft` · `review` · `approved`. `Screen`: where it appears, or `—`. Standard sizes: `references/assets.md`.
+
+| Asset | Platform | Size | Format | Screen | Source | Status | Notes |
+|---|---|---|---|---|---|---|---|
+| logo | all | vector | svg | — | TBD | needed | light + dark versions |
+| favicon | web | 32x32 | ico | — | TBD | needed | contains 16x16 too |
+| favicon | web | vector | svg | — | TBD | needed | |
+| apple-touch-icon | web | 180x180 | png | — | TBD | needed | |
+| manifest-icon | web | 192x192, 512x512 | png | — | TBD | needed | |
+| maskable-icon | web | 512x512 | png | — | TBD | needed | content inside the 80% safe zone |
+| web-manifest | web | — | webmanifest | — | TBD | needed | name, theme_color / background_color from tokens |
+| og-image | web | 1200x630 | png | — | TBD | needed | link previews |
+| empty-list | web | 240x160 | svg | list | TBD | needed | first-use empty state |
+

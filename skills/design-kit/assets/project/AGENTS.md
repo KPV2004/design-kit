@@ -15,6 +15,7 @@
 | `_tools/` | `verify.py`, `sync_diagrams.py`, `export_tokens.py` | Never |
 | `tokens/` | Generated from design.md for developers | Never by hand — regenerate |
 | `usability-test.md` | Test plan for the prototype: goals, participants, 5 tasks with screens + success criteria, measures, results | Yes |
+| `design-qa.md` | Pre-handoff heuristic checklist, build-vs-mock tolerances and the build review log | Yes |
 | `feedback/` | Exported review comments (`*-wireframe-feedback.md`) | Read, then archive |
 
 ## How the files connect
@@ -49,6 +50,11 @@
    | Motion / breakpoint / z-index token | design.md §4.1–4.3 + re-export `tokens/` (spec layout rules name breakpoints) |
    | Stack / component library | design.md §5.1 Component mapping |
    | Date / number / currency format | spec Formats & locale + sample data in screens |
+   | Persona / job / journey | spec Users & jobs (roles from Roles & permissions, screens from the inventory) |
+   | Email / push / in-app message | spec Notifications (trigger + copy for every locale + variables) + design.md §8 Voice & tone |
+   | Tracked event | spec Analytics events (+ notification Trigger if it uses the event) |
+   | Image asset | design.md §9 Assets |
+   | Screen built / reviewed | design-qa.md build review rows |
 3. Edit inside the screen markers with targeted replacements; don't reformat untouched screens.
 4. Components: wireframes compose from the `wf-*` kit (toolbar → Components), the mock from the `mk-*` kit (gallery on `design-system:mock`). Don't invent new `wf-*`/`mk-*` names — verify.py warns.
 5. Mock: screen ids end with `:mock`; theme-aware classes (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`) for surfaces that must follow the theme; token classes only (`bg-brand-600`); icons only from `icons`; no emoji; `data-notes` count = `.anno` markers (a marker on a desktop- or mobile-only element gets `data-device="desktop|mobile"`); reviewer hints in `data-hint`; widgets use ARIA roles (`role=tablist/tab`, `aria-haspopup=menu`, `role=switch`) and dialogs open with `openDialog('id')` — the engine adds the keyboard behavior.
