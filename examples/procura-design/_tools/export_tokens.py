@@ -80,36 +80,77 @@ SECTION_NAMES = {
     'breakpoints': ('breakpoints',),
     'z-index': ('z-index (layers)', 'z-index', 'z-index tokens', 'layers'),
 }
+CANONICAL = {'motion': '### 4.1 Motion tokens', 'breakpoints': '### 4.2 Breakpoints',
+             'z-index': '### 4.3 Z-index (layers)'}
+H3 = re.compile(r'^###[ \t]+(.+?)[ \t]*#*[ \t]*$', re.M)
+NUMBER = re.compile(r'^\d+(?:\.\d+)*\.?[ \t]+')
+NEAR = re.compile(r'motion|breakpoint|z-index|layers', re.I)
+
+
+def _tables(body):
+    """Tables in a heading body as lists of cell rows (header first, separator rows dropped)."""
+    tables, cur = [], None
+    for line in body.splitlines():
+        if line.lstrip().startswith('|'):
+            cells = [c.strip().strip('`') for c in line.strip().strip('|').split('|')]
+            if cur is None:
+                cur = []
+                tables.append(cur)
+            if not all(set(c) <= {'-', ':', ' '} and c for c in cells):
+                cur.append(cells)
+        else:
+            cur = None
+    return [t for t in tables if t]
+
+
+def _h3_sections(design):
+    """(heading line, name without number, body up to the next heading) for every ### heading."""
+    for m in H3.finditer(design):
+        yield m.group(0).strip(), NUMBER.sub('', m.group(1)).strip().lower(), design[m.end():].split('\n#', 1)[0]
+
+
+def _key_of(name):
+    return next((k for k, names in SECTION_NAMES.items() if name in names), None)
 
 
 def section_rows(design, key):
-    """(token, value) rows of the `| Token | … |` table under each `###` heading named SECTION_NAMES[key]."""
-    names = '|'.join(re.escape(n) for n in SECTION_NAMES[key])
-    heading = re.compile(r'^###[ \t]+(?:\d+(?:\.\d+)*\.?[ \t]+)?(?:' + names + r')[ \t]*#*[ \t]*$', re.M | re.I)
-    rows = []
-    for m in heading.finditer(design):
-        in_table = False
-        for line in design[m.end():].split('\n#', 1)[0].splitlines():
-            if not line.lstrip().startswith('|'):
-                if in_table:
-                    break  # only the first Token table under the heading
-                continue
-            cells = [c.strip().strip('`') for c in line.strip().strip('|').split('|')]
-            if not in_table:
-                in_table = cells[0].lower() == 'token'
-                if not in_table:
-                    break  # first table is not a token table — read nothing
-                continue
-            if set(cells[0]) <= {'-', ':'} or len(cells) < 2:
-                continue
-            rows.append((cells[0], cells[1]))
-    return rows
+    """(token, value) rows of the first `| Token | … |` table under each `###` heading named
+    SECTION_NAMES[key], plus messages for headings whose tokens cannot be read."""
+    rows, problems = [], []
+    for line, name, body in _h3_sections(design):
+        if _key_of(name) != key:
+            continue
+        table = next((t for t in _tables(body) if t[0][0].lower() == 'token'), None)
+        if table is None:
+            problems.append(f'{line!r} has no | Token | Value | table — none of its tokens are exported')
+            continue
+        data = [(r[0], r[1]) for r in table[1:] if len(r) >= 2]
+        if not data:
+            problems.append(f'{line!r} has an empty Token table')
+        rows += data
+    return rows, problems
+
+
+def near_miss_headings(design):
+    """### headings that hold a Token table and mention motion/breakpoints/z-index/layers but are
+    not one of the exact names — their tokens would silently disappear from tokens/."""
+    out = []
+    for line, name, body in _h3_sections(design):
+        if _key_of(name) is None and NEAR.search(name) \
+                and any(t[0][0].lower() == 'token' for t in _tables(body)):
+            key = 'motion' if 'motion' in name else 'breakpoints' if 'breakpoint' in name else 'z-index'
+            out.append(f'{line!r} looks like a §4 token table but is not read — rename it {CANONICAL[key]!r}')
+    return out
 
 
 def layout_tokens(design):
     """§4.1 motion, §4.2 breakpoints, §4.3 z-index → (tokens, skipped rows as messages)."""
-    motion, bps, z, skipped = {'duration': {}, 'easing': {}}, {}, {}, []
-    for tok, val in section_rows(design, 'motion'):
+    motion, bps, z, skipped = {'duration': {}, 'easing': {}}, {}, {}, near_miss_headings(design)
+    rows = {}
+    for key in SECTION_NAMES:
+        rows[key], problems = section_rows(design, key)
+        skipped += problems
+    for tok, val in rows['motion']:
         t, e = TIME.fullmatch(val), EASING.fullmatch(val)
         if NAME.fullmatch(tok) and t:
             ms = float(t.group(1)) * (1000 if t.group(2) == 's' else 1)
@@ -117,18 +158,18 @@ def layout_tokens(design):
         elif NAME.fullmatch(tok) and e:
             motion['easing'][tok.removeprefix('ease-')] = re.sub(r'\s*,\s*', ', ', val)
         else:
-            skipped.append(f'motion {tok!r} = {val!r}')
-    for tok, val in section_rows(design, 'breakpoints'):
+            skipped.append(f'skipped motion {tok!r} = {val!r}')
+    for tok, val in rows['breakpoints']:
         m = re.fullmatch(r'(\d+)\s*(?:px)?', val)
         if NAME.fullmatch(tok) and m:
             bps[tok.removeprefix('breakpoint-')] = int(m.group(1))
         else:
-            skipped.append(f'breakpoint {tok!r} = {val!r}')
-    for tok, val in section_rows(design, 'z-index'):
+            skipped.append(f'skipped breakpoint {tok!r} = {val!r}')
+    for tok, val in rows['z-index']:
         if NAME.fullmatch(tok) and re.fullmatch(r'-?\d+', val):
             z[tok.removeprefix('z-')] = int(val)
         else:
-            skipped.append(f'z-index {tok!r} = {val!r}')
+            skipped.append(f'skipped z-index {tok!r} = {val!r}')
     if list(bps.values()) != sorted(bps.values()):
         skipped.append('breakpoints are not ascending — mobile-first min-widths must grow')
     bps = dict(sorted(bps.items(), key=lambda kv: kv[1]))
@@ -159,7 +200,7 @@ def main(design_path, out_dir):
     if not scales:
         sys.exit('No color tokens found in design.md')
     for msg in skipped:
-        print(f'WARN skipped {msg} — see design.md §4 value formats', file=sys.stderr)
+        print(f'WARN {msg} — see design.md §4 formats', file=sys.stderr)
 
     def ms(v):
         return f'{v}ms'
