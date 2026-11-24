@@ -168,6 +168,13 @@ Added to every event by the SDK.
 | document_submitted | Save returns 2xx | form | server | document_id: string, amount: number, currency: string | R3 |
 | list_filtered | a filter changes | list | client | filter: enum(all/mine), result_count: integer, has_query?: boolean | R2 |
 
+## Charts
+Only for apps with charts — **delete this section if the app has none**. One row per chart: the question it answers, the type chosen for that question, the data fields from the API contract response, palette tokens from design.md §2.6, and whether a data table is available. `Type`: `bar` · `grouped-bar` · `stacked-bar` · `line` · `area` · `combo` · `donut` · `kpi` · `progress` · `sparkline` · `scatter` · `table`. See `references/data-viz.md`.
+
+| Chart | Screen | Question | Type | Data | Palette | Table fallback |
+|---|---|---|---|---|---|---|
+| documents-by-status | list | How many documents wait at each status? | bar | x: status · y: count (count, documents) | chart-1 | yes |
+
 ## Dev diagrams
 ### Data model (ER)
 ```mermaid

@@ -42,7 +42,7 @@ Enterprise tools: a sorted table often beats a chart. Add a chart only when the 
 - Don't animate on load under reduced motion.
 
 ## 4. Palette
-- §2.6 lists `chart-1` … `chart-8` as a hex table (`| chart-1 | #… |`) so `verify.py` can match Palette cells. Order matters: use them in order, `chart-1` for the main series.
+- §2.6 lists `chart-1` … `chart-8` as a hex table (`| chart-1 | #… |`, the template has the rows — fill the hex) so `verify.py` can match Palette cells; empty hex = Palette warnings. Order matters: use them in order, `chart-1` for the main series.
 - Status charts (approved / rejected) use the status colors from §2.5, not chart colors — one meaning per color.
 - Check every chart color in the dark theme too.
 

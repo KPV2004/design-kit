@@ -12,7 +12,7 @@ How to fill design.md `## 9. Assets`: every image file the build needs, with siz
 
 ## 1. Rules
 - One row per file: the key is Asset + Platform + Format (the favicon has an `ico` and an `svg` row).
-- `Size`: the largest export in px (`WxH`, several comma-separated) or `vector`; `—` for the web manifest. Native apps export @1x/@2x/@3x (iOS) and mdpi–xxxhdpi (Android) from one vector source — list the largest.
+- `Size`: the largest export in px as `WxH` (several comma-separated) or `vector`; `—` for the web manifest. Always write both numbers in §9 — `1200 wide` is rejected by `verify.py`; pick the height you export (e.g. `1200x400`). Native apps export @1x/@2x/@3x (iOS) and mdpi–xxxhdpi (Android) from one vector source — list the largest.
 - `Status`: `needed` → `draft` → `review` → `approved` (ready to ship). `Source`: the path in the repo or design files, `TBD` until it exists.
 - Colors inside icons and backgrounds come from design.md tokens (e.g. splash background = `brand-600`).
 
@@ -44,7 +44,7 @@ How to fill design.md `## 9. Assets`: every image file the build needs, with siz
 ## 5. Email and sharing
 | Asset | Platform | Size | Format | Notes |
 |---|---|---|---|---|
-| email-header | email | 1200 wide | png or jpg | displayed at 600 wide (@2x); never svg — Gmail and Outlook don't show it; meaning must survive images being blocked |
+| email-header | email | 1200x400 (height per design) | png or jpg | displayed at 600 wide (@2x); never svg — Gmail and Outlook don't show it; meaning must survive images being blocked |
 | og-image | web | 1200x630 | png or jpg | link previews in chat apps and social sites |
 
 ## 6. Illustrations

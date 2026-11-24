@@ -59,7 +59,17 @@ If design.md says **Dark mode: yes** (or the existing app has a dark theme — m
 |---|---|---|
 
 ### 2.6 Chart palette
-chart-1 … chart-8 with hex.
+Only if the app has charts. Use in order; `chart-1` is the main series. Each must reach 3:1 against the page background in every theme. Status charts use §2.5 status colors instead.
+| Token | Hex | Usage |
+|---|---|---|
+| chart-1 | | Main series |
+| chart-2 | | |
+| chart-3 | | |
+| chart-4 | | |
+| chart-5 | | |
+| chart-6 | | |
+| chart-7 | | |
+| chart-8 | | |
 
 ### 2.7 Contrast checks
 | Pair | Ratio | Pass |
