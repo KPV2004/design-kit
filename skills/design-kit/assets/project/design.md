@@ -115,11 +115,45 @@ Named looks the reviewer can switch between in mock.html. Each row overrides one
 
 Font: [choose per app — e.g. IBM Plex Sans Thai for Thai UIs, Inter elsewhere]; fallback Tahoma, system-ui. Thai needs line-height ≥ 1.6.
 
-## 4. Spacing, radius, elevation
+## 4. Spacing, radius, elevation, motion, layers
 - Spacing scale (px): 4, 8, 12, 16, 24, 32, 48
 - Radius: sm 4 · md 6 · lg 8 · xl 12 · full
 - Shadow: sm (cards), md (dropdowns), lg (modals)
-- Layout: container width, sidebar width, grid columns, breakpoints
+- Layout: container width, sidebar width, grid columns (breakpoints in §4.2)
+
+The three tables below are exported by `export_tokens.py` to `tokens/` — keep the column order, one token per row, and the value formats shown. Rows with another value format are skipped with a warning.
+
+### 4.1 Motion tokens
+Durations in `ms` (or `s`); easings as `cubic-bezier(x1, y1, x2, y2)`, `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out` or `steps(n)`. Name durations `duration-*` and easings `ease-*`. Under `prefers-reduced-motion: reduce` every duration exports as `0ms` — never put essential information in an animation.
+| Token | Value | Usage |
+|---|---|---|
+| duration-fast | 120ms | Hover, focus ring, toggles |
+| duration-base | 200ms | Dropdowns, tabs, toasts in |
+| duration-slow | 320ms | Dialogs, drawers, page-level transitions |
+| ease-standard | cubic-bezier(0.2, 0, 0, 1) | Moves and resizes on screen |
+| ease-enter | cubic-bezier(0, 0, 0.2, 1) | Elements entering (decelerate) |
+| ease-exit | cubic-bezier(0.4, 0, 1, 1) | Elements leaving (accelerate) |
+
+### 4.2 Breakpoints
+Min widths, mobile-first, in `px`, ascending. Same names as the Tailwind screens the mock uses; the spec's layout rules (ux-spec.md) refer to these names.
+| Token | Min width | Usage |
+|---|---|---|
+| sm | 640px | Large phones, landscape |
+| md | 768px | Tablet — table becomes cards below this |
+| lg | 1024px | Laptop — sidebar shown from here |
+| xl | 1280px | Desktop — content max width |
+
+### 4.3 Z-index (layers)
+Integers, ascending from back to front. Use the token, never a raw number.
+| Token | Value | Usage |
+|---|---|---|
+| base | 0 | Page content |
+| sticky | 100 | Sticky headers, table headers |
+| dropdown | 200 | Menus, selects, comboboxes |
+| overlay | 300 | Scrim behind dialogs and drawers |
+| modal | 400 | Dialogs, drawers |
+| toast | 500 | Toasts, snackbars |
+| tooltip | 600 | Tooltips |
 
 ## 5. Components
 For each: anatomy, variants, sizes, states (default/hover/focus/disabled/loading/error), do / don't.
