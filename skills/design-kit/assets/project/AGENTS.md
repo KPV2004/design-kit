@@ -59,7 +59,7 @@
 4. Components: wireframes compose from the `wf-*` kit (toolbar → Components), the mock from the `mk-*` kit (gallery on `design-system:mock`). Don't invent new `wf-*`/`mk-*` names — verify.py warns.
 5. Mock: screen ids end with `:mock`; theme-aware classes (`bg-surface`, `bg-page`, `text-body`, `text-muted`, `border-input`) for surfaces that must follow the theme; token classes only (`bg-brand-600`); icons only from `icons`; no emoji; `data-notes` count = `.anno` markers (a marker on a desktop- or mobile-only element gets `data-device="desktop|mobile"`); reviewer hints in `data-hint`; widgets use ARIA roles (`role=tablist/tab`, `aria-haspopup=menu`, `role=switch`) and dialogs open with `openDialog('id')` — the engine adds the keyboard behavior.
 6. Responsive web: one screen ID whose template holds `.frame-desktop` / `.frame-tablet` (only if the layout differs) / `.frame-mobile` — never `m-*` copies.
-7. Bump the version in design.md, ux-spec.md, `WF.version` (wireframes.html) and this file; add a changelog row.
+7. Bump the version in design.md, ux-spec.md, `WF.version` (wireframes.html), usability-test.md, design-qa.md and this file; add a changelog row.
 
 ## Commands (run from this folder)
 

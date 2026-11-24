@@ -30,6 +30,7 @@ Every design is delivered as one folder, built from `assets/project/`:
 ├── design.md          source of truth: colors, typography, icons (§6), components, screen inventory (§7), changelog
 ├── ux-spec.md         behavior, validation + exact error text, ALL diagrams (Mermaid), API contract, risks
 ├── usability-test.md  test plan for the prototype: 5 tasks with screens + success criteria, measures, results
+├── design-qa.md       pre-handoff heuristic checklist, build-vs-mock tolerances, build review log
 ├── wireframes.html    content only: WF config + diagrams (generated) + one <template> per screen
 ├── mock.html          content only: tokens + usageTokens + themes + icons config + one <section id="id:mock"> per screen
 ├── _engine/           shared review UI (toolbar, zoom, comments, device frames) — never edited per project
@@ -79,6 +80,11 @@ Ask only what would change the design — at most 3 questions in one message. Ot
 | **Always** — states, accessibility, Thai text | `references/states-and-accessibility.md` |
 | **Always** — ER, state, sequence, API contract | `references/dev-diagrams.md` |
 | **Always** — roles & permissions, acceptance criteria, inventory Req ID / Priority / Status, component mapping, formats & locale | `references/handoff-tables.md` |
+| **Always** — personas, jobs to be done, journey | `references/users-and-journeys.md` |
+| **Always** — pre-handoff checklist, build-vs-mock review | `references/design-qa.md` |
+| Emails, push, in-app messages, voice & tone, analytics events | `references/content-and-messages.md` |
+| Logo, icons, favicon, splash, illustrations | `references/assets.md` |
+| Charts, dashboards, KPIs | `references/data-viz.md` |
 
 ### 3. Decide the device model
 
@@ -111,7 +117,7 @@ cp -r <skill>/assets/project <out>/<app>-design
 mkdir -p <out>/<app>-design/_tools && cp <skill>/scripts/*.py <out>/<app>-design/_tools/
 ```
 
-Fill design.md: full color scales per `color-system.md` with **computed contrast ratios** (fix failing pairs before moving on); **§2.4 usage tokens with a Dark column whenever the app has or will ship dark mode** — for an existing app, copy the real dark values from its theme code rather than inventing them; **§2.8 platform mapping whenever the stack isn't web** (token → the app's actual constant → hex, e.g. `brand-600 → AppColors.greenDark → 0xFF263B34`, so a Flutter dev never converts hex by hand); typography, spacing; **§4.1–4.3 motion, breakpoint and z-index tokens** (keep the table formats — `export_tokens.py` reads them); components with states plus **§5.1 component mapping** (`mk-*` → code component, `TBD` until the stack is chosen; `handoff-tables.md` §4); **§6 icon set + icon map** per `iconography.md` (one set chosen for the users — e.g. Fluent for people who live in Office/Dynamics AX, Phosphor or Tabler elsewhere, not Lucide by default); §7 inventory with Req ID / Priority / Status; changelog 1.0. Fill AGENTS.md header (app, version, device model, icon set, language).
+Fill design.md: full color scales per `color-system.md` with **computed contrast ratios** (fix failing pairs before moving on); **§2.4 usage tokens with a Dark column whenever the app has or will ship dark mode** — for an existing app, copy the real dark values from its theme code rather than inventing them; **§2.8 platform mapping whenever the stack isn't web** (token → the app's actual constant → hex, e.g. `brand-600 → AppColors.greenDark → 0xFF263B34`, so a Flutter dev never converts hex by hand); typography, spacing; **§4.1–4.3 motion, breakpoint and z-index tokens** (keep the table formats — `export_tokens.py` reads them); components with states plus **§5.1 component mapping** (`mk-*` → code component, `TBD` until the stack is chosen; `handoff-tables.md` §4); **§6 icon set + icon map** per `iconography.md` (one set chosen for the users — e.g. Fluent for people who live in Office/Dynamics AX, Phosphor or Tabler elsewhere, not Lucide by default); §7 inventory with Req ID / Priority / Status; **§8 voice & tone** and **§9 assets** (`content-and-messages.md`, `assets.md`); changelog 1.0. Fill AGENTS.md header (app, version, device model, icon set, language).
 
 ### 7. Wireframe AND mock every screen (`wireframes.html` + `mock.html`)
 
@@ -129,11 +135,17 @@ Build both files in the same pass — for each inventory screen, write the wiref
 
 ### 8. Write the UX spec (`ux-spec.md`)
 
-Fill the skeleton — it is the file a front-end dev lives in, so it must stand alone (see *The spec must stand alone* above): Summary · Assumptions · User flow · **Roles & permissions** (`### Roles` + `### Permission matrix`, `Role | Screen | View | Create | Edit | Approve | Delete`) · Screens (`### [id]`, several IDs may share a heading — each with **Layout incl. every breakpoint rule** and a **Behavior** list: autofocus, keyboard type, what Save success/failure does — pop vs navigate — optimistic updates, auto-save) · **Acceptance criteria** (`ID | Screen | Req ID | Given | When | Then`, ≥ 1 row per inventory screen) · **States matrix** (every data screen gets a row; empty/loading/error/success/permission; "n/a" beats silence) · **Fields & validation** (exact error text, copied from the app's code when it exists — developers paste it verbatim) · **Interactions & behavior** table (triggers → outcomes, incl. quirks like auto-save or read-only modes) · **Copy deck** (every UI string per locale — EN/TH columns for localized apps) · **Formats & locale** (date / time / datetime / timezone / number / currency / plural patterns per locale) · **Dev diagrams** (ER, one state diagram per status-bearing entity, one sequence per main action, integration if other systems) · **API contract** (method, path, used-by screen, request body, response, errors — from the real API client, never invented) · **Accessibility** (one row per inventory screen: `Screen | Announce (aria-live) | Focus on open | Focus return | Tab order`, then `### Global` rules — `states-and-accessibility.md`) · Risks. Layout rules name the §4.2 breakpoints (`md`, `lg`), not raw px. Every diagram is a ```mermaid block so it renders inline in GitHub/Obsidian/VS Code. Names of statuses, endpoints and fields must match across diagrams, fields table, copy deck, and API contract.
+Fill the skeleton — it is the file a front-end dev lives in, so it must stand alone (see *The spec must stand alone* above): Summary · Assumptions · **Users & jobs** (personas, jobs to be done, journey — each tied to roles and screen IDs) · User flow · **Roles & permissions** (`### Roles` + `### Permission matrix`, `Role | Screen | View | Create | Edit | Approve | Delete`) · Screens (`### [id]`, several IDs may share a heading — each with **Layout incl. every breakpoint rule** and a **Behavior** list: autofocus, keyboard type, what Save success/failure does — pop vs navigate — optimistic updates, auto-save) · **Acceptance criteria** (`ID | Screen | Req ID | Given | When | Then`, ≥ 1 row per inventory screen) · **States matrix** (every data screen gets a row; empty/loading/error/success/permission; "n/a" beats silence) · **Fields & validation** (exact error text, copied from the app's code when it exists — developers paste it verbatim) · **Interactions & behavior** table (triggers → outcomes, incl. quirks like auto-save or read-only modes) · **Copy deck** (every UI string per locale — EN/TH columns for localized apps) · **Formats & locale** (date / time / datetime / timezone / number / currency / plural patterns per locale) · **Notifications** when the app sends email / push / in-app (`Locales:` line, triggers, copy per channel × locale with `{{variables}}`, channel limits) · **Analytics events** (common properties + events: `object_action` names, `name: type` properties, client/server source) · **Charts** if the app has charts (`data-viz.md`) · **Dev diagrams** (ER, one state diagram per status-bearing entity, one sequence per main action, integration if other systems) · **API contract** (method, path, used-by screen, request body, response, errors — from the real API client, never invented) · **Accessibility** (one row per inventory screen: `Screen | Announce (aria-live) | Focus on open | Focus return | Tab order`, then `### Global` rules — `states-and-accessibility.md`) · Risks. Layout rules name the §4.2 breakpoints (`md`, `lg`), not raw px. Every diagram is a ```mermaid block so it renders inline in GitHub/Obsidian/VS Code. Names of statuses, endpoints and fields must match across diagrams, fields table, copy deck, and API contract.
 
 ### 9. Plan the usability test (`usability-test.md`)
 
 Fill the template: goals tied to the spec's success metric and design.md §0 assumptions, participants (5 per user group) with a screener, setup (device matching the device model, starting screen), **five tasks** from warm-up to hardest — each a goal in the user's words (never name the button), the `**Screens:** [id] → [id]` it touches, an observable `**Success:**` end state, and what to watch for; include one task that hits a validation error and recovers with the spec's exact error text. Keep the measures table (success, time, errors, SEQ, SUS) and an empty results table. `verify.py` checks there are ≥ 5 tasks, each with screens from the inventory and a success criterion.
+
+### 9b. Fill the design QA file (`design-qa.md`)
+
+Run the pre-handoff checklist before setting screens to `approved`; keep the Tolerances table (tighten per project) and leave the Build review table empty until the first build round — QA and the designer fill it then (`references/design-qa.md`).
+
+Users & jobs, Notifications, Analytics events, Charts, §8–§9 and `design-qa.md` are **optional for verify** — a project without them passes — but when present they must follow the column formats, and every screen or role they name must exist.
 
 ### 10. Sync, export, verify
 
@@ -199,7 +211,12 @@ Every change updates **all affected files in place**:
 | Behavior / interaction | — | if visible | if visible | ✏️ interactions table + state matrix | — |
 | UI string | — | if visible | if visible | ✏️ copy deck | — |
 | Status / transition | ✏️ status mapping | badges | badges | ✏️ state diagram | re-sync diagrams |
-| Role / permission | — | if visible | disabled/hidden states | ✏️ roles + permission matrix + States Permission column + AC | — |
+| Role / permission | — | if visible | disabled/hidden states | ✏️ roles + permission matrix + States Permission column + AC + personas | — |
+| Persona / job / journey | — | — | — | ✏️ Users & jobs | — |
+| Email / push / in-app message | ✏️ §8 if tone changes | — | — | ✏️ notifications (triggers + copy per locale) | — |
+| Tracked event | — | — | — | ✏️ analytics events (+ notification trigger name) | — |
+| Image asset | ✏️ §9 | if shown | if shown | — | — |
+| Built screen reviewed | — | — | — | — | `design-qa.md` build review rows |
 | Requirement change | ✏️ §7 Req ID / Priority | — | — | ✏️ acceptance criteria | — |
 | Edit to an approved screen | ✏️ §7 Status → `changed` | — | — | — | — |
 | Motion / breakpoint / layer token | ✏️ §4.1–4.3 | — | if used | layout rules if a breakpoint is renamed | re-export tokens |
@@ -211,7 +228,7 @@ When the change is to an **existing app's design**, open the code that owns the 
 
 1. **Load** current files; on claude.ai copy uploads into `<out>` first (uploads are read-only).
 2. **Edit inside screen markers** with targeted str_replace; never regenerate approved screens; keep IDs stable; fix links to removed screens.
-3. **Version**: bump design.md (minor for tweaks, major for palette/restructure), add a changelog row naming changed screens, and update the version in ux-spec.md, `WF.version`, and AGENTS.md. Prefix changed screens' `data-notes` with "(changed vX.Y)" for one round.
+3. **Version**: bump design.md (minor for tweaks, major for palette/restructure), add a changelog row naming changed screens, and update the version in ux-spec.md, `WF.version`, AGENTS.md, usability-test.md and design-qa.md. Prefix changed screens' `data-notes` with "(changed vX.Y)" for one round.
 4. **Run** sync / export as needed, then `verify.py`; fix all errors.
 5. **Report** changes per file and knock-on changes the user didn't ask for (e.g. "brand switched to orange, so primary buttons use brand-700 — brand-600 with white text fails AA"). On claude.ai, re-zip and present.
 

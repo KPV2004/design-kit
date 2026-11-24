@@ -18,6 +18,9 @@ Projects made with 2.0.0 fail `verify.py` until they add the hand-off tables (th
 - **Hand-off tables** in the templates and `references/handoff-tables.md`: roles & permission matrix, acceptance criteria (Given / When / Then), inventory Req ID / Priority / Status, component mapping (design.md §5.1: `mk-*` → code component, kit ARIA states → the library's real props), formats & locale (date, time, timezone, number, currency, plural; CLDR patterns, Thai era).
 - **Accessibility beyond contrast** in `references/states-and-accessibility.md` and the spec's per-screen table: aria-live announcements, focus on open / focus return, tab order, WCAG 2.2 target size and focus-not-obscured, 200% zoom / reflow, dynamic type, error summaries.
 - **Motion, breakpoint and z-index tokens** (design.md §4.1–4.3) exported to `tokens/`; spec layout rules name breakpoints (`md`, `lg`).
+- **Optional design sections** (verified only when present — no new errors for existing projects): ux-spec `## Users & jobs` (personas, jobs to be done, journey), `## Notifications` (triggers, copy per channel × locale with `{{variables}}`, channel limits counted without Thai combining vowels/tone marks), `## Analytics events` (common properties + events), `## Charts`; design.md `## 8. Voice & tone` and `## 9. Assets` (per-platform sizes and formats); new `design-qa.md` (pre-handoff heuristic checklist, build-vs-mock tolerances, build review log).
+- References: `users-and-journeys.md`, `design-qa.md`, `content-and-messages.md` (voice, sendable notifications — consent, lock-screen privacy, plain text — and analytics naming without personal data), `assets.md` (web / iOS / Android / email sizes), `data-viz.md` (chart choice, chart accessibility, palette).
+- `examples/procura-design` 1.2 uses all of them except Charts (no charts in v1).
 
 ## 2.0.0 — 2026-11-23
 

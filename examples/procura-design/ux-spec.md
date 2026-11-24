@@ -1,5 +1,5 @@
 # Procura — UX Spec
-> Version 1.1 — matches design.md 1.1
+> Version 1.2 — matches design.md 1.2
 > **This spec must stand alone.** A developer implements from it without reopening app code.
 
 ## Summary
@@ -8,6 +8,32 @@ Procura lets requesters raise purchase orders (POs) and approvers approve or rej
 ## Assumptions & open questions
 - Approval limit 500,000 THB per approver; above that a second approver is needed (out of scope v1 — shown as an info alert only).
 - Open: should rejected POs be editable and resubmitted, or cloned? v1 assumes **edit and resubmit**.
+
+## Users & jobs
+Assumed from design.md §0 — not yet confirmed by interviews.
+
+### Personas
+| Persona | Role | Context | Goals | Pain points |
+|---|---|---|---|---|
+| desk-requester | requester | raises 5–10 POs a week at a desk, from supplier quotes | submit a correct PO first time | rejected POs come back without a clear reason |
+| mobile-approver | approver | department head; approves between meetings, mostly on a phone | clear the pending queue in minutes | has to open each PO to see amount and supplier |
+
+### Jobs to be done
+| ID | Persona | When | I want to | So I can | Screen |
+|---|---|---|---|---|---|
+| JTBD-01 | desk-requester | a supplier quote arrives | raise a PO from it quickly | order before the price changes | po-form |
+| JTBD-02 | desk-requester | my PO was rejected | see why and fix it | resubmit the same day | po-detail |
+| JTBD-03 | mobile-approver | POs are waiting for me | decide from my phone | keep purchasing moving | po-list, po-detail |
+| JTBD-04 | desk-requester | a supplier asks about an earlier order | find it by number or supplier | answer the same day | po-list |
+
+### Journey
+| Stage | Persona | Action | Screen | Pain point | Opportunity |
+|---|---|---|---|---|---|
+| Notice | mobile-approver | gets a push "PO-1042 needs approval" | — | no amount in the notification | amount and supplier in the push body |
+| Open | mobile-approver | taps the push, signs in if needed | login | session expired on the phone | remember the username on this device |
+| Review | mobile-approver | reads amount, supplier and lines | po-detail | long line lists on a phone | header shows amount, supplier, status together |
+| Decide | mobile-approver | approves or rejects with a reason | po-detail | — | sticky Approve / Reject bar on mobile |
+| Follow up | desk-requester | gets the result and fixes a rejected PO | po-detail | — | reject reason shown at the top |
 
 ## User flow
 ```mermaid
@@ -160,6 +186,65 @@ UI language English; amounts in THB; dates Gregorian.
 | number | en-GB | #,##0 | 1,250 | line quantities, tabular-nums |
 | currency | en-GB | #,##0.00 THB | 48,500.00 THB | right-aligned; tables omit "THB" in cells, column header says "Amount (THB)" |
 | plural | en | one / other | 1 order · 12 orders | result count |
+
+## Notifications
+Locales: en, th
+
+### Notification triggers
+| ID | Trigger | Recipient | Channels | Category | Screen | Variables |
+|---|---|---|---|---|---|---|
+| NT-01 | po_submitted | approver | push, email | transactional | po-detail | po_no: string, amount: money, supplier_name: string, action_url: url |
+| NT-02 | po_approved | requester | in-app, email | transactional | po-detail | po_no: string, approver_name: string, action_url: url |
+| NT-03 | po_rejected | requester | in-app, email | transactional | po-detail | po_no: string, reject_reason: string, action_url: url |
+
+### Notification copy
+| ID | Channel | Locale | Subject / Title | Body |
+|---|---|---|---|---|
+| NT-01 | push | en | {{po_no}} needs approval | {{amount}} · {{supplier_name}} |
+| NT-01 | push | th | {{po_no}} รออนุมัติ | {{amount}} · {{supplier_name}} |
+| NT-01 | email | en | {{po_no}} needs your approval | {{supplier_name}}, {{amount}}. Review it: {{action_url}} |
+| NT-01 | email | th | {{po_no}} รอคุณอนุมัติ | {{supplier_name}} ยอด {{amount}} ตรวจสอบ: {{action_url}} |
+| NT-02 | in-app | en | {{po_no}} approved | Approved by {{approver_name}}. |
+| NT-02 | in-app | th | อนุมัติ {{po_no}} แล้ว | อนุมัติโดย {{approver_name}} |
+| NT-02 | email | en | {{po_no}} was approved | Approved by {{approver_name}}. Open it: {{action_url}} |
+| NT-02 | email | th | อนุมัติ {{po_no}} แล้ว | อนุมัติโดย {{approver_name}} เปิดดู: {{action_url}} |
+| NT-03 | in-app | en | {{po_no}} was rejected | Reason: {{reject_reason}} |
+| NT-03 | in-app | th | ไม่อนุมัติ {{po_no}} | เหตุผล: {{reject_reason}} |
+| NT-03 | email | en | {{po_no}} was rejected — action needed | Reason: {{reject_reason}}. Edit and resubmit: {{action_url}} |
+| NT-03 | email | th | ไม่อนุมัติ {{po_no}} — กรุณาแก้ไข | เหตุผล: {{reject_reason}} แก้ไขและส่งใหม่: {{action_url}} |
+
+### Channel limits
+| Channel | Field | Locale | Max chars |
+|---|---|---|---|
+| email | Subject / Title | all | 60 |
+| push | Subject / Title | all | 40 |
+| push | Body | all | 120 |
+| in-app | Subject / Title | all | 60 |
+| in-app | Body | all | 200 |
+
+The push body carries amount and supplier but no line items or prices per line — it shows on the lock screen.
+
+## Analytics events
+Measures the Summary's success metric (time from submit to decision) and mobile approval completion.
+
+### Common properties
+| Property | Type | Notes |
+|---|---|---|
+| user_id | string | internal ID |
+| role | enum(requester/approver) | |
+| platform | enum(web/ios/android) | web only in v1 |
+| locale | enum(en/th) | |
+
+### Events
+| Event | Trigger | Screen | Source | Properties | Req ID |
+|---|---|---|---|---|---|
+| screen_viewed | the screen has rendered | * | client | screen_id: string | — |
+| user_signed_in | POST /auth/login returns 200 | login | server | — | R1 |
+| po_list_filtered | a status chip changes or a search runs | po-list | client | status: enum(all/pending/approved/rejected), result_count: integer, has_query: boolean | R2 |
+| po_submitted | POST /purchase-orders with submit returns 201 | po-form | server | po_id: string, amount: number, currency: string, line_count: integer | R3 |
+| po_approved | POST /purchase-orders/{id}/approve returns 200 | po-detail | server | po_id: string, amount: number, currency: string, minutes_since_submit: integer | R4 |
+| po_rejected | POST /purchase-orders/{id}/reject returns 200 | po-detail | server | po_id: string, minutes_since_submit: integer, reason_length: integer | R4 |
+| notification_opened | a notification link opens Procura | po-detail | client | notification_id: string, channel: enum(email/push/in-app) | R4 |
 
 ## Dev diagrams
 ### Data model (ER)

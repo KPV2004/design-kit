@@ -1,6 +1,6 @@
 # Procura — Design System
 
-> Version: 1.1 · Updated: 2026-11-24 · Product type: Enterprise · Device model: Responsive web · Stack: Tailwind web · Dark mode: yes — light + dark
+> Version: 1.2 · Updated: 2026-11-24 · Product type: Enterprise · Device model: Responsive web · Stack: Tailwind web · Dark mode: yes — light + dark
 > Source of truth for colors, typography, spacing, and components. The wireframes, mockup, and UX spec must use the names defined here.
 
 ## 0. Assumptions
@@ -16,6 +16,7 @@
 |---|---|---|
 | 1.0 | 2026-11-23 | Initial design system |
 | 1.1 | 2026-11-24 | Hand-off tables added: §4.1–4.3 motion / breakpoint / z-index tokens, §5.1 component mapping, §7 Req ID / Priority / Status (all screens) |
+| 1.2 | 2026-11-24 | §8 Voice & tone, §9 Assets; ux-spec Users & jobs, Notifications, Analytics events; design-qa.md (no screen changes) |
 
 ## 1. Design principles
 1. **Approve in one glance** — amount, supplier and status are always visible together; approvers never open a tab to decide.
@@ -244,3 +245,34 @@ Every screen in the app. IDs match the wireframe and mockup.
 | po-detail | Purchase order detail | Purchasing | ✅ | ✅ | R2, R4 | MVP | approved | approve / reject |
 | po-form | New purchase order | Purchasing | ✅ | ✅ | R3 | MVP | approved | |
 | not-found | Page not found | System | ✅ | — | — | MVP | approved | |
+
+## 8. Voice & tone
+Procura talks like a helpful colleague in purchasing: short, specific, no blame. Strings live in the ux-spec copy deck and Notifications; Thai copy uses neutral polite language without ครับ/ค่ะ in UI labels.
+
+| Principle | Do | Don't |
+|---|---|---|
+| Plain | "Order approved" | "Your purchase request has been successfully processed" |
+| Specific | "Choose a supplier." | "Invalid input." |
+| Name the object | "Reject PO-1042?" | "Are you sure?" |
+| Calm about errors | "Couldn't load orders — check your connection" | "ERROR 500" |
+
+| Use | Avoid | Why |
+|---|---|---|
+| purchase order, order | PO request, requisition | the word users say; "PO-1042" for numbers |
+| approve / reject | accept / decline | matches the status names |
+| sign in | log in, login (verb) | one term everywhere |
+
+## 9. Assets
+| Asset | Platform | Size | Format | Screen | Source | Status | Notes |
+|---|---|---|---|---|---|---|---|
+| logo | all | vector | svg | login | brand/procura-logo.svg | draft | wordmark; light + dark |
+| logo-mark | all | vector | svg | — | brand/procura-mark.svg | draft | sidebar collapsed, favicon source |
+| favicon | web | 32x32 | ico | — | TBD | needed | contains 16x16 |
+| favicon | web | vector | svg | — | TBD | needed | from logo-mark |
+| apple-touch-icon | web | 180x180 | png | — | TBD | needed | approvers add it to the home screen |
+| manifest-icon | web | 192x192, 512x512 | png | — | TBD | needed | |
+| maskable-icon | web | 512x512 | png | — | TBD | needed | mark inside the 80% safe zone on brand-600 |
+| web-manifest | web | — | webmanifest | — | TBD | needed | theme_color brand-600, background_color neutral-50 |
+| email-header | email | 1200x200 | png | — | TBD | needed | shown at 600 wide; never svg |
+| empty-orders | web | 240x160 | svg | po-list | TBD | needed | first-use empty state |
+
