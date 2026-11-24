@@ -193,6 +193,11 @@ class Roles(unittest.TestCase):
         self.assertTrue(has(errs, '### Roles'))
         self.assertTrue(has(errs, '### Permission matrix'))
 
+    def test_empty_role_cell_errors(self):
+        # BUG-P1-01: a row with an empty Role was skipped silently
+        errs, _ = run(verify.roles_checks, ROLES.replace('| guest | login |', '|  | login |'), IDS)
+        self.assertTrue(has(errs, 'screen "login" has no Role'))
+
     def test_missing_action_column(self):
         errs, _ = run(verify.roles_checks, ROLES.replace(' Approve |', '').replace('| — | — | — | — |', '| — | — | — |'), IDS)
         self.assertTrue(has(errs, 'lacks column', 'approve'))
@@ -240,6 +245,28 @@ class AcceptanceCriteria(unittest.TestCase):
         errs, _ = run(verify.ac_checks, AC.replace('| login | R1 |', '| login | r1 |'), self.inv())
         self.assertTrue(has(errs, 'Req ID "r1"'))
 
+    def test_empty_req_id_errors(self):
+        # BUG-P1-02: empty Req ID must be — like the inventory, not blank
+        errs, _ = run(verify.ac_checks, AC.replace('| login | R1 |', '| login |  |'), self.inv())
+        self.assertTrue(has(errs, 'AC-01', 'Req ID is empty'))
+        errs, _ = run(verify.ac_checks, AC.replace('| login | R1 |', '| login | — |'), self.inv())
+        self.assertEqual(errs, [])
+
+    def test_empty_screen_gives_no_req_warning(self):
+        # SUG-P1-04: no "not listed for  in the inventory" noise next to the error
+        errs, warns = run(verify.ac_checks, AC.replace('| AC-01 | login | R1 |', '| AC-01 |  | R1 |'), self.inv())
+        self.assertTrue(has(errs, 'AC-01', 'has no Screen'))
+        self.assertFalse(has(warns, 'AC-01'))
+
+    def test_empty_then_errors(self):
+        errs, _ = run(verify.ac_checks, AC.replace('| the list shows |', '|  |'), self.inv())
+        self.assertTrue(has(errs, 'AC-01', 'Then is empty'))
+
+    def test_missing_column_and_header_case(self):
+        errs, _ = run(verify.ac_checks, AC.replace(' Given |', '').replace('| a user |', '|').replace('| a buyer |', '|'), self.inv())
+        self.assertTrue(has(errs, 'lacks column', 'given'))
+        self.assertEqual(run(verify.ac_checks, AC.replace('| Req ID |', '| req id |'), self.inv()), ([], []))
+
     def test_empty_table_errors(self):
         errs, _ = run(verify.ac_checks, '## Acceptance criteria\n| ID | Screen | Req ID | Given | When | Then |\n|---|---|---|---|---|---|\n', self.inv())
         self.assertTrue(has(errs, 'no rows'))
@@ -276,6 +303,22 @@ class Accessibility(unittest.TestCase):
         errs, warns = run(verify.a11y_checks, A11Y.replace('assertive: sign-in error', 'sign-in error'), IDS)
         self.assertEqual(errs, [])
         self.assertTrue(has(warns, 'login', 'polite: or assertive:'))
+
+    def test_duplicate_screen_row_warns(self):
+        # SUG-P1-03
+        spec = A11Y.replace('| not-found | n/a | h1 | n/a | Go home |\n', '| not-found | n/a | h1 | n/a | Go home |\n| login | n/a | h1 | n/a | x |\n')
+        errs, warns = run(verify.a11y_checks, spec, IDS)
+        self.assertEqual(errs, [])
+        self.assertTrue(has(warns, 'screen "login" has more than one row'))
+
+    def test_several_ids_in_one_row_error(self):
+        errs, _ = run(verify.a11y_checks, A11Y.replace('| not-found | n/a |', '| not-found, login | n/a |'), IDS)
+        self.assertTrue(has(errs, 'one screen ID per row'))
+
+    def test_missing_column_errors(self):
+        spec = A11Y.replace(' Tab order |', '').replace('|---|---|---|---|---|', '|---|---|---|---|')
+        errs, _ = run(verify.a11y_checks, spec, IDS)
+        self.assertTrue(has(errs, 'lacks column', 'tab order'))
 
     def test_global_bullets_are_ignored(self):
         spec = A11Y + '| stray | table | under | global | x |\n'

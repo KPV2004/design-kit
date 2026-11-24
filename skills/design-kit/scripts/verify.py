@@ -250,6 +250,8 @@ def roles_checks(spec, ids_inv):
         for s in ss:
             if s != '*' and s not in ids_inv:
                 err(f'spec Permission matrix: screen "{s}" is not in the design.md inventory')
+        if not rs:
+            err(f'spec Permission matrix: row for screen "{r["screen"]}" has no Role — use a declared role or *')
         if not ss:
             err(f'spec Permission matrix: row for role "{r["role"]}" has no Screen')
         for a in ACTIONS:
@@ -303,9 +305,11 @@ def ac_checks(spec, inv):
             if not r[k]:
                 err(f'spec AC "{aid}": {k.title()} is empty')
         req = r['req id']
-        if req and req not in NONE:
+        if not req:
+            err(f'spec AC "{aid}": Req ID is empty — list requirement IDs or write —')
+        elif req not in NONE:
             allowed = set()
-            known = True
+            known = bool(screens)
             for s in screens:
                 inv_req = (inv.get(s) or {}).get('req')
                 if inv_req is None:
@@ -343,6 +347,8 @@ def a11y_checks(spec, ids_inv):
         s = r['screen']
         if s not in ids_inv:
             err(f'spec Accessibility: screen "{s}" is not in the design.md inventory (one screen ID per row)')
+        if s in covered:
+            warn(f'spec Accessibility: screen "{s}" has more than one row — keep one row per screen')
         covered.add(s)
         for c in cols[1:]:
             if not r[c]:
