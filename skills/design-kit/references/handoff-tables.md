@@ -34,7 +34,9 @@ How to fill the tables a developer, QA or PM reads first: roles & permissions, a
 - Ask the Tech Lead / Frontend for the stack and component library before filling it; until then Code = `TBD`, Source = `—`.
 - One row per `mk-*` component or variant used in the mock, plus every hand-rolled component listed in §5.
 - New components: `custom <StatusBadge>` with the path to create in Source, so developers don't guess names.
-- Props / variants must map the kit's state attributes as well as visual variants — `aria-busy` → loading, `aria-invalid` → invalid, `aria-pressed` → pressed, `aria-current` → active — these are the states developers most often drop.
+- Props / variants must map the kit's state attributes as well as visual variants — `aria-busy`, `aria-invalid`, `aria-pressed`, `aria-current` — these are the states developers most often drop. Map each to the library's real prop, or write that the library sets it itself (shadcn `FormControl` sets `aria-invalid`; Radix `ToggleGroup type="single"` uses radio semantics). Sizes use the kit's names: `mk-btn-sm` / default / `mk-btn-lg` (the kit has no md).
+- Map to the library's **real** API — these names are design-side states, not props every library has (shadcn/ui `Button` has no `loading`; `aria-invalid` comes from `FormControl`; Radix Select puts it on the trigger). Note where the library's accessibility differs from the mock (e.g. a single-select toggle group uses radio semantics instead of `aria-pressed`).
+- In Notes, map library defaults that bypass the tokens: a hard-coded z-index (shadcn `z-50` in dialog / select / popover) → the §4.3 token (`z-modal`, `z-dropdown`); a breakpoint the exported config doesn't define (`2xl`) → add it to §4.2.
 - Non-web stacks: use the platform widget names (Flutter `FilledButton`, React Native `Pressable`) and keep §2.8 colour mapping in step.
 
 ## 5. Formats & locale (ux-spec.md)

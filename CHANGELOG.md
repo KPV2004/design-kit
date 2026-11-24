@@ -15,7 +15,7 @@ Projects made with 2.0.0 fail `verify.py` until they add the hand-off tables (th
 4. Re-export tokens, verify to 0 errors, bump the design version (minor) with a changelog row. `examples/procura-design` 1.1 shows the result.
 
 ### Added
-- **Hand-off tables** in the templates and `references/handoff-tables.md`: roles & permission matrix, acceptance criteria (Given / When / Then), inventory Req ID / Priority / Status, component mapping (design.md §5.1: `mk-*` → code component, kit ARIA states → props), formats & locale (date, time, timezone, number, currency, plural; CLDR patterns, Thai era).
+- **Hand-off tables** in the templates and `references/handoff-tables.md`: roles & permission matrix, acceptance criteria (Given / When / Then), inventory Req ID / Priority / Status, component mapping (design.md §5.1: `mk-*` → code component, kit ARIA states → the library's real props), formats & locale (date, time, timezone, number, currency, plural; CLDR patterns, Thai era).
 - **Accessibility beyond contrast** in `references/states-and-accessibility.md` and the spec's per-screen table: aria-live announcements, focus on open / focus return, tab order, WCAG 2.2 target size and focus-not-obscured, 200% zoom / reflow, dynamic type, error summaries.
 - **Motion, breakpoint and z-index tokens** (design.md §4.1–4.3) exported to `tokens/`; spec layout rules name breakpoints (`md`, `lg`).
 

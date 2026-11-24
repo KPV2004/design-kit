@@ -170,11 +170,12 @@ How each design component maps to the code the developers use. Stack: [from the 
 - **Design component**: a `mk-*` class (in backticks) or a hand-rolled component listed above.
 - **Code component**: component + key prop · `TBD` · `custom <Name>` when it must be built.
 - **Source**: library + path, or the project path to create for `custom`; `—` when Code is `TBD`.
-- **Props / variants**: map variants and sizes **and the kit's state attributes** to props — `aria-busy` → loading, `aria-invalid` → invalid, `aria-pressed` → pressed, `aria-current` → active.
+- **Props / variants**: map variants and sizes **and the kit's state attributes** (`aria-busy`, `aria-invalid`, `aria-pressed`, `aria-current`) to the library's real prop — or write that the library sets it itself (e.g. shadcn `FormControl` sets `aria-invalid`). Never name a prop the library doesn't have.
+- **Notes**: library defaults that bypass the tokens, e.g. a hard-coded `z-50` → use `z-modal` / `z-dropdown` from §4.3.
 
 | Design component | Code component | Source | Props / variants | Notes |
 |---|---|---|---|---|
-| `mk-btn mk-btn-primary` | TBD | — | size sm / md / lg · `aria-busy` → loading | |
+| `mk-btn mk-btn-primary` | TBD | — | `mk-btn-sm` / default / `mk-btn-lg` → size · `aria-busy` → loading state | |
 
 ## 6. Iconography
 Set: [Phosphor / Tabler / Fluent / Material Symbols] · Iconify prefix `[ph:]` · Style: [Regular] (active: [Fill]) · Sizes: 16 / 20 / 24 · Color: currentColor

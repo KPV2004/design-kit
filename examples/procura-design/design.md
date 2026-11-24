@@ -183,23 +183,25 @@ Built from the design-kit component kits — wireframes `wf-*`, mock `mk-*` (sta
 
 ### 5.1 Component mapping
 Stack: React + shadcn/ui (assumed, §0).
+shadcn/ui hard-codes `z-50` in dialog, select and popover — replace with `z-modal` / `z-dropdown` from §4.3. The exported `tailwind.config.js` replaces `theme.screens`, so `2xl` does not exist; add a `2xl` row to §4.2 if a component needs it (older shadcn `container`).
 | Design component | Code component | Source | Props / variants | Notes |
 |---|---|---|---|---|
-| `mk-btn mk-btn-primary` | `<Button variant="default">` | shadcn/ui `components/ui/button` | `mk-btn-sm` / `mk-btn-lg` → size sm / lg · `aria-busy` → loading (disabled + spinner) | one per view |
+| `mk-btn mk-btn-primary` | `<Button variant="default">` | shadcn/ui `components/ui/button` | `mk-btn-sm` / `mk-btn-lg` → size sm / lg · `aria-busy` loading → `disabled` + `aria-busy` + spinner (Button has no `loading` prop — wrap it) | one per view |
 | `mk-btn mk-btn-secondary` | `<Button variant="outline">` | shadcn/ui `components/ui/button` | as primary | |
 | `mk-btn mk-btn-ghost` | `<Button variant="ghost">` | shadcn/ui `components/ui/button` | as primary | |
 | `mk-btn mk-btn-danger` | `<Button variant="destructive">` | shadcn/ui `components/ui/button` | as primary | "Reject order" only |
 | `mk-btn mk-btn-icon` | `<Button size="icon">` | shadcn/ui `components/ui/button` | `aria-label` required | |
-| `mk-field` + `mk-label` + `mk-input` + `mk-help` / `mk-error` | `<FormField>` + `<FormLabel>` + `<Input>` + `<FormDescription>` / `<FormMessage>` | shadcn/ui `components/ui/form` | `aria-invalid` → invalid · `mk-req` → required | error text from ux-spec Fields & validation |
-| `mk-select` | `<Select>` | shadcn/ui `components/ui/select` | `aria-invalid` → invalid | cost center |
+| `mk-field` + `mk-label` + `mk-input` + `mk-help` / `mk-error` | `<FormField>` > `<FormItem>` > `<FormLabel>` + `<FormControl><Input /></FormControl>` + `<FormDescription>` / `<FormMessage>` | shadcn/ui `components/ui/form` | `aria-invalid` → set by `FormControl` from the react-hook-form error (with `aria-describedby`) · `mk-req` → required | error text from ux-spec Fields & validation |
+| `mk-select` | `<Select>` + `<SelectTrigger>` | shadcn/ui `components/ui/select` | `aria-invalid` → on `<SelectTrigger>` (Radix Select, not a native select) | cost center |
 | `mk-textarea` | `<Textarea>` | shadcn/ui `components/ui/textarea` | `aria-invalid` → invalid | note, reject reason |
 | `mk-check` | `<Checkbox>` | shadcn/ui `components/ui/checkbox` | | |
 | `mk-table` | `<Table>` | shadcn/ui `components/ui/table` | `.num` → right-aligned, tabular-nums | becomes cards below `md` |
 | `mk-badge-*` | custom `<StatusBadge>` | `src/components/status-badge.tsx` | PO status → variant per §2.5 | text + dot, never color alone |
-| `mk-chip` | `<Toggle>` | shadcn/ui `components/ui/toggle` | `aria-pressed` → pressed | status filters, single-select |
+| `mk-chip` (single-select) | `<ToggleGroup type="single">` + `<ToggleGroupItem>` | shadcn/ui `components/ui/toggle-group` | selected chip → group `value` | status filters · a11y differs from the mock: Radix single mode uses radio semantics, not `aria-pressed` (not yet tested against the Radix version in use) |
 | `mk-nav-item` | `<NavLink>` | react-router | `aria-current="page"` → active | |
 | `mk-tabs` / `mk-tab` | `<Tabs>` / `<TabsTrigger>` | shadcn/ui `components/ui/tabs` | `aria-selected` → active value | |
-| `mk-scrim` + `mk-modal` | `<Dialog>` | shadcn/ui `components/ui/dialog` | open via trigger; focus return built in | |
+| `mk-scrim` + `mk-modal` (reject dialog) | `<Dialog>` + `<DialogContent>` | shadcn/ui `components/ui/dialog` | `mk-scrim` → built-in `DialogOverlay` · focus return built in | |
+| `mk-scrim` + `mk-modal` (discard confirm) | `<AlertDialog>` | shadcn/ui `components/ui/alert-dialog` | role `alertdialog`; clicking outside does not close | "Discard this order?" |
 | `mk-alert-danger` | `<Alert variant="destructive">` | shadcn/ui `components/ui/alert` | | |
 | `mk-breadcrumb` | `<Breadcrumb>` | shadcn/ui `components/ui/breadcrumb` | | |
 | `mk-pagination` | `<Pagination>` | shadcn/ui `components/ui/pagination` | | server-side, 50 per page |
@@ -207,7 +209,7 @@ Stack: React + shadcn/ui (assumed, §0).
 | `mk-empty` | custom `<EmptyState>` | `src/components/empty-state.tsx` | title, body, action | |
 | `mk-card` / `mk-stat` | `<Card>` | shadcn/ui `components/ui/card` | | |
 | `mk-avatar` | `<Avatar>` | shadcn/ui `components/ui/avatar` | | |
-| Toast | `<Toaster>` + `toast()` | sonner | announces politely | |
+| Toast | `<Toaster>` + `toast()` | shadcn/ui `components/ui/sonner` (wraps sonner) | announces politely | |
 
 ## 6. Iconography
 Set: Phosphor · Iconify prefix `ph:` · Style: Regular · Sizes: 16 / 20 / 24 · Color: currentColor
