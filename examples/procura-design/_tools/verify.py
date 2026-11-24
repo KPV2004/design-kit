@@ -551,7 +551,7 @@ def design_qa_checks(folder, design, ids):
     if sec is not None:
         cols = ('id', 'screen', 'device', 'theme', 'state', 'property', 'expected', 'actual', 'severity', 'status')
         themes = set(design_theme_names(design)) | {'Default', 'all'}
-        seen = set()
+        seen, unresolved = set(), []
         for r in p2_table('design-qa.md Build review', sec, None, cols, allow_empty=True) or []:
             where = f'design-qa.md {r["id"] or "(no ID)"}'
             unique_id(where, r['id'], r'DQ-\d{2,}', seen, 'DQ-01')
@@ -565,6 +565,10 @@ def design_qa_checks(folder, design, ids):
             required(where, r, ('theme', 'expected', 'actual'))
             if r['theme'] and r['theme'] not in themes:
                 warn(f'{where}: theme "{r["theme"]}" is not in design.md §2.9 (or Default / all)')
+            if r['severity'] in ('blocker', 'major') and r['status'] in ('open', 'fixed'):
+                unresolved.append(r['id'])
+        if unresolved:
+            warn(f'design-qa.md Build review: {", ".join(unresolved)} blocker/major not verified yet — the round does not pass')
 
 
 def msg_len(text, variables):

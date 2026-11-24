@@ -227,7 +227,22 @@ class DesignQA(unittest.TestCase):
         self.assertEqual(self.run_qa(None), ([], []))
 
     def test_valid_is_clean(self):
-        self.assertEqual(self.run_qa(DESIGN_QA), ([], []))
+        text = DESIGN_QA.replace('| major | open |', '| major | verified |')
+        self.assertEqual(self.run_qa(text), ([], []))
+
+    def test_open_blocker_or_major_warns(self):
+        _, warns = self.run_qa(DESIGN_QA)  # DQ-01 major / open
+        self.assertTrue(has(warns, 'DQ-01', 'does not pass'))
+        _, warns = self.run_qa(DESIGN_QA.replace('| major | open |', '| blocker | fixed |'))
+        self.assertTrue(has(warns, 'DQ-01', 'does not pass'))
+        _, warns = self.run_qa(DESIGN_QA.replace('| major | open |', '| minor | open |'))
+        self.assertFalse(has(warns, 'does not pass'))
+
+    def test_round_line_and_evidence_column_are_ignored(self):
+        text = DESIGN_QA.replace('## Build review\n', '## Build review\nRound 1 — 2026-11-24 — build abc — design 1.0 — QA\n\n') \
+            .replace('| Severity | Status |', '| Severity | Status | Evidence |').replace('|---|---|---|---|---|---|---|---|---|---|', '|---|---|---|---|---|---|---|---|---|---|---|') \
+            .replace('| major | open |', '| major | verified | shot.png |').replace('| minor | fixed |', '| minor | fixed | |')
+        self.assertEqual(self.run_qa(text), ([], []))
 
     def test_build_review_may_be_empty(self):
         text = DESIGN_QA.split('| DQ-01')[0]
