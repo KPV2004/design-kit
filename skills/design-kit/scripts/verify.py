@@ -457,8 +457,8 @@ def type_ok(where, typ, types, enums):
     m = ENUM.fullmatch(typ) if enums else None
     if m:
         vals = m.group(1).split('/')
-        if not m.group(1) or not all(re.fullmatch(r'[a-z0-9_]+', v) for v in vals):
-            err(f'{where}: {typ} — enum values are [a-z0-9_]+ joined by /, none empty')
+        if not m.group(1) or not all(re.fullmatch(r'[a-z0-9_-]+', v) for v in vals):
+            err(f'{where}: {typ} — enum values are [a-z0-9_-]+ joined by /, none empty')
         elif len(set(vals)) != len(vals):
             err(f'{where}: {typ} repeats a value')
     elif typ not in types:

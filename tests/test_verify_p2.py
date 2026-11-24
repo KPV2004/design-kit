@@ -435,6 +435,11 @@ class Analytics(unittest.TestCase):
                 errs, _ = run(verify.analytics_checks, spec, INV)
                 self.assertTrue(has(errs, part), errs)
 
+    def test_enum_values_may_use_hyphens(self):
+        # channel names in R10 (in-app) are reused as enum values
+        spec = ANALYTICS.replace('status: enum(all/pending/approved)', 'channel: enum(email/push/in-app/sms)')
+        self.assertEqual(run(verify.analytics_checks, spec, INV), ([], []))
+
     def test_optional_marker_only_in_events(self):
         errs, _ = run(verify.analytics_checks, ANALYTICS.replace('| user_id | string |', '| user_id? | string |'), INV)
         self.assertTrue(has(errs, 'snake_case'))
